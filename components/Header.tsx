@@ -5,11 +5,11 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Note } from '@/lib/types'
-import { createGitHubAPIClient } from '@/lib/client'
 import { getUserLogin } from '@/lib/githubApi'
 import { useSession } from 'next-auth/react'
 
 interface HeaderProps {
+  latestNote?: Note
   username?: string
   iconUrl?: string
 }
@@ -70,11 +70,11 @@ const UserInfo = ({
   </div>
 )
 
-export default function Header({ username, iconUrl }: HeaderProps) {
+export default function Header({ username, iconUrl, latestNote }: HeaderProps) {
+  // eslint-disable-next-line
   const { data: session, status } = useSession()
   const [userLogin, setUserLogin] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string>('/icon.jpg')
-  const [latestNote, setLatestNote] = useState<Note | null>(null)
 
   useEffect(() => {
     const updateAvatarUrl = async () => {
@@ -95,28 +95,8 @@ export default function Header({ username, iconUrl }: HeaderProps) {
     }
   }, [iconUrl])
 
-  useEffect(() => {
-    const fetchLatestNote = async () => {
-      if (status === 'loading') return
-
-      try {
-        const thoughts = await createGitHubAPIClient(session?.accessToken || '').getNotes(username ?? '', 'tinymind-blog')
-        if (thoughts.length > 0) {
-          const latestNote = thoughts.sort(
-            (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-          )[0]
-          setLatestNote(latestNote)
-        }
-      } catch (error) {
-        console.error('Error fetching thoughts:', error)
-      }
-    }
-
-    fetchLatestNote()
-  }, [session, status, username])
-
   const navigationPath = '/'
-  const displayName = username || userLogin || 'Anonymous'
+  const displayName = userLogin || username || 'Anonymous'
 
   return (
     <header className='top-0 left-0 right-0 py-6 bg-card z-10'>

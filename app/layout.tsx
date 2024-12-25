@@ -7,10 +7,12 @@ import Head from 'next/head'
 import Header from '@/components/Header'
 import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
+import { Note } from '@/lib/types'
 import Script from 'next/script'
 import { SessionProvider } from '../components/SessionProvider'
 import { Toaster } from '@/components/ui/toaster'
 import { authOptions } from '@/lib/auth'
+import { createGitHubAPIClient } from '@/lib/client'
 import { getIconUrls } from '@/lib/githubApi'
 import { getServerSession } from 'next-auth/next'
 import { gowun_wodum } from '@/components/ui/font'
@@ -53,6 +55,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const session = await getServerSession(authOptions)
   const username = process.env.GITHUB_USERNAME ?? ''
 
+  const thoughts = await createGitHubAPIClient(session?.accessToken || '').getNotes(
+    username ?? '',
+    'tinymind-blog'
+  )
+  let latestNote: Note | undefined
+  if (thoughts.length > 0) {
+    latestNote = thoughts.sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    )[0]
+  }
+
   const { iconPath } = await getIconPaths(session?.accessToken)
 
   return (
@@ -73,7 +86,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`${gowun_wodum.className} bg-[#f6f8fa]`}>
         <NextIntlClientProvider messages={messages}>
           <SessionProvider>
-            <Header iconUrl={iconPath} username={username} />
+            <Header iconUrl={iconPath} username={username} latestNote={latestNote || undefined} />
             <main className='pb-20 max-w-[min(36em,36em)] m-auto'>{children}</main>
             <CreateButton messages={messages} />
             <Toaster />
