@@ -1,23 +1,10 @@
+import { BlogPost, Note } from './types'
+
 import { Octokit } from '@octokit/rest'
 import { getCachedOrFetch } from './cache'
 import path from 'path'
 
 type UpdateFileParams = Parameters<Octokit['repos']['createOrUpdateFileContents']>[0]
-
-export interface BlogPost {
-  id: string
-  title: string
-  content: string
-  imageUrl: string | null
-  date: string
-}
-
-export type Thought = {
-  id: string
-  content: string
-  timestamp: string
-  image?: string
-}
 
 function getOctokit(accessToken: string | undefined) {
   if (!accessToken) {
@@ -203,123 +190,6 @@ async function initializeGitHubStructure(octokit: Octokit, owner: string, repo: 
   await ensureContentStructure(octokit, owner, repo)
 }
 
-export async function getBlogPosts(accessToken: string): Promise<BlogPost[]> {
-  const octokit = getOctokit(accessToken)
-  const { owner, repo } = await getRepoInfo(accessToken)
-
-  return getCachedOrFetch(`blogPosts-${owner}-${repo}`, async () => {
-    try {
-      const response = await octokit.repos.getContent({
-        owner,
-        repo,
-        path: 'content/blog',
-      })
-
-      if (!Array.isArray(response.data)) {
-        console.warn('Unexpected response from GitHub API: data is not an array')
-        return []
-      }
-
-      const posts = await Promise.all(
-        response.data
-          .filter(
-            (file) => file.type === 'file' && file.name !== '.gitkeep' && file.name.endsWith('.md')
-          )
-          .map(async (file) => {
-            try {
-              const contentResponse = await octokit.repos.getContent({
-                owner,
-                repo,
-                path: `content/blog/${file.name}`,
-              })
-
-              if ('content' in contentResponse.data) {
-                const content = Buffer.from(contentResponse.data.content, 'base64').toString(
-                  'utf-8'
-                )
-
-                // Parse the date from the content
-                const dateMatch = content.match(/date:\s*(.+)/)
-                const date = dateMatch
-                  ? new Date(dateMatch[1]).toISOString()
-                  : new Date().toISOString()
-
-                // Parse the title from the content
-                const titleMatch = content.match(/title:\s*(.+)/)
-                const title = titleMatch ? titleMatch[1] : file.name.replace('.md', '')
-
-                return {
-                  id: file.name.replace('.md', ''),
-                  title,
-                  content,
-                  imageUrl: getFirstImageURLFrom(content),
-                  date,
-                }
-              }
-            } catch (error) {
-              console.error(`Error fetching content for ${file.name}:`, error)
-            }
-          })
-      )
-
-      return posts.filter((post): post is BlogPost => post !== undefined)
-    } catch (error) {
-      console.error('Error fetching blog posts:', error)
-      // If the blog directory doesn't exist, return an empty array
-      if (error instanceof Error && 'status' in error && error.status === 404) {
-        console.log('Blog directory does not exist, returning empty array')
-        return []
-      }
-      throw error
-    }
-  })
-}
-
-export async function getBlogPost(id: string, accessToken: string): Promise<BlogPost | null> {
-  if (!accessToken) {
-    //
-  }
-
-  return getCachedOrFetch(`content/blog/${decodeURIComponent(id)}.md`, async () => {
-    const octokit = getOctokit(accessToken)
-    const { owner, repo } = await getRepoInfo(accessToken)
-
-    try {
-      // Fetch the file content
-      const contentResponse = await octokit.repos.getContent({
-        owner,
-        repo,
-        path: `content/blog/${decodeURIComponent(id)}.md`,
-      })
-
-      if (Array.isArray(contentResponse.data) || !('content' in contentResponse.data)) {
-        throw new Error('Unexpected response from GitHub API')
-      }
-
-      const content = Buffer.from(contentResponse.data.content, 'base64').toString('utf-8')
-
-      // Parse the title from the content
-      const titleMatch = content.match(/title:\s*(.+)/)
-      const title = titleMatch ? titleMatch[1] : id
-
-      // Parse the date from the content
-      const dateMatch = content.match(/date:\s*(.+)/)
-      const date = dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString()
-
-      return {
-        id,
-        title,
-        content,
-        imageUrl: getFirstImageURLFrom(content),
-        date,
-      }
-    } catch (error) {
-      console.error('Error fetching blog post:', error)
-      return null
-    }
-  })
-}
-
 export async function createBlogPost(
   title: string,
   content: string,
@@ -366,7 +236,7 @@ export async function createThought(
     await initializeGitHubStructure(octokit, owner, repo)
     console.log('GitHub structure initialized')
 
-    let thoughts: Thought[] = []
+    let thoughts: Note[] = []
     let existingSha: string | undefined
 
     // Try to fetch existing thoughts
@@ -380,7 +250,7 @@ export async function createThought(
 
       if (!Array.isArray(response.data) && 'content' in response.data) {
         const existingContent = Buffer.from(response.data.content, 'base64').toString('utf-8')
-        thoughts = JSON.parse(existingContent) as Thought[]
+        thoughts = JSON.parse(existingContent) as Note[]
         existingSha = response.data.sha
         console.log('Existing thoughts fetched')
       }
@@ -394,7 +264,7 @@ export async function createThought(
     }
 
     // Create new thought
-    const newThought: Thought = {
+    const newThought: Note = {
       id: Date.now().toString(),
       content,
       timestamp: new Date().toISOString(),
@@ -442,7 +312,7 @@ export async function deleteThought(id: string, accessToken: string): Promise<vo
     await initializeGitHubStructure(octokit, owner, repo)
     console.log('GitHub structure initialized')
 
-    let thoughts: Thought[] = []
+    let thoughts: Note[] = []
     let existingSha: string | undefined
 
     // Fetch existing thoughts
@@ -454,7 +324,7 @@ export async function deleteThought(id: string, accessToken: string): Promise<vo
 
     if (!Array.isArray(response.data) && 'content' in response.data) {
       const existingContent = Buffer.from(response.data.content, 'base64').toString('utf-8')
-      thoughts = JSON.parse(existingContent) as Thought[]
+      thoughts = JSON.parse(existingContent) as Note[]
       existingSha = response.data.sha
       console.log('Existing thoughts fetched')
     }
@@ -502,7 +372,7 @@ export async function updateThought(
     await initializeGitHubStructure(octokit, owner, repo)
     console.log('GitHub structure initialized')
 
-    let thoughts: Thought[] = []
+    let thoughts: Note[] = []
     let existingSha: string | undefined
 
     // Fetch existing thoughts
@@ -514,7 +384,7 @@ export async function updateThought(
 
     if (!Array.isArray(response.data) && 'content' in response.data) {
       const existingContent = Buffer.from(response.data.content, 'base64').toString('utf-8')
-      thoughts = JSON.parse(existingContent) as Thought[]
+      thoughts = JSON.parse(existingContent) as Note[]
       existingSha = response.data.sha
       console.log('Existing thoughts fetched')
     }

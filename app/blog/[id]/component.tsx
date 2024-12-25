@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { BlogPostContent } from '@/components/BlogPostContent'
-import type { BlogPost } from '@/lib/githubApi'
+import type { BlogPost } from '@/lib/types'
 import {
   DropdownMenu,
   DropdownMenuContent,

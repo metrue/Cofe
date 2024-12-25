@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createBlogPost, createThought, deleteBlogPost, deleteThought, getBlogPost, getBlogPosts, updateBlogPost, updateThought } from '@/lib/githubApi';
+import { createBlogPost, createThought, deleteBlogPost, deleteThought, updateBlogPost, updateThought } from '@/lib/githubApi';
 
 import { authOptions } from "@/lib/auth";
 import { createGitHubAPIClient } from '@/lib/client';
@@ -73,18 +73,20 @@ export async function GET(request: NextRequest) {
     const action = searchParams.get('action');
     const id = searchParams.get('id');
 
+    const client = createGitHubAPIClient(session.accessToken)
+
     switch (action) {
       case 'getBlogPosts':
-        const posts = await getBlogPosts(session.accessToken);
+        const posts = await client.getBlogPosts();
         return NextResponse.json(posts, { headers });
       case 'getBlogPost':
         if (!id) {
           return NextResponse.json({ error: 'Missing id parameter' }, { status: 400, headers });
         }
-        const post = await getBlogPost(id, session.accessToken);
+        const post = await client.getBlogPost(id);
         return NextResponse.json(post, { headers });
       case 'getThoughts':
-        const thoughts = await createGitHubAPIClient(session.accessToken).getNotes()
+        const thoughts = await client.getNotes()
         return NextResponse.json(thoughts, { headers });
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400, headers });
