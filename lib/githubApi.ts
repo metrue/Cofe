@@ -645,64 +645,10 @@ async function fileToBase64(file: File): Promise<string> {
   })
 }
 
-export async function getBlogPostsPublic(
-  octokit: Octokit,
-  owner: string,
-  repo: string
-): Promise<BlogPost[]> {
-  return getCachedOrFetch(`blogPosts-${owner}-${repo}`, async () => {
-    try {
-      const response = await octokit.repos.getContent({
-        owner,
-        repo,
-        path: 'content/blog',
-      })
-
-      if (!Array.isArray(response.data)) {
-        return []
-      }
-
-      const posts = await Promise.all(
-        response.data
-          .filter((file) => file.type === 'file' && file.name.endsWith('.md'))
-          .map(async (file) => {
-            const contentResponse = await octokit.repos.getContent({
-              owner,
-              repo,
-              path: `content/blog/${file.name}`,
-            })
-
-            if ('content' in contentResponse.data) {
-              const content = Buffer.from(contentResponse.data.content, 'base64').toString('utf-8')
-              const titleMatch = content.match(/title:\s*(.+)/)
-              const dateMatch = content.match(/date:\s*(.+)/)
-
-              return {
-                id: file.name.replace('.md', ''),
-                title: titleMatch
-                  ? decodeURIComponent(titleMatch[1])
-                  : decodeURIComponent(file.name.replace('.md', '')),
-                content,
-                imageUrl: getFirstImageURLFrom(content),
-                date: dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString(),
-              }
-            }
-            return undefined
-          })
-      )
-
-      return posts.filter((post): post is BlogPost => post !== undefined)
-    } catch (error) {
-      console.error('Error fetching public blog posts:', error)
-      return []
-    }
-  })
-}
-
 export async function getUserLogin(accessToken: string): Promise<string> {
   const octokit = getOctokit(accessToken)
   const { data: user } = await octokit.users.getAuthenticated()
-  return user.login
+  return user.name ?? user.login
 }
 
 export async function getIconUrls(
