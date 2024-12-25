@@ -12,7 +12,7 @@ export default async function BlogPage() {
 
   const username = process.env.GITHUB_USERNAME ?? '';
   try {
-    const posts = await client.getBlogPosts(username ?? '', "tinymind-blog");
+    const posts = await client.getBlogPosts(username ?? '');
     return <BlogList posts={posts} />;
   } catch (error) {
     console.error("Error fetching blog posts:", error);
