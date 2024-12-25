@@ -1,7 +1,7 @@
 'use client'
 
 import { BlogCard } from './BlogCard'
-import { BlogPost } from '@/lib/githubApi'
+import { BlogPost } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'

@@ -1,6 +1,6 @@
 "use client";
 
-import { BlogPost } from "@/lib/githubApi";
+import { BlogPost } from "@/lib/types";
 import Link from "next/link";
 
 export const BlogCard = ({ post }: { post: BlogPost }) => (

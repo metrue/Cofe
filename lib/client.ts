@@ -3,6 +3,8 @@ import { BlogPost, Note } from './types'
 import { Octokit } from '@octokit/rest'
 import { getCachedOrFetch } from './cache'
 
+const REPO = 'tinymind-blog'
+
 const getFirstImageURLFrom = (content: string): string | null => {
   const imgRegex = /(https?:\/\/[^\s]+?\.(?:png|jpg|jpeg|gif|webp))/i
   const match = imgRegex.exec(content)
@@ -20,19 +22,18 @@ class GitHubAPIClient {
     this.accessToken = token
   }
 
-  async getBlogPosts(owner?: string, repo?: string): Promise<BlogPost[]> {
-    return getCachedOrFetch(`${owner}/${repo}`, async () => {
+  async getBlogPosts(owner?: string): Promise<BlogPost[]> {
+    return getCachedOrFetch(`${owner}/${REPO}`, async () => {
       const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
 
-      if (!owner || !repo) {
+      if (!owner && this.accessToken) {
         const { data: user } = await octokit.users.getAuthenticated()
         owner = user.login
-        repo = 'tinymind-blog'
       }
       try {
         const response = await octokit.repos.getContent({
-          owner,
-          repo,
+          owner: owner ?? '',
+          repo: REPO,
           path: 'content/blog',
         })
 
@@ -48,7 +49,7 @@ class GitHubAPIClient {
                 file.type === 'file' && file.name !== '.gitkeep' && file.name.endsWith('.md')
             )
             .map(async (file) => {
-              return this.getBlogPost(file.name, owner, repo)
+              return this.getBlogPost(file.name, owner, REPO)
             })
         )
 
@@ -71,12 +72,11 @@ class GitHubAPIClient {
       if (!owner || !repo) {
         const { data: user } = await octokit.users.getAuthenticated()
         owner = user.login
-        repo = 'tinymind-blog'
       }
 
       const contentResponse = await octokit.repos.getContent({
         owner,
-        repo,
+        repo: REPO,
         path: `content/blog/${name}`,
       })
 
@@ -105,13 +105,12 @@ class GitHubAPIClient {
       if (!owner || !repo) {
         const { data: user } = await octokit.users.getAuthenticated()
         owner = user.login
-        repo = 'tinymind-blog'
       }
 
       try {
         const response = await octokit.repos.getContent({
           owner,
-          repo,
+          repo: REPO,
           path: 'content/thoughts.json',
         })
 

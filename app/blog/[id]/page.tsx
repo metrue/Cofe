@@ -5,6 +5,9 @@ import { PostContainer } from './component'
 export default async function Page({ params }: { params: { id: string } }) {
   const octokit = new Octokit()
   const posts = await getBlogPostsPublic(octokit, 'metrue', 'tinymind-blog')
+  console.warn('+++')
+  console.warn(posts)
+  console.warn('+++')
   const post = posts.find((p) => p.id === decodeURIComponent(params.id))
 
   if (!post) {
