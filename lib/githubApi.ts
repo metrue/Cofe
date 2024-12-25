@@ -1,7 +1,5 @@
-import { BlogPost, Note } from './types'
-
+import { Note } from './types'
 import { Octokit } from '@octokit/rest'
-import { getCachedOrFetch } from './cache'
 import path from 'path'
 
 type UpdateFileParams = Parameters<Octokit['repos']['createOrUpdateFileContents']>[0]
@@ -11,16 +9,6 @@ function getOctokit(accessToken: string | undefined) {
     throw new Error('Access token is required')
   }
   return new Octokit({ auth: accessToken })
-}
-
-const getFirstImageURLFrom = (content: string): string | null => {
-  const imgRegex = /(https?:\/\/[^\s]+?\.(?:png|jpg|jpeg|gif|webp))/i
-  const match = imgRegex.exec(content)
-  if (match) {
-    const url = match[1]
-    return url.startsWith('https://github') ? `${url}?raw=true` : url
-  }
-  return null
 }
 
 async function getRepoInfo(accessToken: string | undefined) {
