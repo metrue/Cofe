@@ -23,7 +23,7 @@ interface BlogPostContentProps {
 
 export function BlogPostContent({ title, date, content, headerContent }: BlogPostContentProps) {
   return (
-    <Card className='max-w-3xl mx-auto mt-8 font-mono'>
+    <Card className='max-w-3xl mx-auto mt-8 font-mono max-w-[min(36em,36em)]'>
       <CardHeader className='flex justify-between items-start'>
         <div>
           <CardTitle className='text-3xl font-bold'>{title}</CardTitle>

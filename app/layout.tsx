@@ -87,7 +87,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <NextIntlClientProvider messages={messages}>
           <SessionProvider>
             <Header iconUrl={iconPath} username={username} latestNote={latestNote || undefined} />
-            <main className='pb-20 max-w-[min(36em,36em)] m-auto'>{children}</main>
+            <main className='pb-20 m-auto'>{children}</main>
             <CreateButton messages={messages} />
             <Toaster />
           </SessionProvider>
