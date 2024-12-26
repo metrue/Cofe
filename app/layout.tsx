@@ -55,10 +55,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const session = await getServerSession(authOptions)
   const username = process.env.GITHUB_USERNAME ?? ''
 
-  const thoughts = await createGitHubAPIClient(session?.accessToken || '').getNotes(
-    username ?? '',
-    'tinymind-blog'
-  )
+  const thoughts = await createGitHubAPIClient(session?.accessToken || '').getNotes(username ?? '')
   let latestNote: Note | undefined
   if (thoughts.length > 0) {
     latestNote = thoughts.sort(

@@ -4,6 +4,8 @@ import path from 'path'
 
 type UpdateFileParams = Parameters<Octokit['repos']['createOrUpdateFileContents']>[0]
 
+const REPO = 'Cofe'
+
 function getOctokit(accessToken: string | undefined) {
   if (!accessToken) {
     throw new Error('Access token is required')
@@ -20,7 +22,7 @@ async function getRepoInfo(accessToken: string | undefined) {
     const { data: user } = await octokit.users.getAuthenticated()
     return {
       owner: user.login,
-      repo: 'tinymind-blog', // You might want to make this configurable
+      repo: REPO,
     }
   } catch (error) {
     console.error('Error getting authenticated user:', error)
@@ -658,11 +660,11 @@ export async function getIconUrls(
       console.error('Error getting authenticated user:', error)
       // Fallback to using the access token as a username
       owner = usernameOrAccessToken
-      repo = 'tinymind-blog' // Default repo name
+      repo = REPO
     }
   } else {
     owner = usernameOrAccessToken
-    repo = 'tinymind-blog' // Default repo name
+    repo = REPO
   }
 
   const defaultIconPath = `https://github.com/${owner}.png`

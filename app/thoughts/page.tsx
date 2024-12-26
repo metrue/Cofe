@@ -14,8 +14,7 @@ export default async function NotesPage() {
   if (!session || !session.accessToken) {
     if (username) {
       const blogPosts = await createGitHubAPIClient(session?.accessToken ?? '').getNotes(
-        process.env.GITHUB_USERNAME ?? '',
-        'tinymind-blog'
+        process.env.GITHUB_USERNAME ?? ''
       )
       return (
         <div className='max-w-4xl mx-auto px-4 py-8'>

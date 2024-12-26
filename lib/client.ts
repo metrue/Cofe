@@ -3,7 +3,7 @@ import { BlogPost, Note } from './types'
 import { Octokit } from '@octokit/rest'
 import { getCachedOrFetch } from './cache'
 
-const REPO = 'tinymind-blog'
+const REPO = 'Cofe'
 
 const getFirstImageURLFrom = (content: string): string | null => {
   const imgRegex = /(https?:\/\/[^\s]+?\.(?:png|jpg|jpeg|gif|webp))/i
@@ -49,7 +49,7 @@ class GitHubAPIClient {
                 file.type === 'file' && file.name !== '.gitkeep' && file.name.endsWith('.md')
             )
             .map(async (file) => {
-              return this.getBlogPost(file.name, owner, REPO)
+              return this.getBlogPost(file.name, owner)
             })
         )
 
@@ -66,10 +66,10 @@ class GitHubAPIClient {
     })
   }
 
-  async getBlogPost(name: string, owner?: string, repo?: string): Promise<BlogPost | undefined> {
-    return getCachedOrFetch(`${owner}/${repo}/content/blog/${name}`, async () => {
+  async getBlogPost(name: string, owner?: string): Promise<BlogPost | undefined> {
+    return getCachedOrFetch(`${owner}/${REPO}/content/blog/${name}`, async () => {
       const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
-      if (!owner || !repo) {
+      if (!owner) {
         const { data: user } = await octokit.users.getAuthenticated()
         owner = user.login
       }
@@ -98,11 +98,11 @@ class GitHubAPIClient {
     })
   }
 
-  async getNotes(owner?: string, repo?: string): Promise<Note[]> {
-    return getCachedOrFetch(`${owner}/${repo}/content/thoughts.json`, async () => {
+  async getNotes(owner?: string): Promise<Note[]> {
+    return getCachedOrFetch(`${owner}/${REPO}/content/thoughts.json`, async () => {
       const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
 
-      if (!owner || !repo) {
+      if (!owner) {
         const { data: user } = await octokit.users.getAuthenticated()
         owner = user.login
       }
