@@ -45,27 +45,11 @@ const UserInfo = ({
   latestNote: Note | null
 }) => (
   <div className='flex flex-col'>
-    <span className='font-medium text-gray-900 text-xl'>{displayName}</span>
     <div className='flex items-center space-x-2'>
-      <span className='text-xs text-gray-600 font-mono'>
+                <blockquote className='pl-4 border-l-4 border-gray-200 text-gray-400'>
         {latestNote?.content
-          ? latestNote.content.length > 24
-            ? `${latestNote.content.substring(0, 24)} ...`
-            : latestNote.content
-          : 'No status'}
-      </span>
-      <span className='text-xs text-gray-400'>•</span>
-      <time className='text-xs text-gray-400' data-status-datetime=''>
-        {latestNote ? getRelativeTimeString(latestNote.timestamp) : ''}
-      </time>
-      {typeof window !== 'undefined' && window.location.pathname !== '/thoughts' && (
-        <>
-          <span className='text-xs text-gray-400'>•</span>
-          <Link href='/thoughts' className='text-xs text-gray-400 hover:text-gray-600 underline'>
-            more
-          </Link>
-        </>
-      )}
+          ?  latestNote.content : 'No status'}
+                </blockquote>
     </div>
   </div>
 )
@@ -103,7 +87,23 @@ export default function Header({ username, iconUrl, latestNote }: HeaderProps) {
       <div className='max-w-2xl mx-auto px-4'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center space-x-4'>
+            <div>
             <Avatar src={avatarUrl} alt='Blogger Avatar' href={navigationPath} />
+      <span className='text-xs text-gray-400'>•</span>
+      <time className='text-xs text-gray-400' data-status-datetime=''>
+        {latestNote ? getRelativeTimeString(latestNote.timestamp) : ''}
+      </time>
+      {typeof window !== 'undefined' && window.location.pathname !== '/thoughts' && (
+        <>
+          <span className='text-xs text-gray-400'>•</span>
+          <Link href='/thoughts' className='text-xs text-gray-400 hover:text-gray-600 underline'>
+            more
+          </Link>
+        </>
+      )}
+
+            </div>
+
             {latestNote && <UserInfo displayName={displayName} latestNote={latestNote} />}
           </div>
           <nav className='hidden'>
