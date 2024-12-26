@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
         if (!id) {
           return NextResponse.json({ error: 'Missing id parameter' }, { status: 400, headers });
         }
-        const post = await client.getBlogPost(id);
+        const post = await client.getBlogPost(`${id}.md`);
         return NextResponse.json(post, { headers });
       case 'getThoughts':
         const thoughts = await client.getNotes()
