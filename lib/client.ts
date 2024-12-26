@@ -23,13 +23,12 @@ class GitHubAPIClient {
   }
 
   async getBlogPosts(owner?: string): Promise<BlogPost[]> {
+    const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
+    if (!owner && this.accessToken) {
+      const { data: user } = await octokit.users.getAuthenticated()
+      owner = user.login
+    }
     return getCachedOrFetch(`${owner}/${REPO}`, async () => {
-      const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
-
-      if (!owner && this.accessToken) {
-        const { data: user } = await octokit.users.getAuthenticated()
-        owner = user.login
-      }
       try {
         const response = await octokit.repos.getContent({
           owner: owner ?? '',
@@ -67,13 +66,13 @@ class GitHubAPIClient {
   }
 
   async getBlogPost(name: string, owner?: string): Promise<BlogPost | undefined> {
-    return getCachedOrFetch(`${owner}/${REPO}/content/blog/${name}`, async () => {
-      const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
-      if (!owner) {
-        const { data: user } = await octokit.users.getAuthenticated()
-        owner = user.login
-      }
+    const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
+    if (!owner) {
+      const { data: user } = await octokit.users.getAuthenticated()
+      owner = user.login
+    }
 
+    return getCachedOrFetch(`${owner}/${REPO}/content/blog/${name}`, async () => {
       const contentResponse = await octokit.repos.getContent({
         owner,
         repo: REPO,
@@ -99,14 +98,12 @@ class GitHubAPIClient {
   }
 
   async getNotes(owner?: string): Promise<Note[]> {
+    const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
+    if (!owner) {
+      const { data: user } = await octokit.users.getAuthenticated()
+      owner = user.login
+    }
     return getCachedOrFetch(`${owner}/${REPO}/content/thoughts.json`, async () => {
-      const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
-
-      if (!owner) {
-        const { data: user } = await octokit.users.getAuthenticated()
-        owner = user.login
-      }
-
       try {
         const response = await octokit.repos.getContent({
           owner,
