@@ -42,6 +42,7 @@ interface NoteCardProps {
   onEdit: (id: string) => void
 }
 
+// TODO fix following
 export const NoteCard = ({ thought, onDelete, onEdit }: NoteCardProps) => {
   const t = useTranslations('HomePage')
 
@@ -147,8 +148,7 @@ export default function NotesList({ username }: NotesListProps) {
 
       try {
         const fetchedNotes = await createGitHubAPIClient(session?.accessToken ?? '').getNotes(
-          username,
-          'tinymind-blog'
+          username
         )
         setNotes(fetchedNotes)
         setError(null)
