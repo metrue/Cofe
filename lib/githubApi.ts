@@ -149,7 +149,7 @@ async function ensureContentStructure(octokit: Octokit, owner: string, repo: str
       octokit,
       owner,
       repo,
-      'content/.gitkeep',
+      'data/.gitkeep',
       'Initialize content directory',
       ''
     )
@@ -157,7 +157,7 @@ async function ensureContentStructure(octokit: Octokit, owner: string, repo: str
       octokit,
       owner,
       repo,
-      'content/blog/.gitkeep',
+      'data/blog/.gitkeep',
       'Initialize blog directory',
       ''
     )
@@ -165,8 +165,8 @@ async function ensureContentStructure(octokit: Octokit, owner: string, repo: str
       octokit,
       owner,
       repo,
-      'content/thoughts.json',
-      'Initialize thoughts.json',
+      'data/memos.json',
+      'Initialize memos.json',
       '[]'
     )
   } catch (error) {
@@ -189,7 +189,7 @@ export async function createBlogPost(
   const { owner, repo } = await getRepoInfo(accessToken)
   await initializeGitHubStructure(octokit, owner, repo)
 
-  const path = `content/blog/${title.toLowerCase().replace(/\s+/g, '-')}.md`
+  const path = `data/blog/${title.toLowerCase().replace(/\s+/g, '-')}.md`
   const date = new Date().toISOString() // Store full ISO string
   const fullContent = `---
 title: ${title}
@@ -235,7 +235,7 @@ export async function createThought(
       const response = await octokit.repos.getContent({
         owner,
         repo,
-        path: 'content/thoughts.json',
+        path: 'data/memos.json',
       })
 
       if (!Array.isArray(response.data) && 'content' in response.data) {
@@ -246,7 +246,7 @@ export async function createThought(
       }
     } catch (error) {
       if (error instanceof Error && 'status' in error && error.status === 404) {
-        console.log('thoughts.json does not exist, creating a new file')
+        console.log('memos.json does not exist, creating a new file')
       } else {
         console.error('Error fetching existing thoughts:', error)
         throw error
@@ -269,7 +269,7 @@ export async function createThought(
     const updateParams: UpdateFileParams = {
       owner,
       repo,
-      path: 'content/thoughts.json',
+      path: 'data/memos.json',
       message: 'Add new thought',
       content: Buffer.from(JSON.stringify(thoughts, null, 2)).toString('base64'),
     }
@@ -309,7 +309,7 @@ export async function deleteThought(id: string, accessToken: string): Promise<vo
     const response = await octokit.repos.getContent({
       owner,
       repo,
-      path: 'content/thoughts.json',
+      path: 'data/memos.json',
     })
 
     if (!Array.isArray(response.data) && 'content' in response.data) {
@@ -328,7 +328,7 @@ export async function deleteThought(id: string, accessToken: string): Promise<vo
     const updateParams: UpdateFileParams = {
       owner,
       repo,
-      path: 'content/thoughts.json',
+      path: 'data/memos.json',
       message: 'Delete a thought',
       content: Buffer.from(JSON.stringify(newThoughts, null, 2)).toString('base64'),
       sha: existingSha,
@@ -369,7 +369,7 @@ export async function updateThought(
     const response = await octokit.repos.getContent({
       owner,
       repo,
-      path: 'content/thoughts.json',
+      path: 'data/memos.json',
     })
 
     if (!Array.isArray(response.data) && 'content' in response.data) {
@@ -396,7 +396,7 @@ export async function updateThought(
     const updateParams: UpdateFileParams = {
       owner,
       repo,
-      path: 'content/thoughts.json',
+      path: 'data/memos.json',
       message: 'Update thought',
       content: Buffer.from(JSON.stringify(thoughts, null, 2)).toString('base64'),
       sha: existingSha,
@@ -423,7 +423,7 @@ export async function deleteBlogPost(id: string, accessToken: string): Promise<v
 
     // Decode the ID and create the file path
     const decodedId = decodeURIComponent(id)
-    const path = `content/blog/${decodedId}.md`
+    const path = `data/blog/${decodedId}.md`
 
     console.log(`Attempting to delete file: ${path}`)
 
@@ -507,7 +507,7 @@ export async function updateBlogPost(
       octokit,
       owner,
       repo,
-      `content/blog/${id}.md`
+      `data/blog/${id}.md`
     )
     const dateMatch = existingContent.match(/date:\s*(.+)/)
     const date = dateMatch ? dateMatch[1] : new Date().toISOString()
@@ -524,7 +524,7 @@ ${content}`
       octokit,
       owner,
       repo,
-      `content/blog/${id}.md`,
+      `data/blog/${id}.md`,
       'Update blog post',
       updatedContent,
       sha

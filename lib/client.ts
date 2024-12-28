@@ -33,7 +33,7 @@ class GitHubAPIClient {
         const response = await octokit.repos.getContent({
           owner: owner ?? '',
           repo: REPO,
-          path: 'content/blog',
+          path: 'data/blog',
         })
 
         if (!Array.isArray(response.data)) {
@@ -72,11 +72,11 @@ class GitHubAPIClient {
       owner = user.login
     }
 
-    return getCachedOrFetch(`${owner}/${REPO}/content/blog/${name}`, async () => {
+    return getCachedOrFetch(`${owner}/${REPO}/data/blog/${name}`, async () => {
       const contentResponse = await octokit.repos.getContent({
         owner,
         repo: REPO,
-        path: `content/blog/${name}`,
+        path: `data/blog/${name}`,
       })
 
       if ('content' in contentResponse.data) {
@@ -103,12 +103,12 @@ class GitHubAPIClient {
       const { data: user } = await octokit.users.getAuthenticated()
       owner = user.login
     }
-    return getCachedOrFetch(`${owner}/${REPO}/content/thoughts.json`, async () => {
+    return getCachedOrFetch(`${owner}/${REPO}/data/memos.json`, async () => {
       try {
         const response = await octokit.repos.getContent({
           owner,
           repo: REPO,
-          path: 'content/thoughts.json',
+          path: 'data/memos.json',
         })
 
         if (Array.isArray(response.data) || !('content' in response.data)) {
@@ -118,7 +118,7 @@ class GitHubAPIClient {
         const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
         return JSON.parse(content) as Note[]
       } catch (error) {
-        console.error('Error fetching public thoughts:', error)
+        console.error('Error fetching public memos:', error)
         return []
       }
     })
