@@ -37,24 +37,24 @@ import { useToast } from '@/components/ui/use-toast'
 import { useTranslations } from 'next-intl'
 
 interface MemoCardProps {
-  thought: Memo
+  memo: Memo
   onDelete: (id: string) => void
   onEdit: (id: string) => void
 }
 
 // TODO fix following
-export const MemoCard = ({ thought, onDelete, onEdit }: MemoCardProps) => {
+export const MemoCard = ({ memo, onDelete, onEdit }: MemoCardProps) => {
   const t = useTranslations('HomePage')
 
   return (
     <div
-      key={thought.id}
+      key={memo.id}
       className='relative flex flex-col justify-center p-4 rounded-lg leading-4 transition-all duration-300 ease-in-out hover:shadow-lg overflow-auto h-fit bg-white font-light	font-mono'
     >
       <div className='text-gray-800 mb-2 prose max-w-none'>
         <div>
           <small className='text-gray-500 self-end mt-2'>
-            {getRelativeTimeString(thought.timestamp)}
+            {getRelativeTimeString(memo.timestamp)}
           </small>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -66,10 +66,10 @@ export const MemoCard = ({ thought, onDelete, onEdit }: MemoCardProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onSelect={() => onDelete(thought.id)}>
+              <DropdownMenuItem onSelect={() => onDelete(memo.id)}>
                 {t('delete')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(thought.id)}>{t('edit')}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(memo.id)}>{t('edit')}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -117,7 +117,7 @@ export const MemoCard = ({ thought, onDelete, onEdit }: MemoCardProps) => {
             ),
           }}
         >
-          {thought.content}
+          {memo.content}
         </ReactMarkdown>
       </div>
     </div>
@@ -129,10 +129,10 @@ interface MemosListProps {
 }
 
 export default function MemosList({ username }: MemosListProps) {
-  const [thoughts, setMemos] = useState<Memo[]>([])
+  const [memos, setMemos] = useState<Memo[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [thoughtToDelete, setMemoToDelete] = useState<string | null>(null)
+  const [memoToDelete, setMemoToDelete] = useState<string | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -153,7 +153,7 @@ export default function MemosList({ username }: MemosListProps) {
         setMemos(fetchedMemos)
         setError(null)
       } catch (error) {
-        console.error('Error fetching thoughts:', error)
+        console.error('Error fetching memos:', error)
         if (
           error instanceof Error &&
           (error.message.includes('Bad credentials') ||
@@ -190,21 +190,21 @@ export default function MemosList({ username }: MemosListProps) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to delete thought')
+        throw new Error('Failed to delete memo')
       }
 
-      setMemos(thoughts.filter((thought) => thought.id !== id))
+      setMemos(memos.filter((memo) => memo.id !== id))
 
       toast({
         title: t('success'),
-        description: t('thoughtDeleted'),
+        description: t('memoDeleted'),
         duration: 3000,
       })
     } catch (error) {
-      console.error('Error deleting thought:', error)
+      console.error('Error deleting memo:', error)
       toast({
         title: t('error'),
-        description: t('thoughtDeleteFailed'),
+        description: t('memoDeleteFailed'),
         variant: 'destructive',
         duration: 3000,
       })
@@ -215,7 +215,7 @@ export default function MemosList({ username }: MemosListProps) {
   }
 
   const handleEdit = (id: string) => {
-    router.push(`/editor?type=thought&id=${id}`)
+    router.push(`/editor?type=memo&id=${id}`)
   }
 
   const handleDelete = (id: string) => {
@@ -241,12 +241,12 @@ export default function MemosList({ username }: MemosListProps) {
     )
   }
 
-  if (thoughts.length === 0) {
+  if (memos.length === 0) {
     return (
       <div className='flex flex-col items-center mt-8 space-y-4'>
         <p className='text-gray-500'>{t('noMemosYet')}</p>
         <Button
-          onClick={() => router.push('/editor?type=thought')}
+          onClick={() => router.push('/editor?type=memo')}
           className='bg-black hover:bg-gray-800 text-white'
         >
           {t('createMemo')}
@@ -259,24 +259,24 @@ export default function MemosList({ username }: MemosListProps) {
     <div className='max-w-2xl mx-auto p-4'>
       <div className='grid grid-cols-2 md:grid-cols-2 gap-2'>
         <div className='flex flex-col gap-2'>
-          {thoughts
+          {memos
             .filter((_, index) => index % 2 !== 0)
-            .map((thought) => (
+            .map((memo) => (
               <MemoCard
-                key={thought.id}
-                thought={thought}
+                key={memo.id}
+                memo={memo}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
               />
             ))}
         </div>
         <div className='flex flex-col gap-2'>
-          {thoughts
+          {memos
             .filter((_, index) => index % 2 === 0)
-            .map((thought) => (
+            .map((memo) => (
               <MemoCard
-                key={thought.id}
-                thought={thought}
+                key={memo.id}
+                memo={memo}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
               />
@@ -296,8 +296,8 @@ export default function MemosList({ username }: MemosListProps) {
             <Button
               variant='destructive'
               onClick={() => {
-                if (thoughtToDelete) {
-                  handleDeleteMemo(thoughtToDelete)
+                if (memoToDelete) {
+                  handleDeleteMemo(memoToDelete)
                 }
                 setIsDeleteDialogOpen(false)
               }}
