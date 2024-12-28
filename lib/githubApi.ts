@@ -1,4 +1,4 @@
-import { Note } from './types'
+import { Memo } from './types'
 import { Octokit } from '@octokit/rest'
 import path from 'path'
 
@@ -79,7 +79,7 @@ async function ensureRepoExists(octokit: Octokit, owner: string, repo: string) {
           path: 'README.md',
           message: 'Update README.md with default content',
           content: Buffer.from(
-            '# TinyMind Blog\n\nWrite blog posts and thoughts at https://tinymind.me with data stored on GitHub.'
+            '# TinyMind Blog\n\nWrite blog posts and memos at https://tinymind.me with data stored on GitHub.'
           ).toString('base64'),
           sha: readmeContent.sha,
         })
@@ -90,7 +90,7 @@ async function ensureRepoExists(octokit: Octokit, owner: string, repo: string) {
     if (error instanceof Error && 'status' in error && error.status === 404) {
       // Create README.md if it doesn't exist
       const content = Buffer.from(
-        'Write blog posts and thoughts at https://tinymind.me with data stored on GitHub.'
+        'Write blog posts and memos at https://tinymind.me with data stored on GitHub.'
       ).toString('base64')
       await octokit.repos.createOrUpdateFileContents({
         owner,
@@ -207,12 +207,12 @@ ${content}`
   })
 }
 
-export async function createThought(
+export async function createMemo(
   content: string,
   image: string | undefined,
   accessToken: string
 ): Promise<void> {
-  console.log('Creating thought...')
+  console.log('Creating memo...')
   if (!accessToken) {
     throw new Error('Access token is required')
   }
@@ -226,12 +226,12 @@ export async function createThought(
     await initializeGitHubStructure(octokit, owner, repo)
     console.log('GitHub structure initialized')
 
-    let thoughts: Note[] = []
+    let memos: Memo[] = []
     let existingSha: string | undefined
 
-    // Try to fetch existing thoughts
+    // Try to fetch existing memos
     try {
-      console.log('Fetching existing thoughts...')
+      console.log('Fetching existing memos...')
       const response = await octokit.repos.getContent({
         owner,
         repo,
@@ -240,38 +240,38 @@ export async function createThought(
 
       if (!Array.isArray(response.data) && 'content' in response.data) {
         const existingContent = Buffer.from(response.data.content, 'base64').toString('utf-8')
-        thoughts = JSON.parse(existingContent) as Note[]
+        memos = JSON.parse(existingContent) as Memo[]
         existingSha = response.data.sha
-        console.log('Existing thoughts fetched')
+        console.log('Existing memos fetched')
       }
     } catch (error) {
       if (error instanceof Error && 'status' in error && error.status === 404) {
         console.log('memos.json does not exist, creating a new file')
       } else {
-        console.error('Error fetching existing thoughts:', error)
+        console.error('Error fetching existing memos:', error)
         throw error
       }
     }
 
-    // Create new thought
-    const newThought: Note = {
+    // Create new memo
+    const newMemo: Memo = {
       id: Date.now().toString(),
       content,
       timestamp: new Date().toISOString(),
       image,
     }
 
-    // Add new thought to the beginning of the array
-    thoughts.unshift(newThought)
+    // Add new memo to the beginning of the array
+    memos.unshift(newMemo)
 
-    console.log('Updating thoughts file...')
-    // Create or update the file with all thoughts
+    console.log('Updating memos file...')
+    // Create or update the file with all memos
     const updateParams: UpdateFileParams = {
       owner,
       repo,
       path: 'data/memos.json',
-      message: 'Add new thought',
-      content: Buffer.from(JSON.stringify(thoughts, null, 2)).toString('base64'),
+      message: 'Add new memo',
+      content: Buffer.from(JSON.stringify(memos, null, 2)).toString('base64'),
     }
 
     if (existingSha) {
@@ -280,15 +280,15 @@ export async function createThought(
 
     await octokit.repos.createOrUpdateFileContents(updateParams)
 
-    console.log('Thought created successfully')
+    console.log('Memo created successfully')
   } catch (error) {
-    console.error('Error creating thought:', error)
+    console.error('Error creating memo:', error)
     throw error
   }
 }
 
-export async function deleteThought(id: string, accessToken: string): Promise<void> {
-  console.log('Deleting thought...')
+export async function deleteMemo(id: string, accessToken: string): Promise<void> {
+  console.log('Deleting memo...')
   if (!accessToken) {
     throw new Error('Access token is required')
   }
@@ -302,10 +302,10 @@ export async function deleteThought(id: string, accessToken: string): Promise<vo
     await initializeGitHubStructure(octokit, owner, repo)
     console.log('GitHub structure initialized')
 
-    let thoughts: Note[] = []
+    let memos: Memo[] = []
     let existingSha: string | undefined
 
-    // Fetch existing thoughts
+    // Fetch existing memos
     const response = await octokit.repos.getContent({
       owner,
       repo,
@@ -314,41 +314,41 @@ export async function deleteThought(id: string, accessToken: string): Promise<vo
 
     if (!Array.isArray(response.data) && 'content' in response.data) {
       const existingContent = Buffer.from(response.data.content, 'base64').toString('utf-8')
-      thoughts = JSON.parse(existingContent) as Note[]
+      memos = JSON.parse(existingContent) as Memo[]
       existingSha = response.data.sha
-      console.log('Existing thoughts fetched')
+      console.log('Existing memos fetched')
     }
 
-    // Find and remove the thought
-    const newThoughts = thoughts.filter((t) => t.id !== id)
-    console.log(newThoughts)
+    // Find and remove the memo
+    const newMemos = memos.filter((t) => t.id !== id)
+    console.log(newMemos)
 
-    console.log('Updating thoughts file...')
-    // Update the file with all thoughts
+    console.log('Updating memos file...')
+    // Update the file with all memos
     const updateParams: UpdateFileParams = {
       owner,
       repo,
       path: 'data/memos.json',
-      message: 'Delete a thought',
-      content: Buffer.from(JSON.stringify(newThoughts, null, 2)).toString('base64'),
+      message: 'Delete a memo',
+      content: Buffer.from(JSON.stringify(newMemos, null, 2)).toString('base64'),
       sha: existingSha,
     }
 
     await octokit.repos.createOrUpdateFileContents(updateParams)
 
-    console.log('Thought deleted successfully')
+    console.log('Memo deleted successfully')
   } catch (error) {
-    console.error('Error deleting thought:', error)
+    console.error('Error deleting memo:', error)
     throw error
   }
 }
 
-export async function updateThought(
+export async function updateMemo(
   id: string,
   content: string,
   accessToken: string
 ): Promise<void> {
-  console.log('Updating thought...')
+  console.log('Updating memo...')
   if (!accessToken) {
     throw new Error('Access token is required')
   }
@@ -362,10 +362,10 @@ export async function updateThought(
     await initializeGitHubStructure(octokit, owner, repo)
     console.log('GitHub structure initialized')
 
-    let thoughts: Note[] = []
+    let memos: Memo[] = []
     let existingSha: string | undefined
 
-    // Fetch existing thoughts
+    // Fetch existing memos
     const response = await octokit.repos.getContent({
       owner,
       repo,
@@ -374,39 +374,39 @@ export async function updateThought(
 
     if (!Array.isArray(response.data) && 'content' in response.data) {
       const existingContent = Buffer.from(response.data.content, 'base64').toString('utf-8')
-      thoughts = JSON.parse(existingContent) as Note[]
+      memos = JSON.parse(existingContent) as Memo[]
       existingSha = response.data.sha
-      console.log('Existing thoughts fetched')
+      console.log('Existing memos fetched')
     }
 
-    // Find and update the thought
-    const thoughtIndex = thoughts.findIndex((t) => t.id === id)
-    if (thoughtIndex === -1) {
-      throw new Error('Thought not found')
+    // Find and update the memo
+    const memoIndex = memos.findIndex((t) => t.id === id)
+    if (memoIndex === -1) {
+      throw new Error('Memo not found')
     }
 
-    thoughts[thoughtIndex] = {
-      ...thoughts[thoughtIndex],
+    memos[memoIndex] = {
+      ...memos[memoIndex],
       content,
       // Removed the timestamp update to keep the original timestamp
     }
 
-    console.log('Updating thoughts file...')
-    // Update the file with all thoughts
+    console.log('Updating memos file...')
+    // Update the file with all memos
     const updateParams: UpdateFileParams = {
       owner,
       repo,
       path: 'data/memos.json',
-      message: 'Update thought',
-      content: Buffer.from(JSON.stringify(thoughts, null, 2)).toString('base64'),
+      message: 'Update memo',
+      content: Buffer.from(JSON.stringify(memos, null, 2)).toString('base64'),
       sha: existingSha,
     }
 
     await octokit.repos.createOrUpdateFileContents(updateParams)
 
-    console.log('Thought updated successfully')
+    console.log('Memo updated successfully')
   } catch (error) {
-    console.error('Error updating thought:', error)
+    console.error('Error updating memo:', error)
     throw error
   }
 }

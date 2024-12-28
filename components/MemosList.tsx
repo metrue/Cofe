@@ -22,7 +22,7 @@ import { useEffect, useState } from 'react'
 import { AiOutlineEllipsis } from 'react-icons/ai'
 import { Button } from '@/components/ui/button'
 import GitHubSignInButton from './GitHubSignInButton'
-import { Note } from '@/lib/types'
+import { Memo } from '@/lib/types'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { createGitHubAPIClient } from '@/lib/client'
@@ -36,14 +36,14 @@ import { useSession } from 'next-auth/react'
 import { useToast } from '@/components/ui/use-toast'
 import { useTranslations } from 'next-intl'
 
-interface NoteCardProps {
-  thought: Note
+interface MemoCardProps {
+  thought: Memo
   onDelete: (id: string) => void
   onEdit: (id: string) => void
 }
 
 // TODO fix following
-export const NoteCard = ({ thought, onDelete, onEdit }: NoteCardProps) => {
+export const MemoCard = ({ thought, onDelete, onEdit }: MemoCardProps) => {
   const t = useTranslations('HomePage')
 
   return (
@@ -124,15 +124,15 @@ export const NoteCard = ({ thought, onDelete, onEdit }: NoteCardProps) => {
   )
 }
 
-interface NotesListProps {
+interface MemosListProps {
   username: string
 }
 
-export default function NotesList({ username }: NotesListProps) {
-  const [thoughts, setNotes] = useState<Note[]>([])
+export default function MemosList({ username }: MemosListProps) {
+  const [thoughts, setMemos] = useState<Memo[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [thoughtToDelete, setNoteToDelete] = useState<string | null>(null)
+  const [thoughtToDelete, setMemoToDelete] = useState<string | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -140,17 +140,17 @@ export default function NotesList({ username }: NotesListProps) {
   const { toast } = useToast()
 
   useEffect(() => {
-    async function fetchNotes() {
+    async function fetchMemos() {
       if (status === 'loading') return
       if (status === 'unauthenticated') {
         setIsLoading(false)
       }
 
       try {
-        const fetchedNotes = await createGitHubAPIClient(session?.accessToken ?? '').getNotes(
+        const fetchedMemos = await createGitHubAPIClient(session?.accessToken ?? '').getMemos(
           username
         )
-        setNotes(fetchedNotes)
+        setMemos(fetchedMemos)
         setError(null)
       } catch (error) {
         console.error('Error fetching thoughts:', error)
@@ -161,17 +161,17 @@ export default function NotesList({ username }: NotesListProps) {
         ) {
           setError('authentication_failed')
         } else {
-          setNotes([])
+          setMemos([])
         }
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchNotes()
+    fetchMemos()
   }, [session, status, username])
 
-  const handleDeleteNote = async (id: string) => {
+  const handleDeleteMemo = async (id: string) => {
     if (!session?.accessToken) {
       console.error('No access token available')
       return
@@ -184,7 +184,7 @@ export default function NotesList({ username }: NotesListProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          action: 'deleteNote',
+          action: 'deleteMemo',
           id: id,
         }),
       })
@@ -193,7 +193,7 @@ export default function NotesList({ username }: NotesListProps) {
         throw new Error('Failed to delete thought')
       }
 
-      setNotes(thoughts.filter((thought) => thought.id !== id))
+      setMemos(thoughts.filter((thought) => thought.id !== id))
 
       toast({
         title: t('success'),
@@ -209,7 +209,7 @@ export default function NotesList({ username }: NotesListProps) {
         duration: 3000,
       })
     } finally {
-      setNoteToDelete(null)
+      setMemoToDelete(null)
       setIsDeleteDialogOpen(false)
     }
   }
@@ -219,7 +219,7 @@ export default function NotesList({ username }: NotesListProps) {
   }
 
   const handleDelete = (id: string) => {
-    setNoteToDelete(id)
+    setMemoToDelete(id)
     setIsDeleteDialogOpen(true)
   }
 
@@ -244,12 +244,12 @@ export default function NotesList({ username }: NotesListProps) {
   if (thoughts.length === 0) {
     return (
       <div className='flex flex-col items-center mt-8 space-y-4'>
-        <p className='text-gray-500'>{t('noNotesYet')}</p>
+        <p className='text-gray-500'>{t('noMemosYet')}</p>
         <Button
           onClick={() => router.push('/editor?type=thought')}
           className='bg-black hover:bg-gray-800 text-white'
         >
-          {t('createNote')}
+          {t('createMemo')}
         </Button>
       </div>
     )
@@ -262,7 +262,7 @@ export default function NotesList({ username }: NotesListProps) {
           {thoughts
             .filter((_, index) => index % 2 !== 0)
             .map((thought) => (
-              <NoteCard
+              <MemoCard
                 key={thought.id}
                 thought={thought}
                 onDelete={handleDelete}
@@ -274,7 +274,7 @@ export default function NotesList({ username }: NotesListProps) {
           {thoughts
             .filter((_, index) => index % 2 === 0)
             .map((thought) => (
-              <NoteCard
+              <MemoCard
                 key={thought.id}
                 thought={thought}
                 onDelete={handleDelete}
@@ -297,7 +297,7 @@ export default function NotesList({ username }: NotesListProps) {
               variant='destructive'
               onClick={() => {
                 if (thoughtToDelete) {
-                  handleDeleteNote(thoughtToDelete)
+                  handleDeleteMemo(thoughtToDelete)
                 }
                 setIsDeleteDialogOpen(false)
               }}

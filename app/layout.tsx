@@ -5,9 +5,9 @@ import { getLocale, getMessages, getTranslations } from 'next-intl/server'
 import CreateButton from '@/components/CreateButton'
 import Head from 'next/head'
 import Header from '@/components/Header'
+import { Memo } from '@/lib/types'
 import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
-import { Note } from '@/lib/types'
 import Script from 'next/script'
 import { SessionProvider } from '../components/SessionProvider'
 import { Toaster } from '@/components/ui/toaster'
@@ -23,10 +23,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const title =
     t('title') ||
-    'TinyMind - Write and sync your blog posts & thoughts with one-click GitHub sign-in'
+    'TinyMind - Write and sync your blog posts & memos with one-click GitHub sign-in'
   const description =
     t('description') ||
-    'Write and preserve your blogs, thoughts, and notes effortlessly. Sign in with GitHub to automatically sync your content to your own repository, ensuring your ideas are safely stored as long as GitHub exists.'
+    'Write and preserve your blogs, memos, and notes effortlessly. Sign in with GitHub to automatically sync your content to your own repository, ensuring your ideas are safely stored as long as GitHub exists.'
 
   const { iconPath } = await getIconPaths(session?.accessToken)
 
@@ -55,10 +55,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const session = await getServerSession(authOptions)
   const username = process.env.GITHUB_USERNAME ?? ''
 
-  const thoughts = await createGitHubAPIClient(session?.accessToken || '').getNotes(username ?? '')
-  let latestNote: Note | undefined
-  if (thoughts.length > 0) {
-    latestNote = thoughts.sort(
+  const memos = await createGitHubAPIClient(session?.accessToken || '').getMemos(username ?? '')
+  let latestMemo: Memo | undefined
+  if (memos.length > 0) {
+    latestMemo = memos.sort(
       (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     )[0]
   }
@@ -83,7 +83,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`${gowun_wodum.className} bg-[#f6f8fa]`}>
         <NextIntlClientProvider messages={messages}>
           <SessionProvider>
-            <Header iconUrl={iconPath} username={username} latestNote={latestNote || undefined} />
+            <Header iconUrl={iconPath} username={username} latestMemo={latestMemo || undefined} />
             <main className='pb-20 m-auto'>{children}</main>
             <CreateButton messages={messages} />
             <Toaster />

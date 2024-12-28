@@ -1,4 +1,4 @@
-import { BlogPost, Note } from './types'
+import { BlogPost, Memo } from './types'
 
 import { Octokit } from '@octokit/rest'
 import { getCachedOrFetch } from './cache'
@@ -97,7 +97,7 @@ class GitHubAPIClient {
     })
   }
 
-  async getNotes(owner?: string): Promise<Note[]> {
+  async getMemos(owner?: string): Promise<Memo[]> {
     const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
     if (!owner) {
       const { data: user } = await octokit.users.getAuthenticated()
@@ -116,7 +116,7 @@ class GitHubAPIClient {
         }
 
         const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
-        return JSON.parse(content) as Note[]
+        return JSON.parse(content) as Memo[]
       } catch (error) {
         console.error('Error fetching public memos:', error)
         return []
