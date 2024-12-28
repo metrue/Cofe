@@ -47,13 +47,13 @@
     "publicContentTooltip": "Sadece genel depo okuma/yazma izni istiyoruz, bu nedenle özel depolar oluşturamıyoruz.",
     "myHomepage": "Genel Ana Sayfam",
     "dataStoredOnGithub": "GitHub'da Saklanan Veriler",
-    "blogTitle": " TinyMind Blogu",
+    "blogTitle": " Cofe Blogu",
     "blogShortTitle": " Blogu",
     "blogDescription": "GitHub'da depolanan verilerle Markdown'da blog yazın ve senkronize edin.",
     "demoPage": "Demo Sayfası"
   },
   "metadata": {
-    "title": "TinyMind - GitHub ile blog ve düşünceler yazın.",
+    "title": "Cofe - GitHub ile blog ve düşünceler yazın.",
     "description": "GitHub'da depolanan verilerle Markdown'da blog gönderileri ve düşünceler yazın ve senkronize edin."
   }
 }

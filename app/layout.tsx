@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const title =
     t('title') ||
-    'TinyMind - Write and sync your blog posts & memos with one-click GitHub sign-in'
+    'Cofe - Write and sync your blog posts & memos with one-click GitHub sign-in'
   const description =
     t('description') ||
     'Write and preserve your blogs, memos, and notes effortlessly. Sign in with GitHub to automatically sync your content to your own repository, ensuring your ideas are safely stored as long as GitHub exists.'

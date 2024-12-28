@@ -47,13 +47,13 @@
     "publicContentTooltip": "Prosimy tylko o uprawnienia do odczytu/zapisu publicznego repozytorium, więc nie możemy tworzyć prywatnych repozytoriów.",
     "myHomepage": "Moja publiczna strona główna",
     "dataStoredOnGithub": "Dane przechowywane na GitHub",
-    "blogTitle": " Blog TinyMind",
+    "blogTitle": " Blog Cofe",
     "blogShortTitle": " Blog",
     "blogDescription": "Pisz i synchronizuj blogi w Markdown z danymi przechowywanymi w GitHub.",
     "demoPage": "Strona Demonstracyjna"
   },
   "metadata": {
-    "title": "TinyMind - Pisz blog i myśli z GitHub.",
+    "title": "Cofe - Pisz blog i myśli z GitHub.",
     "description": "Pisz i synchronizuj posty na blogu i myśli w Markdown z danymi przechowywanymi w GitHub."
   }
 }

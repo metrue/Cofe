@@ -47,13 +47,13 @@
     "publicContentTooltip": "공개 저장소 읽기/쓰기 권한만 요청하므로 비공개 저장소를 만들 수 없습니다.",
     "myHomepage": "내 공개 홈페이지",
     "dataStoredOnGithub": "GitHub에 저장된 데이터",
-    "blogTitle": "의 TinyMind 블로그",
+    "blogTitle": "의 Cofe 블로그",
     "blogShortTitle": "의 블로그",
     "blogDescription": "GitHub에 저장된 데이터로 Markdown으로 블로그를 작성하고 동기화합니다.",
     "demoPage": "데모 페이지"
   },
   "metadata": {
-    "title": "TinyMind - GitHub로 블로그 및 생각 작성하기.",
+    "title": "Cofe - GitHub로 블로그 및 생각 작성하기.",
     "description": "GitHub에 저장된 데이터로 Markdown으로 블로그 포스트 및 생각을 작성하고 동기화합니다."
   }
 }

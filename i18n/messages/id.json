@@ -47,13 +47,13 @@
     "notAuthenticated": "Anda belum diautentikasi. Silakan masuk.",
     "myHomepage": "Beranda Publik Saya",
     "dataStoredOnGithub": "Data Disimpan di GitHub",
-    "blogTitle": " Blog TinyMind",
+    "blogTitle": " Blog Cofe",
     "blogShortTitle": " Blog",
     "blogDescription": "Tulis dan sinkronkan blog dalam Markdown dengan data yang disimpan di GitHub.",
     "demoPage": "Halaman Demo"
   },
   "metadata": {
-    "title": "TinyMind - Tulis blog & pemikiran dengan GitHub.",
+    "title": "Cofe - Tulis blog & pemikiran dengan GitHub.",
     "description": "Tulis dan sinkronkan postingan blog & pemikiran dalam Markdown dengan data yang disimpan di GitHub."
   }
 }

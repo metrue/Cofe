@@ -47,13 +47,13 @@
     "publicContentTooltip": "เราขออนุญาตอ่าน/เขียนที่เก็บสาธารณะเท่านั้น ดังนั้นเราจึงไม่สามารถสร้างที่เก็บส่วนตัวได้",
     "myHomepage": "หน้าแรกสาธารณะของฉัน",
     "dataStoredOnGithub": "ข้อมูลที่เก็บไว้ใน GitHub",
-    "blogTitle": " บล็อก TinyMind ของ",
+    "blogTitle": " บล็อก Cofe ของ",
     "blogShortTitle": " บล็อกของ",
     "blogDescription": "เขียนและซิงค์บล็อกใน Markdown โดยเก็บข้อมูลไว้ใน GitHub",
     "demoPage": "หน้าสาธิต"
   },
   "metadata": {
-    "title": "TinyMind - เขียนบล็อกและความคิดด้วย GitHub",
+    "title": "Cofe - เขียนบล็อกและความคิดด้วย GitHub",
     "description": "เขียนและซิงค์โพสต์บล็อกและความคิดใน Markdown โดยเก็บข้อมูลไว้ใน GitHub"
   }
 }
