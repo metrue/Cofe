@@ -43,13 +43,13 @@
       "publicContentTooltip": "We only request public repository read/write permission, so we can't create private repositories.",
       "myHomepage": "My Public Homepage",
       "dataStoredOnGithub": "Data Stored on GitHub",
-      "blogTitle": "'s TinyMind Blog",
+      "blogTitle": "'s Cofe Blog",
       "blogShortTitle": "'s Blog",
       "blogDescription": "Write and sync blog in Markdown with data stored in GitHub.",
       "demoPage": "Demo Page"
     },
     "metadata": {
-      "title": "TinyMind - Write blog & memos with GitHub.",
+      "title": "Cofe - Write blog & memos with GitHub.",
       "description": "Write and sync blog posts & memos in Markdown with data stored in GitHub."
     }
   }

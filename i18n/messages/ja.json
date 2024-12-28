@@ -46,13 +46,13 @@
     "publicContentTooltip": "パブリックリポジトリの読み取り/書き込み権限のみを要求するため、プライベートリポジトリを作成することはできません。",
     "myHomepage": "私の公開ホームページ",
     "dataStoredOnGithub": "GitHubに保存されたデータ",
-    "blogTitle": " の TinyMind ブログ",
+    "blogTitle": " の Cofe ブログ",
     "blogShortTitle": " のブログ",
     "blogDescription": "GitHubに保存されたデータでMarkdownでブログを書いて同期します。",
     "demoPage": "デモページ"
   },
   "metadata": {
-    "title": "TinyMind - GitHubでブログと思考を書く。",
+    "title": "Cofe - GitHubでブログと思考を書く。",
     "description": "GitHubに保存されたデータでMarkdownでブログ投稿と思考を書いて同期します。"
   }
 }

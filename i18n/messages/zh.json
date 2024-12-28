@@ -47,13 +47,13 @@
       "publicContentTooltip": "我们只请求公共仓库的读/写权限，所以我们无法创建私有仓库。",
       "myHomepage": "我的公开主页",
       "dataStoredOnGithub": "数据存储在GitHub",
-      "blogTitle": " 的 TinyMind 博客",
+      "blogTitle": " 的 Cofe 博客",
       "blogShortTitle": " 的博客",
       "blogDescription": "使用Markdown编写博客并同步，数据存储在GitHub中。",
       "demoPage": "演示页面"
     },
     "metadata": {
-      "title": "TinyMind - 使用GitHub编写博客和想法。",
+      "title": "Cofe - 使用GitHub编写博客和想法。",
       "description": "使用Markdown编写并同步博客文章和想法，数据存储在GitHub中。"
     }
   }

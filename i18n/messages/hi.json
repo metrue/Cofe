@@ -47,13 +47,13 @@
     "notAuthenticated": "आप प्रमाणित नहीं हैं। कृपया साइन इन करें।",
     "myHomepage": "मेरा सार्वजनिक होमपेज",
     "dataStoredOnGithub": "GitHub पर संग्रहीत डेटा",
-    "blogTitle": " का TinyMind ब्लॉग",
+    "blogTitle": " का Cofe ब्लॉग",
     "blogShortTitle": " का ब्लॉग",
     "blogDescription": "GitHub में संग्रहीत डेटा के साथ Markdown में ब्लॉग लिखें और सिंक करें।",
     "demoPage": "डेमो पेज"
   },
   "metadata": {
-    "title": "TinyMind - GitHub के साथ ब्लॉग और विचार लिखें।",
+    "title": "Cofe - GitHub के साथ ब्लॉग और विचार लिखें।",
     "description": "GitHub में संग्रहीत डेटा के साथ Markdown में ब्लॉग पोस्ट और विचार लिखें और सिंक करें।"
   }
 }

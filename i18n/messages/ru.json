@@ -47,13 +47,13 @@
     "publicContentTooltip": "Мы запрашиваем только разрешение на чтение/запись публичного репозитория, поэтому мы не можем создавать частные репозитории.",
     "myHomepage": "Моя публичная домашняя страница",
     "dataStoredOnGithub": "Данные хранятся на GitHub",
-    "blogTitle": " Блог TinyMind",
+    "blogTitle": " Блог Cofe",
     "blogShortTitle": " Блог",
     "blogDescription": "Пишите и синхронизируйте блоги в Markdown с данными, хранящимися в GitHub.",
     "demoPage": "Демо-страница"
   },
   "metadata": {
-    "title": "TinyMind - Пишите блог и мысли с GitHub.",
+    "title": "Cofe - Пишите блог и мысли с GitHub.",
     "description": "Пишите и синхронизируйте записи в блоге и мысли в Markdown с данными, хранящимися в GitHub."
   }
 }
