@@ -6,7 +6,7 @@ export interface BlogPost {
     date: string
   }
   
-  export type Note = {
+  export type Memo = {
     id: string
     content: string
     timestamp: string

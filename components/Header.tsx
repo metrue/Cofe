@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react'
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { Note } from '@/lib/types'
+import { Memo } from '@/lib/types'
 import { getUserLogin } from '@/lib/githubApi'
 import { useSession } from 'next-auth/react'
 
 interface HeaderProps {
-  latestNote?: Note
+  latestMemo?: Memo
   username?: string
   iconUrl?: string
 }
@@ -39,29 +39,29 @@ const Avatar = ({ src, alt, href }: { src: string; alt: string; href: string }) 
 
 const UserInfo = ({
   displayName,
-  latestNote,
+  latestMemo,
 }: {
   displayName: string
-  latestNote: Note | null
+  latestMemo: Memo | null
 }) => (
   <div className='flex flex-col'>
     <span className='font-medium text-gray-900 text-xl'>{displayName}</span>
     <div className='flex items-center space-x-2'>
       <span className='text-xs text-gray-600 font-mono'>
-        {latestNote?.content
-          ? latestNote.content.length > 24
-            ? `${latestNote.content.substring(0, 24)} ...`
-            : latestNote.content
+        {latestMemo?.content
+          ? latestMemo.content.length > 24
+            ? `${latestMemo.content.substring(0, 24)} ...`
+            : latestMemo.content
           : 'No status'}
       </span>
       <span className='text-xs text-gray-400'>•</span>
       <time className='text-xs text-gray-400' data-status-datetime=''>
-        {latestNote ? getRelativeTimeString(latestNote.timestamp) : ''}
+        {latestMemo ? getRelativeTimeString(latestMemo.timestamp) : ''}
       </time>
-      {typeof window !== 'undefined' && window.location.pathname !== '/thoughts' && (
+      {typeof window !== 'undefined' && window.location.pathname !== '/memos' && (
         <>
           <span className='text-xs text-gray-400'>•</span>
-          <Link href='/thoughts' className='text-xs text-gray-400 hover:text-gray-600 underline'>
+          <Link href='/memos' className='text-xs text-gray-400 hover:text-gray-600 underline'>
             more
           </Link>
         </>
@@ -70,7 +70,7 @@ const UserInfo = ({
   </div>
 )
 
-export default function Header({ username, iconUrl, latestNote }: HeaderProps) {
+export default function Header({ username, iconUrl, latestMemo }: HeaderProps) {
   // eslint-disable-next-line
   const { data: session, status } = useSession()
   const [userLogin, setUserLogin] = useState<string | null>(null)
@@ -104,14 +104,14 @@ export default function Header({ username, iconUrl, latestNote }: HeaderProps) {
         <div className='flex items-center justify-between'>
           <div className='flex items-center space-x-4'>
             <Avatar src={avatarUrl} alt='Blogger Avatar' href={navigationPath} />
-            {latestNote && <UserInfo displayName={displayName} latestNote={latestNote} />}
+            {latestMemo && <UserInfo displayName={displayName} latestMemo={latestMemo} />}
           </div>
           <nav className='hidden'>
             <Link href='/blog' className='text-gray-600 hover:text-gray-900'>
               Blog
             </Link>
-            <Link href='/thoughts' className='text-gray-600 hover:text-gray-900'>
-              Notes
+            <Link href='/memos' className='text-gray-600 hover:text-gray-900'>
+              Memos
             </Link>
           </nav>
         </div>

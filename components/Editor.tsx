@@ -35,16 +35,16 @@ function removeFrontmatter(content: string): string {
 }
 
 export default function Editor({
-  defaultType = "thought",
+  defaultType = "memo",
 }: {
-  defaultType?: "thought" | "blog";
+  defaultType?: "memo" | "blog";
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [type, setType] = useState(
-    (searchParams.get("type") as "thought" | "blog") || defaultType
+    (searchParams.get("type") as "memo" | "blog") || defaultType
   );
   const [isPreview, setIsPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -52,21 +52,21 @@ export default function Editor({
   const [isSuccess, setIsSuccess] = useState(false);
   const t = useTranslations("HomePage");
   const { data: session } = useSession();
-  const [editingThoughtId, setEditingThoughtId] = useState<string | null>(null);
+  const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
   const { toast } = useToast();
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
 
-  const fetchThought = useCallback(
+  const fetchMemo = useCallback(
     async (id: string) => {
       if (!session?.accessToken) return;
       try {
-        const thoughts = await createGitHubAPIClient(session.accessToken).getNotes()
-        const thought = thoughts.find((t) => t.id === id);
-        if (thought) {
-          setContent(thought.content);
+        const memos = await createGitHubAPIClient(session.accessToken).getMemos()
+        const memo = memos.find((t) => t.id === id);
+        if (memo) {
+          setContent(memo.content);
         }
       } catch (error) {
-        console.error("Error fetching thought:", error);
+        console.error("Error fetching memo:", error);
       }
     },
     [session?.accessToken]
@@ -83,7 +83,7 @@ export default function Editor({
         const blogPost = await response.json();
         setTitle(blogPost.title);
         setContent(removeFrontmatter(blogPost.content));
-        setEditingThoughtId(id);
+        setEditingMemoId(id);
       } catch (error) {
         console.error("Error fetching blog post:", error);
       }
@@ -99,19 +99,19 @@ export default function Editor({
     const id = searchParams.get("id");
 
     if (id) {
-      setEditingThoughtId(id);
+      setEditingMemoId(id);
       if (type === "blog") {
         fetchBlogPost(id);
-      } else if (type === "thought") {
-        fetchThought(id);
+      } else if (type === "memo") {
+        fetchMemo(id);
       }
     }
-  }, [type, router, searchParams, fetchThought, fetchBlogPost]);
+  }, [type, router, searchParams, fetchMemo, fetchBlogPost]);
 
-  const handleTypeChange = (value: "blog" | "thought") => {
+  const handleTypeChange = (value: "blog" | "memo") => {
     setType(value);
     if (value === "blog") {
-      setEditingThoughtId(null);
+      setEditingMemoId(null);
     }
   };
 
@@ -128,13 +128,13 @@ export default function Editor({
         body: JSON.stringify({
           action:
             type === "blog"
-              ? editingThoughtId
+              ? editingMemoId
                 ? "updateBlogPost"
                 : "createBlogPost"
-              : editingThoughtId
-              ? "updateThought"
-              : "createThought",
-          id: editingThoughtId,
+              : editingMemoId
+              ? "updateMemo"
+              : "createMemo",
+          id: editingMemoId,
           title,
           content,
         }),
@@ -147,16 +147,16 @@ export default function Editor({
       setIsSuccess(true);
       toast({
         title: t("success"),
-        description: editingThoughtId
-          ? `${type === "blog" ? t("blogPostUpdated") : t("thoughtUpdated")}`
-          : `${type === "blog" ? t("blogPostCreated") : t("thoughtCreated")}`,
+        description: editingMemoId
+          ? `${type === "blog" ? t("blogPostUpdated") : t("memoUpdated")}`
+          : `${type === "blog" ? t("blogPostCreated") : t("memoCreated")}`,
         duration: 3000,
       });
       setTimeout(() => {
         if (type === "blog") {
           router.push("/blog");
         } else {
-          router.push("/thoughts");
+          router.push("/memos");
         }
       }, 2000);
     } catch (error) {
@@ -315,7 +315,7 @@ export default function Editor({
       <CardHeader className="border-b border-gray-100 pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex flex-col items-start">
-            {type === "blog" ? t("createBlogPost") : t("createThought")}
+            {type === "blog" ? t("createBlogPost") : t("createMemo")}
             <span className="mt-2 text-xs font-normal text-gray-400 flex items-center">
               <span className="text-gray-400">{t("publicContentWarning")}</span>
               <GrInfo
@@ -348,12 +348,12 @@ export default function Editor({
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem
-                value="thought"
-                id="thought"
-                className={type === "thought" ? "text-white bg-black" : ""}
+                value="memo"
+                id="memo"
+                className={type === "memo" ? "text-white bg-black" : ""}
               />
-              <Label htmlFor="thought" className="text-sm">
-                {t("thoughts")}
+              <Label htmlFor="memo" className="text-sm">
+                {t("memos")}
               </Label>
             </div>
           </RadioGroup>

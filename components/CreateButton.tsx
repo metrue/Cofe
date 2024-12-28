@@ -1,11 +1,11 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import Link from "next/link";
-import { FiPlus } from "react-icons/fi";
 import { AbstractIntlMessages } from "next-intl";
-import { useSession } from "next-auth/react";
+import { FiPlus } from "react-icons/fi";
 import GitHubSignInButton from "./GitHubSignInButton";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function CreateButton({
   messages,
@@ -15,9 +15,9 @@ export default function CreateButton({
   const pathname = usePathname();
   const { data: session } = useSession();
 
-  const isThoughtsPage = pathname === "/" || pathname === "/thoughts";
+  const isMemosPage = pathname === "/" || pathname === "/memos";
   const isBlogPage = pathname === "/blog";
-  const createLink = isBlogPage ? "/editor?type=blog" : "/editor?type=thought";
+  const createLink = isBlogPage ? "/editor?type=blog" : "/editor?type=memo";
 
   if (!session) {
     return (
@@ -34,8 +34,8 @@ export default function CreateButton({
     >
       <FiPlus className="w-6 h-6" />
       <span className="sr-only">
-        {isThoughtsPage
-          ? (messages.createNewThought as string)
+        {isMemosPage
+          ? (messages.createNewMemo as string)
           : (messages.createNewBlogPost as string)}
       </span>
     </Link>

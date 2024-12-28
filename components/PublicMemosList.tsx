@@ -4,35 +4,35 @@ import "katex/dist/katex.min.css";
 
 import { useEffect, useState } from "react";
 
-import { Note } from "@/lib/types";
-import { NoteCard } from "./NotesList"; // Import NoteCard from NotesList
+import { Memo } from "@/lib/types";
+import { MemoCard } from "./MemosList"; // Import MemoCard from MemosList
 import { formatTimestamp } from "@/utils/dateFormatting";
 
-type FormattedNote = Note & { formattedTimestamp: string };
+type FormattedMemo = Memo & { formattedTimestamp: string };
 
-export default function PublicNotesList({
-  thoughts,
+export default function PublicMemosList({
+  memos,
 }: {
-  thoughts: Note[];
+  memos: Memo[];
 }) {
-  const [formattedNotes, setFormattedNotes] = useState<
-    FormattedNote[]
+  const [formattedMemos, setFormattedMemos] = useState<
+    FormattedMemo[]
   >([]);
 
   useEffect(() => {
-    const formatted = thoughts.map((thought) => ({
+    const formatted = memos.map((thought) => ({
       ...thought,
       formattedTimestamp: formatTimestamp(thought.timestamp),
     }));
-    setFormattedNotes(formatted);
-  }, [thoughts]);
+    setFormattedMemos(formatted);
+  }, [memos]);
 
   return (
     <div className="max-w-2xl mx-auto p-4">
       <div className="grid grid-cols-2 md:grid-cols-2 gap-2">
         <div className="flex flex-col gap-2">
-          {formattedNotes.filter((_, index) => index % 2 !== 0).map((thought) => (
-            <NoteCard
+          {formattedMemos.filter((_, index) => index % 2 !== 0).map((thought) => (
+            <MemoCard
               key={thought.id}
               thought={thought}
               onDelete={() => {}}
@@ -41,8 +41,8 @@ export default function PublicNotesList({
           ))}
         </div>
         <div className="flex flex-col gap-2">
-          {thoughts.filter((_, index) => index % 2 === 0).map((thought) => (
-            <NoteCard
+          {memos.filter((_, index) => index % 2 === 0).map((thought) => (
+            <MemoCard
               key={thought.id}
               thought={thought}
               onDelete={() => {}}

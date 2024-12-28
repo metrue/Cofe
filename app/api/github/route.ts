@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createBlogPost, createThought, deleteBlogPost, deleteThought, updateBlogPost, updateThought } from '@/lib/githubApi';
+import { createBlogPost, createMemo, deleteBlogPost, deleteMemo, updateBlogPost, updateMemo } from '@/lib/githubApi';
 
 import { authOptions } from "@/lib/auth";
 import { createGitHubAPIClient } from '@/lib/client';
@@ -38,15 +38,15 @@ export async function POST(request: NextRequest) {
       case 'deleteBlogPost':
         await deleteBlogPost(data.id, session.accessToken);
         return NextResponse.json({ message: 'Blog post deleted successfully' }, { headers });
-      case 'createThought':
-        await createThought(data.content, data.image, session.accessToken);
-        return NextResponse.json({ message: 'Thought created successfully' }, { headers });
-      case 'updateThought':
-        await updateThought(data.id, data.content, session.accessToken);
-        return NextResponse.json({ message: 'Thought updated successfully' }, { headers });
-      case 'deleteThought':
-        await deleteThought(data.id, session.accessToken);
-        return NextResponse.json({ message: 'Thought deleted successfully' }, { headers });
+      case 'createMemo':
+        await createMemo(data.content, data.image, session.accessToken);
+        return NextResponse.json({ message: 'Memo created successfully' }, { headers });
+      case 'updateMemo':
+        await updateMemo(data.id, data.content, session.accessToken);
+        return NextResponse.json({ message: 'Memo updated successfully' }, { headers });
+      case 'deleteMemo':
+        await deleteMemo(data.id, session.accessToken);
+        return NextResponse.json({ message: 'Memo deleted successfully' }, { headers });
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400, headers });
     }
@@ -85,9 +85,9 @@ export async function GET(request: NextRequest) {
         }
         const post = await client.getBlogPost(`${id}.md`);
         return NextResponse.json(post, { headers });
-      case 'getThoughts':
-        const thoughts = await client.getNotes()
-        return NextResponse.json(thoughts, { headers });
+      case 'getMemos':
+        const memos = await client.getMemos()
+        return NextResponse.json(memos, { headers });
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400, headers });
     }

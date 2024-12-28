@@ -1,25 +1,25 @@
 import GitHubSignInButton from '@/components/GitHubSignInButton'
-import NotesList from '@/components/NotesList'
-import PublicNotesList from '@/components/PublicNotesList'
+import MemosList from '@/components/MemosList'
+import PublicMemosList from '@/components/PublicMemosList'
 import { authOptions } from '@/lib/auth'
 import { createGitHubAPIClient } from '@/lib/client'
 import { getServerSession } from 'next-auth/next'
 
 export const revalidate = 60
 
-export default async function NotesPage() {
+export default async function MemosPage() {
   const session = await getServerSession(authOptions)
   const username = process.env.GITHUB_USERNAME ?? ''
 
   if (!session || !session.accessToken) {
     if (username) {
-      const blogPosts = await createGitHubAPIClient(session?.accessToken ?? '').getNotes(
+      const blogPosts = await createGitHubAPIClient(session?.accessToken ?? '').getMemos(
         process.env.GITHUB_USERNAME ?? ''
       )
       return (
         <div className='max-w-4xl mx-auto px-4 py-8'>
           <div className='max-w-2xl mx-auto'>
-            <PublicNotesList thoughts={blogPosts} />
+            <PublicMemosList memos={blogPosts} />
           </div>
         </div>
       )
@@ -28,5 +28,5 @@ export default async function NotesPage() {
     }
   }
 
-  return <NotesList username={username} />
+  return <MemosList username={username} />
 }
