@@ -2,7 +2,7 @@
 
 Cofe is designed to be a simple and easy-to-use blog and memo taking app, originally forked from [tinymind](https://github.com/mazzzystar/tinymind).
 
-![screnshot](https://github.com/metrue/cofe/blob/main/assets/images/Cofe-app.png?raw=true)
+![screnshot](https://github.com/metrue/cofe/blob/main/data/assets/images/Cofe-app.png?raw=true)
 
 ### HOW TO RUN
 
