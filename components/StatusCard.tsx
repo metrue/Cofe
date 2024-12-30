@@ -28,7 +28,7 @@ export const StatusCard = ({
 }) => {
   return (
     <div className='max-w-2xl mx-auto p-4'>
-      <Card className='w-full overflow-visible border border-gray-300 rounded-lg'>
+      <Card className='w-full overflow-visible border border-white bg-white rounded-lg'>
         <CardContent className='p-6'>
           <div className='flex items-start space-x-4'>
             <div className='flex flex-col items-center space-y-2'>

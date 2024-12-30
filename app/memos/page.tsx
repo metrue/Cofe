@@ -1,6 +1,5 @@
 import GitHubSignInButton from '@/components/GitHubSignInButton'
 import MemosList from '@/components/MemosList'
-import PublicMemosList from '@/components/PublicMemosList'
 import { authOptions } from '@/lib/auth'
 import { createGitHubAPIClient } from '@/lib/client'
 import { getServerSession } from 'next-auth/next'
@@ -19,7 +18,7 @@ export default async function MemosPage() {
       return (
         <div className='max-w-4xl mx-auto px-4 py-8'>
           <div className='max-w-2xl mx-auto'>
-            <PublicMemosList memos={blogPosts} />
+            <MemosList memos={blogPosts} />
           </div>
         </div>
       )
