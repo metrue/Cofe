@@ -5,7 +5,7 @@ import "katex/dist/katex.min.css";
 import { useEffect, useState } from "react";
 
 import { Memo } from "@/lib/types";
-import { MemoCard } from "./MemosList"; // Import MemoCard from MemosList
+import { MemoCard } from "./MemoCard"; // Import MemoCard from MemosList
 import { formatTimestamp } from "@/lib/utils";
 
 type FormattedMemo = Memo & { formattedTimestamp: string };
