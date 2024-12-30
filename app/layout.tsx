@@ -4,12 +4,12 @@ import { getLocale, getMessages, getTranslations } from 'next-intl/server'
 
 import CreateButton from '@/components/CreateButton'
 import Head from 'next/head'
-import Header from '@/components/Header'
 import { Memo } from '@/lib/types'
 import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import Script from 'next/script'
 import { SessionProvider } from '../components/SessionProvider'
+import { StatusCard } from '@/components/StatusCard'
 import { Toaster } from '@/components/ui/toaster'
 import { authOptions } from '@/lib/auth'
 import { createGitHubAPIClient } from '@/lib/client'
@@ -22,8 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const session = await getServerSession(authOptions)
 
   const title =
-    t('title') ||
-    'Cofe - Write and sync your blog posts & memos with one-click GitHub sign-in'
+    t('title') || 'Cofe - Write and sync your blog posts & memos with one-click GitHub sign-in'
   const description =
     t('description') ||
     'Write and preserve your blogs, memos, and notes effortlessly. Sign in with GitHub to automatically sync your content to your own repository, ensuring your ideas are safely stored as long as GitHub exists.'
@@ -83,7 +82,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`${gowun_wodum.className} bg-[#f6f8fa]`}>
         <NextIntlClientProvider messages={messages}>
           <SessionProvider>
-            <Header iconUrl={iconPath} username={username} latestMemo={latestMemo || undefined} />
+            <header className='top-0 left-0 right-0 py-6 bg-card z-10'>
+              <StatusCard
+                memo={latestMemo}
+                name={username}
+                avatar={`https://github.com/${username}.png`}
+              />
+            </header>
+
             <main className='pb-20 m-auto'>{children}</main>
             <CreateButton messages={messages} />
             <Toaster />
