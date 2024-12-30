@@ -1,12 +1,26 @@
-import React from 'react';
-import BlogPage from './blog/page';
+import BlogPage from './blog/page'
+import { Memo } from '@/lib/types'
+import React from 'react'
+import { StatusCard } from '@/components/StatusCard'
+import { createGitHubAPIClient } from '@/lib/client'
 
-export default function Home() {
+export default async function Home() {
+  const username = process.env.GITHUB_USERNAME ?? ''
+
+  const memos = await createGitHubAPIClient('').getMemos(username ?? '')
+  let latestMemo: Memo | undefined
+  if (memos.length > 0) {
+    latestMemo = memos.sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    )[0]
+  }
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-grow container mx-auto px-4 sm:px-6">
+    <div className='flex flex-col min-h-screen'>
+      <StatusCard memo={latestMemo} name={username} avatar={`https://github.com/${username}.png`} />
+      <main className='lex-grow w-full'>
         <BlogPage />
       </main>
     </div>
-  );
+  )
 }

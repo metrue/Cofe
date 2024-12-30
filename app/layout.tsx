@@ -4,15 +4,12 @@ import { getLocale, getMessages, getTranslations } from 'next-intl/server'
 
 import CreateButton from '@/components/CreateButton'
 import Head from 'next/head'
-import { Memo } from '@/lib/types'
 import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import Script from 'next/script'
 import { SessionProvider } from '../components/SessionProvider'
-import { StatusCard } from '@/components/StatusCard'
 import { Toaster } from '@/components/ui/toaster'
 import { authOptions } from '@/lib/auth'
-import { createGitHubAPIClient } from '@/lib/client'
 import { getIconUrls } from '@/lib/githubApi'
 import { getServerSession } from 'next-auth/next'
 import { gowun_wodum } from '@/components/ui/font'
@@ -52,15 +49,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale()
   const messages = await getMessages()
   const session = await getServerSession(authOptions)
-  const username = process.env.GITHUB_USERNAME ?? ''
-
-  const memos = await createGitHubAPIClient(session?.accessToken || '').getMemos(username ?? '')
-  let latestMemo: Memo | undefined
-  if (memos.length > 0) {
-    latestMemo = memos.sort(
-      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    )[0]
-  }
 
   const { iconPath } = await getIconPaths(session?.accessToken)
 
@@ -82,14 +70,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`${gowun_wodum.className} bg-[#f6f8fa]`}>
         <NextIntlClientProvider messages={messages}>
           <SessionProvider>
-            <header className='top-0 left-0 right-0 py-6 bg-card z-10'>
-              <StatusCard
-                memo={latestMemo}
-                name={username}
-                avatar={`https://github.com/${username}.png`}
-              />
-            </header>
-
             <main className='pb-20 m-auto'>{children}</main>
             <CreateButton messages={messages} />
             <Toaster />
