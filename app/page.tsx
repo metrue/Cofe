@@ -7,7 +7,9 @@ import { createGitHubAPIClient } from '@/lib/client'
 export default async function Home() {
   const username = process.env.GITHUB_USERNAME ?? ''
 
-  const memos = await createGitHubAPIClient('').getMemos(username ?? '')
+  const client = createGitHubAPIClient('')
+  const memos = await client.getMemos(username ?? '')
+  const links = await client.getLinks(username ?? '')
   let latestMemo: Memo | undefined
   if (memos.length > 0) {
     latestMemo = memos.sort(
@@ -17,7 +19,12 @@ export default async function Home() {
 
   return (
     <div className='flex flex-col min-h-screen'>
-      <StatusCard memo={latestMemo} name={username} avatar={`https://github.com/${username}.png`} />
+      <StatusCard
+        memo={latestMemo}
+        name={username}
+        avatar={`https://github.com/${username}.png`}
+        links={links}
+      />
       <main className='lex-grow w-full'>
         <BlogPage />
       </main>

@@ -123,6 +123,31 @@ class GitHubAPIClient {
       }
     })
   }
+
+  async getLinks(owner?: string): Promise<Record<string, string>> {
+    const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
+    if (!owner) {
+      const { data: user } = await octokit.users.getAuthenticated()
+      owner = user.login
+    }
+    return getCachedOrFetch(`${owner}/${REPO}/data/links.json`, async () => {
+      try {
+        const response = await octokit.repos.getContent({
+          owner,
+          repo: REPO,
+          path: 'data/links.json',
+        })
+        if (Array.isArray(response.data) || !('content' in response.data)) {
+          return {}
+        }
+        const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
+        return JSON.parse(content)
+      } catch (error) {
+        console.warn('Error fetching links:', error)
+        return {}
+      }
+    })
+  }
 }
 
 export const createGitHubAPIClient = (token: string) => new GitHubAPIClient(token)
