@@ -32,7 +32,7 @@ export const MemoCard = ({ memo, onDelete, onEdit }: MemoCardProps) => {
   return (
     <div
       key={memo.id}
-      className='relative flex flex-col justify-center p-4 rounded-lg leading-4 transition-all duration-300 ease-in-out hover:shadow-lg overflow-auto h-fit bg-white font-light	font-mono'
+      className='relative flex flex-col justify-center p-4 rounded-lg leading-4 transition-all duration-300 ease-in-out hover:shadow-lg overflow-auto h-fit bg-white font-mono'
     >
       <div className='text-gray-800 mb-2 prose max-w-none'>
         <div>
@@ -49,9 +49,7 @@ export const MemoCard = ({ memo, onDelete, onEdit }: MemoCardProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onSelect={() => onDelete(memo.id)}>
-                {t('delete')}
-              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => onDelete(memo.id)}>{t('delete')}</DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(memo.id)}>{t('edit')}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -106,4 +104,3 @@ export const MemoCard = ({ memo, onDelete, onEdit }: MemoCardProps) => {
     </div>
   )
 }
-
