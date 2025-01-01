@@ -22,7 +22,6 @@ export const AvatarCard = ({ name, links }: { name: string; links: Record<string
       <CardContent className='p-6'>
         <div className='flex flex-col items-center space-y-2'>
           <Avatar src={`https://github.com/${name}.png`} alt='Blogger Avatar' href={'/'} />
-          <p className='text-sm font-medium'>{name}</p>
           <div className='grid grid-cols-3 gap-2'>
             {links['github.com'] && (
               <a
