@@ -36,14 +36,13 @@ export const StatusCard = ({
           <div className='flex items-start space-x-4'>
             <div className='flex flex-col items-center space-y-2'>
               <Avatar src={avatar} alt='Blogger Avatar' href={'/'} />
-              <p className='text-sm font-medium'>{name}</p>
-              <div className='grid grid-cols-3 gap-1'>
+              <div className='grid grid-cols-3 gap-0.5'>
                 {links['github.com'] && (
                   <a
                     href={links['github.com']}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='text-gray-500 hover:text-gray-700 transition-colors p-1.5 m-auto'
+                    className='text-gray-500 hover:text-gray-700 transition-colors p-0.5 m-auto'
                     title='GitHub'
                   >
                     <FaGithub size={12} />
@@ -56,7 +55,7 @@ export const StatusCard = ({
                     href={links['x.com']}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='text-gray-500 hover:text-gray-700 transition-colors p-1.5 m-auto'
+                    className='text-gray-500 hover:text-gray-700 transition-colors p-0.5 m-auto'
                     title='X'
                   >
                     <FaTwitter size={12} />
@@ -69,7 +68,7 @@ export const StatusCard = ({
                     href={links['linkedin.com']}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='text-gray-500 hover:text-gray-700 transition-colors p-1.5 m-auto'
+                    className='text-gray-500 hover:text-gray-700 transition-colors p-0.5 m-auto'
                     title='LinkedIn'
                   >
                     <FaLinkedin size={12} />
@@ -82,7 +81,7 @@ export const StatusCard = ({
                     href={links['xiaohongshu.com']}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='text-gray-500 hover:text-gray-700 transition-colors p-1.5 m-auto text-xs'
+                    className='text-gray-500 hover:text-gray-700 transition-colors p-0.5 m-auto text-xs'
                     title='小红书'
                   >
                     小红书
@@ -95,7 +94,7 @@ export const StatusCard = ({
                     href={links['podcasts.apple.com']}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='text-gray-500 hover:text-gray-700 transition-colors p-1.5 m-auto'
+                    className='text-gray-500 hover:text-gray-700 transition-colors p-0.5 m-auto'
                     title='Apple Podcasts'
                   >
                     <FaPodcast size={12} />
@@ -108,7 +107,7 @@ export const StatusCard = ({
                     href={links['xiaoyuzhoufm.com']}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='text-gray-500 hover:text-gray-700 transition-colors p-1.5 m-auto text-xs'
+                    className='text-gray-500 hover:text-gray-700 transition-colors p-0.5 m-auto text-xs'
                     title='小宇宙'
                   >
                     小宇宙
@@ -120,7 +119,7 @@ export const StatusCard = ({
             <div className='flex-1 min-w-0'>
               <div className='flex justify-between items-center mb-2'>
                 <time className='text-xs text-gray-400' dateTime='2023-05-26T09:12:00Z'>
-                  {memo ? getRelativeTimeString(memo.timestamp) : ''}
+                  {`@${name}` + ' ' + (memo ? getRelativeTimeString(memo.timestamp) : '')}
                 </time>
                 <Link href='/memos' className='text-xs text-gray-400 hover:text-gray-600 underline'>
                   more
