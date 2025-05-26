@@ -4,7 +4,8 @@ import { PostContainer } from './component'
 
 export async function generateStaticParams() {
   const username = process.env.GITHUB_USERNAME ?? 'metrue'
-  const client = createGitHubAPIClient('')
+  const token = process.env.GITHUB_TOKEN ?? ''
+  const client = createGitHubAPIClient(token)
   const posts = await client.getBlogPosts(username)
   return posts.map((post) => ({ id: post.id }));
 }

@@ -5,9 +5,10 @@ import { StatusCard } from '@/components/StatusCard'
 import { createGitHubAPIClient } from '@/lib/client'
 
 export default async function Home() {
-  const username = process.env.GITHUB_USERNAME ?? ''
+  const username = process.env.GITHUB_USERNAME ?? 'metrue'
+  const token = process.env.GITHUB_TOKEN ?? ''
 
-  const client = createGitHubAPIClient('')
+  const client = createGitHubAPIClient(token)
   const memos = await client.getMemos(username ?? '')
   const links = await client.getLinks(username ?? '')
   let latestMemo: Memo | undefined
