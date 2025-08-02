@@ -2,6 +2,7 @@ import { BlogPost, Memo } from './types'
 
 import { Octokit } from '@octokit/rest'
 import { getCachedOrFetch } from './cache'
+import { createHybridGitHubClient } from './publicClient'
 
 const REPO = 'Cofe'
 
@@ -151,3 +152,17 @@ class GitHubAPIClient {
 }
 
 export const createGitHubAPIClient = (token: string) => new GitHubAPIClient(token)
+
+/**
+ * Create a client that prioritizes raw GitHub URLs for public reads
+ * Falls back to API for authenticated operations
+ */
+export const createOptimizedGitHubClient = (owner: string, token?: string) => {
+  if (token) {
+    // For authenticated users, use hybrid approach
+    return createHybridGitHubClient(owner, token)
+  } else {
+    // For public users, use raw URLs only
+    return createHybridGitHubClient(owner)
+  }
+}

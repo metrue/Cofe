@@ -205,6 +205,7 @@ ${content}`
     message: `Add blog post: ${title}`,
     content: Buffer.from(fullContent).toString('base64'),
   })
+
 }
 
 export async function createMemo(
@@ -448,6 +449,7 @@ export async function deleteBlogPost(id: string, accessToken: string): Promise<v
     })
 
     console.log('Blog post deleted successfully')
+
   } catch (error) {
     console.error('Error deleting blog post:', error)
     throw error
@@ -531,6 +533,7 @@ ${content}`
     )
 
     console.log('Blog post updated successfully')
+
   } catch (error) {
     console.error('Error updating blog post:', error)
     throw error
