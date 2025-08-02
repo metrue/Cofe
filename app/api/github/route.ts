@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createBlogPost, createMemo, deleteBlogPost, deleteMemo, updateBlogPost, updateMemo } from '@/lib/githubApi';
 
 import { authOptions } from "@/lib/auth";
-import { createGitHubAPIClient } from '@/lib/client';
+import { createOptimizedGitHubClient } from '@/lib/client';
 import { getServerSession } from "next-auth/next";
 
 export const dynamic = 'force-dynamic'; // Disable caching for this route
@@ -63,17 +63,32 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session || !session.accessToken) {
-      console.log('No valid session found');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers });
-    }
-
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
     const id = searchParams.get('id');
+    const owner = searchParams.get('owner');
 
-    const client = createGitHubAPIClient(session.accessToken)
+    // For public reads, we don't require authentication
+    // Use optimized client that prefers raw GitHub URLs
+    let client;
+    let clientOwner = owner;
+
+    if (session?.accessToken) {
+      // Authenticated user - use hybrid approach
+      if (!clientOwner) {
+        // Get owner from authenticated user
+        const { Octokit } = await import('@octokit/rest');
+        const { data: user } = await new Octokit({ auth: session.accessToken }).users.getAuthenticated();
+        clientOwner = user.login;
+      }
+      client = createOptimizedGitHubClient(clientOwner, session.accessToken);
+    } else {
+      // Public user - use raw URLs only
+      if (!clientOwner) {
+        return NextResponse.json({ error: 'Owner parameter required for public access' }, { status: 400, headers });
+      }
+      client = createOptimizedGitHubClient(clientOwner);
+    }
 
     switch (action) {
       case 'getBlogPosts':
@@ -86,8 +101,11 @@ export async function GET(request: NextRequest) {
         const post = await client.getBlogPost(`${id}.md`);
         return NextResponse.json(post, { headers });
       case 'getMemos':
-        const memos = await client.getMemos()
+        const memos = await client.getMemos();
         return NextResponse.json(memos, { headers });
+      case 'getLinks':
+        const links = await client.getLinks();
+        return NextResponse.json(links, { headers });
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400, headers });
     }
