@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createBlogPost, createMemo, deleteBlogPost, deleteMemo, updateBlogPost, updateMemo } from '@/lib/githubApi';
 
 import { authOptions } from "@/lib/auth";
-import { createGitHubAPIClient, createOptimizedGitHubClient } from '@/lib/client';
+import { createOptimizedGitHubClient } from '@/lib/client';
 import { getServerSession } from "next-auth/next";
 
 export const dynamic = 'force-dynamic'; // Disable caching for this route
@@ -77,8 +77,8 @@ export async function GET(request: NextRequest) {
       // Authenticated user - use hybrid approach
       if (!clientOwner) {
         // Get owner from authenticated user
-        const apiClient = createGitHubAPIClient(session.accessToken);
-        const { data: user } = await new (require('@octokit/rest').Octokit)({ auth: session.accessToken }).users.getAuthenticated();
+        const { Octokit } = await import('@octokit/rest');
+        const { data: user } = await new Octokit({ auth: session.accessToken }).users.getAuthenticated();
         clientOwner = user.login;
       }
       client = createOptimizedGitHubClient(clientOwner, session.accessToken);

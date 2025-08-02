@@ -1,5 +1,6 @@
 import { BlogPost, Memo } from './types'
 import { getCachedOrFetch } from './cache'
+import { createGitHubAPIClient } from './client'
 
 const REPO = 'Cofe'
 
@@ -192,13 +193,12 @@ export const createPublicGitHubClient = (owner: string) => new PublicGitHubClien
  */
 export class HybridGitHubClient {
   private publicClient: PublicGitHubClient
-  private apiClient: any // Will use the existing GitHubAPIClient if needed
+  private apiClient: ReturnType<typeof createGitHubAPIClient> | null = null
 
   constructor(owner: string, accessToken?: string) {
     this.publicClient = new PublicGitHubClient(owner)
     if (accessToken) {
-      // Import and use the existing API client as fallback
-      const { createGitHubAPIClient } = require('./client')
+      // Use the existing API client as fallback
       this.apiClient = createGitHubAPIClient(accessToken)
     }
   }
@@ -222,7 +222,7 @@ export class HybridGitHubClient {
     } catch (error) {
       console.warn('Public client failed for blog post, falling back to API:', error)
       if (this.apiClient) {
-        return await this.apiClient.getBlogPost(filename)
+        return (await this.apiClient.getBlogPost(filename)) || null
       }
       throw error
     }

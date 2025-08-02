@@ -13,6 +13,7 @@ import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import Image from 'next/image'
 
 interface BlogPostContentProps {
   title: string
@@ -81,9 +82,11 @@ export function BlogPostContent({ title, date, content, headerContent }: BlogPos
               ),
               img: ({ children, ...props }) => (
                 <figure className='flex justify-center'>
-                  <img
-                    {...props}
-                    alt='image'
+                  <Image
+                    src={props.src || ''}
+                    alt={props.alt || 'image'}
+                    width={500}
+                    height={300}
                     className='h-auto rounded-lg max-w-[min(100%,32em)]'
                   />
                   {children && <figcaption>{children}</figcaption>}
