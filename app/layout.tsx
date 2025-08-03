@@ -1,6 +1,6 @@
 import './globals.css'
 
-import { getLocale, getMessages, getTranslations } from 'next-intl/server'
+import { getLocale, getMessages } from 'next-intl/server'
 
 import CreateButton from '@/components/CreateButton'
 import Head from 'next/head'
@@ -16,7 +16,6 @@ import { gowun_wodum } from '@/components/ui/font'
 import { getSiteConfig } from '@/lib/siteConfig'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('metadata')
   const session = await getServerSession(authOptions)
   const siteConfig = getSiteConfig()
 
