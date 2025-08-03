@@ -29,6 +29,12 @@ const customJestConfig = {
     '<rootDir>/.next/',
     '<rootDir>/node_modules/',
   ],
+  transformIgnorePatterns: [
+    'node_modules/(?!(graphql-yoga|@graphql-yoga|@envelop|@whatwg-node|jose)/)',
+  ],
+  testEnvironmentOptions: {
+    customExportConditions: ['node', 'node-addons'],
+  },
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
