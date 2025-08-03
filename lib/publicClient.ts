@@ -152,7 +152,7 @@ export class PublicGitHubClient {
   async getLinks(): Promise<Record<string, string>> {
     return getCachedOrFetch(`public:${this.owner}/${REPO}/links`, async () => {
       try {
-        const response = await fetch(`${this.baseUrl}/data/links.json`)
+        const response = await fetch(`${this.baseUrl}/data/site-config.json`)
         
         if (!response.ok) {
           if (response.status === 404) {
@@ -161,8 +161,8 @@ export class PublicGitHubClient {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }
 
-        const links = await response.json()
-        return links || {}
+        const config = await response.json()
+        return config.links || {}
       } catch (error) {
         console.warn('Error fetching links via raw URLs:', error)
         return {}
