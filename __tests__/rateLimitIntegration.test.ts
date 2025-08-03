@@ -152,7 +152,7 @@ This post can handle unlimited traffic!`
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({ github: 'link' }) // links
+          json: () => Promise.resolve({ links: { github: 'link' } }) // site-config with links
         })
         .mockResolvedValueOnce({
           ok: true,

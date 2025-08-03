@@ -73,3 +73,11 @@ beforeEach(() => {
 process.env.NEXTAUTH_SECRET = 'test-secret'
 process.env.GITHUB_CLIENT_ID = 'test-client-id'
 process.env.GITHUB_CLIENT_SECRET = 'test-client-secret'
+
+// Polyfill for TextEncoder/TextDecoder for GraphQL tests
+if (typeof TextEncoder === 'undefined') {
+  global.TextEncoder = require('util').TextEncoder
+}
+if (typeof TextDecoder === 'undefined') {
+  global.TextDecoder = require('util').TextDecoder
+}
