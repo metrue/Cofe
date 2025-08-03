@@ -1,34 +1,19 @@
-import { Memo } from './types'
-import { Octokit } from '@octokit/rest'
-import path from 'path'
+import { Memo } from './types';
+import { Octokit } from '@octokit/rest';
+import path from 'path';
+import {
+  getOctokit,
+  getRepoInfo,
+  getFileContent,
+  updateFileContents,
+  ensureDirectoryExists,
+  fileToBase64,
+  isNotFoundError,
+  createFileIfNotExists,
+  type UpdateFileParams
+} from './githubUtils';
 
-type UpdateFileParams = Parameters<Octokit['repos']['createOrUpdateFileContents']>[0]
-
-const REPO = 'Cofe'
-
-function getOctokit(accessToken: string | undefined) {
-  if (!accessToken) {
-    throw new Error('Access token is required')
-  }
-  return new Octokit({ auth: accessToken })
-}
-
-async function getRepoInfo(accessToken: string | undefined) {
-  if (!accessToken) {
-    throw new Error('Access token is required')
-  }
-  const octokit = getOctokit(accessToken)
-  try {
-    const { data: user } = await octokit.users.getAuthenticated()
-    return {
-      owner: user.login,
-      repo: REPO,
-    }
-  } catch (error) {
-    console.error('Error getting authenticated user:', error)
-    throw new Error('Failed to get authenticated user')
-  }
-}
+const REPO = 'Cofe';
 
 async function ensureRepoExists(octokit: Octokit, owner: string, repo: string) {
   try {
@@ -49,7 +34,7 @@ async function ensureRepoExists(octokit: Octokit, owner: string, repo: string) {
       console.log(`Updated repository description to https://tinymind.me/${userLogin}`)
     }
   } catch (error) {
-    if (error instanceof Error && 'status' in error && error.status === 404) {
+    if (isNotFoundError(error)) {
       await octokit.repos.createForAuthenticatedUser({
         name: repo,
         auto_init: true,
@@ -106,43 +91,6 @@ async function ensureRepoExists(octokit: Octokit, owner: string, repo: string) {
 }
 
 async function ensureContentStructure(octokit: Octokit, owner: string, repo: string) {
-  async function createFileIfNotExists(
-    octokit: Octokit,
-    owner: string,
-    repo: string,
-    path: string,
-    message: string,
-    content: string
-  ) {
-    try {
-      await octokit.repos.getContent({
-        owner,
-        repo,
-        path,
-      })
-      console.log(`File ${path} already exists.`)
-    } catch (error) {
-      if (error instanceof Error && 'status' in error && error.status === 404) {
-        console.log(`Creating file ${path}...`)
-        try {
-          await octokit.repos.createOrUpdateFileContents({
-            owner,
-            repo,
-            path,
-            message,
-            content: Buffer.from(content).toString('base64'), // Encode content to Base64
-          })
-          console.log(`File ${path} created successfully.`)
-        } catch (createError) {
-          console.error(`Error creating file ${path}:`, createError)
-          throw createError
-        }
-      } else {
-        console.error(`Error checking file ${path}:`, error)
-        throw error
-      }
-    }
-  }
 
   try {
     await createFileIfNotExists(
@@ -246,7 +194,7 @@ export async function createMemo(
         console.log('Existing memos fetched')
       }
     } catch (error) {
-      if (error instanceof Error && 'status' in error && error.status === 404) {
+      if (isNotFoundError(error)) {
         console.log('memos.json does not exist, creating a new file')
       } else {
         console.error('Error fetching existing memos:', error)
@@ -456,38 +404,6 @@ export async function deleteBlogPost(id: string, accessToken: string): Promise<v
   }
 }
 
-async function getContent(octokit: Octokit, owner: string, repo: string, path: string) {
-  const response = await octokit.repos.getContent({ owner, repo, path })
-  if (Array.isArray(response.data) || !('content' in response.data)) {
-    throw new Error('Unexpected response from GitHub API')
-  }
-  return {
-    content: Buffer.from(response.data.content, 'base64').toString('utf-8'),
-    sha: response.data.sha,
-  }
-}
-
-async function updateFileContents(
-  octokit: Octokit,
-  owner: string,
-  repo: string,
-  path: string,
-  message: string,
-  content: string,
-  sha?: string
-) {
-  const params: UpdateFileParams = {
-    owner,
-    repo,
-    path,
-    message,
-    content: Buffer.from(content).toString('base64'),
-  }
-  if (sha) {
-    params.sha = sha
-  }
-  await octokit.repos.createOrUpdateFileContents(params)
-}
 
 export async function updateBlogPost(
   id: string,
@@ -505,7 +421,7 @@ export async function updateBlogPost(
     const { owner, repo } = await getRepoInfo(accessToken)
 
     // Get the current file to retrieve its SHA and content
-    const { content: existingContent, sha } = await getContent(
+    const { content: existingContent, sha } = await getFileContent(
       octokit,
       owner,
       repo,
@@ -603,40 +519,6 @@ export async function uploadImage(file: File, accessToken: string): Promise<stri
   }
 }
 
-async function ensureDirectoryExists(octokit: Octokit, owner: string, repo: string, path: string) {
-  try {
-    await octokit.repos.getContent({ owner, repo, path })
-  } catch (error) {
-    if (error instanceof Error && 'status' in error && error.status === 404) {
-      // Directory doesn't exist, create it
-      await octokit.repos.createOrUpdateFileContents({
-        owner,
-        repo,
-        path: `${path}/.gitkeep`,
-        message: `Create directory: ${path}`,
-        content: '',
-      })
-    } else {
-      throw error
-    }
-  }
-}
-
-async function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        // Remove the data URL prefix (e.g., "data:image/png;base64,")
-        resolve(reader.result.split(',')[1])
-      } else {
-        reject(new Error('Failed to convert file to base64'))
-      }
-    }
-    reader.onerror = (error) => reject(error)
-  })
-}
 
 export async function getUserLogin(accessToken: string): Promise<string> {
   const octokit = getOctokit(accessToken)

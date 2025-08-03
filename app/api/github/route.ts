@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createBlogPost, createMemo, deleteBlogPost, deleteMemo, updateBlogPost, updateMemo } from '@/lib/githubApi';
-
 import { authOptions } from "@/lib/auth";
 import { createOptimizedGitHubClient } from '@/lib/client';
 import { getServerSession } from "next-auth/next";
+import { handleApiError, AuthenticationError, ValidationError } from '@/lib/errorHandling';
 
 export const dynamic = 'force-dynamic'; // Disable caching for this route
 export const revalidate = 60; // Revalidate every 60 seconds
@@ -21,42 +21,60 @@ export async function POST(request: NextRequest) {
     
     if (!session || !session.accessToken) {
       console.log('No valid session found');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers });
+      throw new AuthenticationError();
     }
 
     const { action, ...data } = await request.json();
     console.log('Action:', action);
     console.log('Data:', JSON.stringify(data, null, 2));
 
+    if (!action) {
+      throw new ValidationError('Action is required');
+    }
+
     switch (action) {
       case 'createBlogPost':
+        if (!data.title || !data.content) {
+          throw new ValidationError('Title and content are required');
+        }
         await createBlogPost(data.title, data.content, session.accessToken);
         return NextResponse.json({ message: 'Blog post created successfully' }, { headers });
       case 'updateBlogPost':
+        if (!data.id || !data.title || !data.content) {
+          throw new ValidationError('ID, title and content are required');
+        }
         await updateBlogPost(data.id, data.title, data.content, session.accessToken);
         return NextResponse.json({ message: 'Blog post updated successfully' }, { headers });
       case 'deleteBlogPost':
+        if (!data.id) {
+          throw new ValidationError('ID is required');
+        }
         await deleteBlogPost(data.id, session.accessToken);
         return NextResponse.json({ message: 'Blog post deleted successfully' }, { headers });
       case 'createMemo':
+        if (!data.content) {
+          throw new ValidationError('Content is required');
+        }
         await createMemo(data.content, data.image, session.accessToken);
         return NextResponse.json({ message: 'Memo created successfully' }, { headers });
       case 'updateMemo':
+        if (!data.id || !data.content) {
+          throw new ValidationError('ID and content are required');
+        }
         await updateMemo(data.id, data.content, session.accessToken);
         return NextResponse.json({ message: 'Memo updated successfully' }, { headers });
       case 'deleteMemo':
+        if (!data.id) {
+          throw new ValidationError('ID is required');
+        }
         await deleteMemo(data.id, session.accessToken);
         return NextResponse.json({ message: 'Memo deleted successfully' }, { headers });
       default:
-        return NextResponse.json({ error: 'Invalid action' }, { status: 400, headers });
+        throw new ValidationError('Invalid action');
     }
   } catch (error) {
-    console.error('Error in /api/github POST:', error);
-    if (error instanceof Error) {
-      console.error('Error stack:', error.stack);
-      return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500, headers });
-    }
-    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500, headers });
+    const { message, status } = handleApiError(error);
+    return NextResponse.json({ error: message }, { status, headers });
   }
 }
 
@@ -67,6 +85,10 @@ export async function GET(request: NextRequest) {
     const action = searchParams.get('action');
     const id = searchParams.get('id');
     const owner = searchParams.get('owner');
+
+    if (!action) {
+      throw new ValidationError('Action is required');
+    }
 
     // For public reads, we don't require authentication
     // Use optimized client that prefers raw GitHub URLs
@@ -85,7 +107,7 @@ export async function GET(request: NextRequest) {
     } else {
       // Public user - use raw URLs only
       if (!clientOwner) {
-        return NextResponse.json({ error: 'Owner parameter required for public access' }, { status: 400, headers });
+        throw new ValidationError('Owner parameter required for public access');
       }
       client = createOptimizedGitHubClient(clientOwner);
     }
@@ -96,7 +118,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(posts, { headers });
       case 'getBlogPost':
         if (!id) {
-          return NextResponse.json({ error: 'Missing id parameter' }, { status: 400, headers });
+          throw new ValidationError('ID parameter is required');
         }
         const post = await client.getBlogPost(`${id}.md`);
         return NextResponse.json(post, { headers });
@@ -107,13 +129,10 @@ export async function GET(request: NextRequest) {
         const links = await client.getLinks();
         return NextResponse.json(links, { headers });
       default:
-        return NextResponse.json({ error: 'Invalid action' }, { status: 400, headers });
+        throw new ValidationError('Invalid action');
     }
   } catch (error) {
-    console.error('Error in /api/github GET:', error);
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500, headers });
-    }
-    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500, headers });
+    const { message, status } = handleApiError(error);
+    return NextResponse.json({ error: message }, { status, headers });
   }
 }
