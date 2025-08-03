@@ -20,8 +20,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const session = await getServerSession(authOptions)
   const siteConfig = getSiteConfig()
 
-  const title = t('title') || siteConfig.title
-  const description = t('description') || siteConfig.description
+  const title = siteConfig.title
+  const description = siteConfig.description
 
   const { iconPath } = await getIconPaths(session?.accessToken)
 
