@@ -6,6 +6,28 @@ import { createGitHubAPIClient } from '@/lib/client'
 import { createPublicGitHubClient } from '@/lib/publicClient'
 import { Memo } from '@/lib/types'
 
+// GraphQL resolver context type
+interface GraphQLContext {
+  token?: {
+    accessToken?: string
+    login?: string
+    name?: string
+  } | null
+}
+
+// GraphQL resolver types
+type QueryResolvers = {
+  memos: (parent: unknown, args: unknown, context: GraphQLContext) => Promise<Memo[]>
+}
+
+type MutationResolvers = {
+  createMemo: (
+    parent: unknown, 
+    args: { input: { content: string; image?: string } }, 
+    context: GraphQLContext
+  ) => Promise<Memo>
+}
+
 const typeDefs = `
   type Memo {
     id: String!
@@ -28,9 +50,10 @@ const typeDefs = `
   }
 `
 
-const resolvers = {
+const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
   Query: {
-    memos: async (_: any, __: any, context: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    memos: async (_parent, _args, _context) => {
       try {
         // Use public client for queries - no authentication needed
         // Default to 'metrue' owner, but could be made configurable
@@ -44,7 +67,8 @@ const resolvers = {
     },
   },
   Mutation: {
-    createMemo: async (_: any, { input }: { input: { content: string; image?: string } }, context: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    createMemo: async (_parent, { input }, context) => {
       // Check authentication
       if (!context.token?.accessToken) {
         throw new Error('Authentication required')
@@ -73,7 +97,7 @@ const resolvers = {
         try {
           // Get current file to get its SHA
           const currentFile = await octokit.repos.getContent({
-            owner: context.token.login || context.token.name,
+            owner: context.token.login || context.token.name || '',
             repo: 'Cofe',
             path: 'data/memos.json',
           })
@@ -81,7 +105,7 @@ const resolvers = {
           if (!Array.isArray(currentFile.data) && 'sha' in currentFile.data) {
             // Update the file
             await octokit.repos.createOrUpdateFileContents({
-              owner: context.token.login || context.token.name,
+              owner: context.token.login || context.token.name || '',
               repo: 'Cofe',
               path: 'data/memos.json',
               message: `Add new memo: ${newMemo.id}`,
@@ -91,9 +115,9 @@ const resolvers = {
           }
         } catch (fileError) {
           // If file doesn't exist, create it
-          if ((fileError as any)?.status === 404) {
+          if ((fileError as Error & { status?: number })?.status === 404) {
             await octokit.repos.createOrUpdateFileContents({
-              owner: context.token.login || context.token.name,
+              owner: context.token.login || context.token.name || '',
               repo: 'Cofe',
               path: 'data/memos.json',
               message: `Create memos.json with first memo: ${newMemo.id}`,
@@ -121,7 +145,8 @@ const schema = makeExecutableSchema({
 const yoga = createYoga({
   schema,
   graphqlEndpoint: '/api/graphql',
-  context: async ({ request }: { request: NextRequest }) => {
+  context: async (context) => {
+    const request = context.request as NextRequest
     const token = await getToken({ 
       req: request, 
       secret: process.env.NEXTAUTH_SECRET,
@@ -135,8 +160,15 @@ const yoga = createYoga({
   // CORS already handled by Next.js config
 })
 
-export {
-  yoga as GET,
-  yoga as POST,
-  yoga as OPTIONS,
+// Next.js App Router handlers
+export async function GET(request: NextRequest) {
+  return yoga.handle(request, {})
+}
+
+export async function POST(request: NextRequest) {
+  return yoga.handle(request, {})
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return yoga.handle(request, {})
 }
