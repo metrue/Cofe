@@ -131,18 +131,19 @@ class GitHubAPIClient {
       const { data: user } = await octokit.users.getAuthenticated()
       owner = user.login
     }
-    return getCachedOrFetch(`${owner}/${REPO}/data/links.json`, async () => {
+    return getCachedOrFetch(`${owner}/${REPO}/data/site-config.json`, async () => {
       try {
         const response = await octokit.repos.getContent({
           owner,
           repo: REPO,
-          path: 'data/links.json',
+          path: 'data/site-config.json',
         })
         if (Array.isArray(response.data) || !('content' in response.data)) {
           return {}
         }
         const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
-        return JSON.parse(content)
+        const config = JSON.parse(content)
+        return config.links || {}
       } catch (error) {
         console.warn('Error fetching links:', error)
         return {}
