@@ -12,7 +12,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@auth/core": "^0.40.0",
+    "@auth/core": "^0.34.2",
     "@giscus/react": "^3.0.0",
     "@graphql-tools/schema": "^10.0.25",
     "@octokit/rest": "^21.0.2",
