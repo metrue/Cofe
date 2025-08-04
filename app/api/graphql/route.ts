@@ -94,10 +94,14 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
         const { Octokit } = await import('@octokit/rest')
         const octokit = new Octokit({ auth: context.token.accessToken })
         
+        // Get the authenticated user's login (username, not display name)
+        const { data: user } = await octokit.users.getAuthenticated()
+        const owner = user.login // This is the actual GitHub username
+        
         try {
           // Get current file to get its SHA
           const currentFile = await octokit.repos.getContent({
-            owner: context.token.login || context.token.name || '',
+            owner,
             repo: 'Cofe',
             path: 'data/memos.json',
           })
@@ -105,7 +109,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           if (!Array.isArray(currentFile.data) && 'sha' in currentFile.data) {
             // Update the file
             await octokit.repos.createOrUpdateFileContents({
-              owner: context.token.login || context.token.name || '',
+              owner,
               repo: 'Cofe',
               path: 'data/memos.json',
               message: `Add new memo: ${newMemo.id}`,
@@ -117,7 +121,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           // If file doesn't exist, create it
           if ((fileError as Error & { status?: number })?.status === 404) {
             await octokit.repos.createOrUpdateFileContents({
-              owner: context.token.login || context.token.name || '',
+              owner,
               repo: 'Cofe',
               path: 'data/memos.json',
               message: `Create memos.json with first memo: ${newMemo.id}`,
