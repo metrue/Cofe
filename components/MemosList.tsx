@@ -18,6 +18,7 @@ export default function PublicMemosList({
   const [formattedMemos, setFormattedMemos] = useState<
     FormattedMemo[]
   >([]);
+  const [deletingMemoId, setDeletingMemoId] = useState<string | null>(null);
 
   useEffect(() => {
     const formatted = memos.map((memo) => ({
@@ -29,6 +30,8 @@ export default function PublicMemosList({
 
   const handleDelete = async (id: string) => {
     try {
+      setDeletingMemoId(id);
+
       const response = await fetch('/api/github', {
         method: 'POST',
         headers: {
@@ -46,6 +49,8 @@ export default function PublicMemosList({
       setFormattedMemos((preMemos) => preMemos.filter((memo) => memo.id !== id))
     } catch (e) {
       console.error(`error delete memo: ${e}`)
+    } finally {
+      setDeletingMemoId(null);
     }
   }
 
@@ -60,6 +65,7 @@ export default function PublicMemosList({
               memo={memo}
               onDelete={handleDelete}
               onEdit={() => {}}
+              isDeleting={deletingMemoId === memo.id}
             />
           ))}
         </div>
@@ -68,8 +74,9 @@ export default function PublicMemosList({
             <MemoCard
               key={memo.id}
               memo={memo}
-              onDelete={() => {}}
+              onDelete={handleDelete}
               onEdit={() => {}}
+              isDeleting={deletingMemoId === memo.id}
             />
           ))}
         </div>
