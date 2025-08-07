@@ -3,8 +3,12 @@ name: CI
 on:
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - 'data/memos.json'
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'data/memos.json'
 
 jobs:
   test-and-build:
