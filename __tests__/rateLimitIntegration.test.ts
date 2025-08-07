@@ -4,10 +4,7 @@
 
 import { PublicGitHubClient, HybridGitHubClient } from '@/lib/publicClient'
 
-// Mock cache
-jest.mock('@/lib/cache', () => ({
-  getCachedOrFetch: jest.fn((key, fetcher) => fetcher()),
-}))
+// Cache module has been removed - no mocking needed
 
 describe('Rate Limit Integration Tests', () => {
   beforeEach(() => {
