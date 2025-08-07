@@ -1,5 +1,4 @@
 import { BlogPost, Memo } from './types'
-import { getCachedOrFetch } from './cache'
 import { createGitHubAPIClient } from './client'
 
 const REPO = 'Cofe'
@@ -31,143 +30,133 @@ export class PublicGitHubClient {
    * Fetch blog posts using raw GitHub URLs (no API limits)
    */
   async getBlogPosts(): Promise<BlogPost[]> {
-    return getCachedOrFetch(`public:${this.owner}/${REPO}/blog`, async () => {
+    try {
+      // First try to get a list of blog files from a manifest or directory listing
+      // Since we can't list directory contents via raw URLs, we'll try common approaches
+      
+      // Approach 1: Try to fetch a blog manifest file if it exists
       try {
-        // First try to get a list of blog files from a manifest or directory listing
-        // Since we can't list directory contents via raw URLs, we'll try common approaches
-        
-        // Approach 1: Try to fetch a blog manifest file if it exists
-        try {
-          const manifestResponse = await fetch(`${this.baseUrl}/data/blog-manifest.json`)
-          if (manifestResponse.ok) {
-            const manifest = await manifestResponse.json()
-            const posts = await Promise.all(
-              manifest.files.map((filename: string) => this.getBlogPost(filename))
-            )
-            return posts.filter((post): post is BlogPost => post !== null)
-          }
-        } catch {
-          // Manifest doesn't exist, continue to fallback
+        const manifestResponse = await fetch(`${this.baseUrl}/data/blog-manifest.json`)
+        if (manifestResponse.ok) {
+          const manifest = await manifestResponse.json()
+          const posts = await Promise.all(
+            manifest.files.map((filename: string) => this.getBlogPost(filename))
+          )
+          return posts.filter((post): post is BlogPost => post !== null)
         }
-
-        // Approach 2: Try common blog post filenames
-        const commonPosts = [
-          '2017-summary.md',
-          'a-complex-web-app-refactor.md', 
-          'a-day-of-remote-worker.md',
-          'async-action-in-redux.md',
-          'first-golang-project-fx.md',
-          'work-going-index.md',
-          '上海到阿姆斯特丹.md',
-          '二月葡萄牙游记.md',
-          '华为鸿蒙-harmaryos-next-线下活动小记.md',
-          '四月的尾巴逛德国-柏林.md',
-          '西班牙七天的旅行.md',
-          '逛逛济州岛.md'
-        ]
-
-        const posts = await Promise.all(
-          commonPosts.map(async (filename) => {
-            try {
-              return await this.getBlogPost(filename)
-            } catch {
-              return null
-            }
-          })
-        )
-
-        return posts.filter((post): post is BlogPost => post !== null)
-      } catch (error) {
-        console.error('Error fetching blog posts via raw URLs:', error)
-        throw error
+      } catch {
+        // Manifest doesn't exist, continue to fallback
       }
-    })
+
+      // Approach 2: Try common blog post filenames
+      const commonPosts = [
+        '2017-summary.md',
+        'a-complex-web-app-refactor.md', 
+        'a-day-of-remote-worker.md',
+        'async-action-in-redux.md',
+        'first-golang-project-fx.md',
+        'work-going-index.md',
+        '上海到阿姆斯特丹.md',
+        '二月葡萄牙游记.md',
+        '华为鸿蒙-harmaryos-next-线下活动小记.md',
+        '四月的尾巴逛德国-柏林.md',
+        '西班牙七天的旅行.md',
+        '逛逛济州岛.md'
+      ]
+
+      const posts = await Promise.all(
+        commonPosts.map(async (filename) => {
+          try {
+            return await this.getBlogPost(filename)
+          } catch {
+            return null
+          }
+        })
+      )
+
+      return posts.filter((post): post is BlogPost => post !== null)
+    } catch (error) {
+      console.error('Error fetching blog posts via raw URLs:', error)
+      throw error
+    }
   }
 
   /**
    * Fetch a single blog post using raw GitHub URLs
    */
   async getBlogPost(filename: string): Promise<BlogPost | null> {
-    const cacheKey = `public:${this.owner}/${REPO}/blog/${filename}`
-    
-    return getCachedOrFetch(cacheKey, async () => {
-      try {
-        const response = await fetch(`${this.baseUrl}/data/blog/${filename}`)
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            return null
-          }
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    try {
+      const response = await fetch(`${this.baseUrl}/data/blog/${filename}`)
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null
         }
-
-        const content = await response.text()
-        const titleMatch = content.match(/title:\s*(.+)/)
-        const dateMatch = content.match(/date:\s*(.+)/)
-
-        return {
-          id: filename.replace('.md', ''),
-          title: titleMatch
-            ? decodeURIComponent(titleMatch[1].trim())
-            : decodeURIComponent(filename.replace('.md', '')),
-          content,
-          imageUrl: getFirstImageURLFrom(content),
-          date: dateMatch ? new Date(dateMatch[1].trim()).toISOString() : new Date().toISOString(),
-        }
-      } catch (error) {
-        console.error(`Error fetching blog post ${filename}:`, error)
-        return null
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
-    })
+
+      const content = await response.text()
+      const titleMatch = content.match(/title:\s*(.+)/)
+      const dateMatch = content.match(/date:\s*(.+)/)
+
+      return {
+        id: filename.replace('.md', ''),
+        title: titleMatch
+          ? decodeURIComponent(titleMatch[1].trim())
+          : decodeURIComponent(filename.replace('.md', '')),
+        content,
+        imageUrl: getFirstImageURLFrom(content),
+        date: dateMatch ? new Date(dateMatch[1].trim()).toISOString() : new Date().toISOString(),
+      }
+    } catch (error) {
+      console.error(`Error fetching blog post ${filename}:`, error)
+      return null
+    }
   }
 
   /**
    * Fetch memos using raw GitHub URLs (no API limits)
    */
   async getMemos(): Promise<Memo[]> {
-    return getCachedOrFetch(`public:${this.owner}/${REPO}/memos`, async () => {
-      try {
-        const response = await fetch(`${this.baseUrl}/data/memos.json`)
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            console.log('memos.json not found, returning empty array')
-            return []
-          }
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    try {
+      const response = await fetch(`${this.baseUrl}/data/memos.json`)
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log('memos.json not found, returning empty array')
+          return []
         }
-
-        const memos = await response.json()
-        return Array.isArray(memos) ? memos : []
-      } catch (error) {
-        console.error('Error fetching memos via raw URLs:', error)
-        return []
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
-    })
+
+      const memos = await response.json()
+      return Array.isArray(memos) ? memos : []
+    } catch (error) {
+      console.error('Error fetching memos via raw URLs:', error)
+      return []
+    }
   }
 
   /**
    * Fetch links using raw GitHub URLs
    */
   async getLinks(): Promise<Record<string, string>> {
-    return getCachedOrFetch(`public:${this.owner}/${REPO}/links`, async () => {
-      try {
-        const response = await fetch(`${this.baseUrl}/data/site-config.json`)
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            return {}
-          }
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    try {
+      const response = await fetch(`${this.baseUrl}/data/site-config.json`)
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          return {}
         }
-
-        const config = await response.json()
-        return config.links || {}
-      } catch (error) {
-        console.warn('Error fetching links via raw URLs:', error)
-        return {}
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
-    })
+
+      const config = await response.json()
+      return config.links || {}
+    } catch (error) {
+      console.warn('Error fetching links via raw URLs:', error)
+      return {}
+    }
   }
 
   /**
