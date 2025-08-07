@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import { AiOutlineEllipsis } from 'react-icons/ai'
+import { AiOutlineEllipsis, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { Button } from '@/components/ui/button'
 import { Memo } from '@/lib/types'
 import ReactMarkdown from 'react-markdown'
@@ -23,10 +23,10 @@ interface MemoCardProps {
   memo: Memo
   onDelete: (id: string) => void
   onEdit: (id: string) => void
+  isDeleting?: boolean
 }
 
-// TODO fix following
-export const MemoCard = ({ memo, onDelete, onEdit }: MemoCardProps) => {
+export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCardProps) => {
   const t = useTranslations('HomePage')
 
   return (
@@ -49,8 +49,22 @@ export const MemoCard = ({ memo, onDelete, onEdit }: MemoCardProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onSelect={() => onDelete(memo.id)}>{t('delete')}</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(memo.id)}>{t('edit')}</DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => onDelete(memo.id)}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <div className="flex items-center gap-2">
+                    <AiOutlineLoading3Quarters className="h-4 w-4 animate-spin" />
+                    {t('delete')}
+                  </div>
+                ) : (
+                  t('delete')
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(memo.id)} disabled={isDeleting}>
+                {t('edit')}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
