@@ -193,16 +193,18 @@ export class HybridGitHubClient {
   }
 
   async getBlogPosts(): Promise<BlogPost[]> {
-    try {
-      // Try public raw URLs first (no rate limits)
-      return await this.publicClient.getBlogPosts()
-    } catch (error) {
-      console.warn('Public client failed, falling back to API:', error)
-      if (this.apiClient) {
+    // For authenticated users, try API first (fresh data) then fallback to raw URLs
+    if (this.apiClient) {
+      try {
         return await this.apiClient.getBlogPosts()
+      } catch (error) {
+        console.warn('API client failed, falling back to raw URLs:', error)
+        return await this.publicClient.getBlogPosts()
       }
-      throw error
     }
+    
+    // For unauthenticated users, use raw URLs only (no rate limits)
+    return await this.publicClient.getBlogPosts()
   }
 
   async getBlogPost(filename: string): Promise<BlogPost | null> {

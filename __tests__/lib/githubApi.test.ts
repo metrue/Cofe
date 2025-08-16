@@ -29,29 +29,41 @@ jest.mock('@/lib/githubUtils', () => ({
 }))
 
 describe('githubApi', () => {
-  let mockOctokit: jest.Mocked<Octokit>
+  let mockOctokit: any
 
   beforeEach(() => {
     jest.clearAllMocks()
-    mockOctokit = new Octokit() as jest.Mocked<Octokit>
+    mockOctokit = {
+      repos: {
+        get: jest.fn(),
+        getContent: jest.fn(),
+        createOrUpdateFileContents: jest.fn(),
+        deleteFile: jest.fn(),
+        update: jest.fn(),
+        createForAuthenticatedUser: jest.fn(),
+      },
+      users: {
+        getAuthenticated: jest.fn(),
+      },
+    } as any
     
     // Setup default successful responses for common operations
-    mockOctokit.repos.get.mockResolvedValue({ 
+    ;(mockOctokit.repos.get as jest.MockedFunction<any>).mockResolvedValue({ 
       data: { description: 'test repo', default_branch: 'main' } 
-    } as any)
-    mockOctokit.users.getAuthenticated.mockResolvedValue({ 
+    })
+    ;(mockOctokit.users.getAuthenticated as unknown as jest.Mock).mockResolvedValue({ 
       data: { login: 'testuser' } 
-    } as any)
+    })
     // Default mock for blog manifest (empty, doesn't exist)
-    mockOctokit.repos.getContent.mockImplementation((params: any) => {
+    ;(mockOctokit.repos.getContent as unknown as jest.Mock).mockImplementation((params: any) => {
       if (params.path === 'data/blog-manifest.json') {
         throw { status: 404 } // manifest doesn't exist by default
       }
       return Promise.resolve({ data: { content: 'dGVzdA==', sha: 'test-sha' } })
     })
-    mockOctokit.repos.createOrUpdateFileContents.mockResolvedValue({ 
+    ;(mockOctokit.repos.createOrUpdateFileContents as unknown as jest.Mock).mockResolvedValue({ 
       data: {} 
-    } as any)
+    })
     
     // Setup default mocks
     const { getOctokit, getRepoInfo, isNotFoundError, createFileIfNotExists } = require('@/lib/githubUtils')
@@ -199,7 +211,7 @@ describe('githubApi', () => {
         { id: '1', content: 'Existing memo', timestamp: '2024-01-01T00:00:00.000Z' }
       ]
 
-      mockOctokit.repos.getContent
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock)
         .mockReset()
         .mockImplementation((params: any) => {
           if (params.path === 'data/memos.json') {
@@ -225,7 +237,7 @@ describe('githubApi', () => {
     })
 
     it('should create a memo with image', async () => {
-      mockOctokit.repos.getContent
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock)
         .mockReset()
         .mockImplementation((params: any) => {
           if (params.path === 'data/memos.json') {
@@ -255,7 +267,7 @@ describe('githubApi', () => {
         { id: '2', content: 'Other memo', timestamp: '2024-01-02T00:00:00.000Z' }
       ]
 
-      mockOctokit.repos.getContent
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock)
         .mockReset()
         .mockImplementation((params: any) => {
           if (params.path === 'data/memos.json') {
@@ -284,7 +296,7 @@ describe('githubApi', () => {
         { id: '1', content: 'Existing memo', timestamp: '2024-01-01T00:00:00.000Z' }
       ]
 
-      mockOctokit.repos.getContent
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock)
         .mockReset()
         .mockImplementation((params: any) => {
           if (params.path === 'data/memos.json') {
@@ -310,7 +322,7 @@ describe('githubApi', () => {
         { id: '2', content: 'Memo to keep', timestamp: '2024-01-02T00:00:00.000Z' }
       ]
 
-      mockOctokit.repos.getContent
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock)
         .mockReset()
         .mockImplementation((params: any) => {
           if (params.path === 'data/memos.json') {
@@ -373,18 +385,18 @@ Original content`
 
   describe('getUserLogin', () => {
     it('should return user name if available', async () => {
-      mockOctokit.users.getAuthenticated.mockResolvedValueOnce({
+      ;(mockOctokit.users.getAuthenticated as unknown as jest.Mock).mockResolvedValueOnce({
         data: { name: 'John Doe', login: 'johndoe' }
-      } as any)
+      })
 
       const result = await getUserLogin('fake-token')
       expect(result).toBe('John Doe')
     })
 
     it('should return login if name is not available', async () => {
-      mockOctokit.users.getAuthenticated.mockResolvedValueOnce({
+      ;(mockOctokit.users.getAuthenticated as unknown as jest.Mock).mockResolvedValueOnce({
         data: { name: null, login: 'johndoe' }
-      } as any)
+      })
 
       const result = await getUserLogin('fake-token')
       expect(result).toBe('johndoe')
@@ -402,9 +414,9 @@ Original content`
     it('should check for custom icons when access token provided', async () => {
       const longToken = 'a'.repeat(50) // Long token to trigger token detection
       
-      mockOctokit.repos.getContent
-        .mockResolvedValueOnce({ data: {} } as any) // icon exists
-        .mockResolvedValueOnce({ data: {} } as any) // apple-touch-icon exists
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock)
+        .mockResolvedValueOnce({ data: {} }) // icon exists
+        .mockResolvedValueOnce({ data: {} }) // apple-touch-icon exists
 
       const result = await getIconUrls(longToken)
       
@@ -418,13 +430,13 @@ Original content`
       const mockFile = new File(['image content'], 'test.jpg', { type: 'image/jpeg' })
       
       // Mock the upload response with proper structure
-      mockOctokit.repos.createOrUpdateFileContents.mockResolvedValueOnce({
+      ;(mockOctokit.repos.createOrUpdateFileContents as unknown as jest.Mock).mockResolvedValueOnce({
         data: {
           content: {
             download_url: 'https://raw.githubusercontent.com/testuser/Cofe/main/assets/images/2024-01-01/123456.jpg'
           }
         }
-      } as any)
+      })
 
       const { fileToBase64, ensureDirectoryExists } = require('@/lib/githubUtils')
       fileToBase64.mockResolvedValueOnce('base64content')
@@ -470,7 +482,7 @@ Original content`
     })
 
     it('should handle GitHub API errors in repo operations', async () => {
-      mockOctokit.repos.get.mockRejectedValueOnce(new Error('Repo not found'))
+      ;(mockOctokit.repos.get as unknown as jest.Mock).mockRejectedValueOnce(new Error('Repo not found'))
       
       await expect(createMemo('Test memo', undefined, 'fake-token'))
         .rejects.toThrow('Repo not found')

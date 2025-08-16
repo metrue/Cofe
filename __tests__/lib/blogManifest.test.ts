@@ -18,28 +18,33 @@ describe('BlogManifestManager', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    mockOctokit = new Octokit() as jest.Mocked<Octokit>
+    mockOctokit = {
+      repos: {
+        getContent: jest.fn(),
+        createOrUpdateFileContents: jest.fn(),
+      }
+    } as any
     manager = new BlogManifestManager(mockOctokit, mockOwner, mockRepo)
     
     // Setup default mocks
-    mockOctokit.repos.getContent.mockResolvedValue({ 
+    ;(mockOctokit.repos.getContent as unknown as jest.Mock).mockResolvedValue({ 
       data: { content: 'eyJmaWxlcyI6W119', sha: 'test-sha' } 
-    } as any)
-    mockOctokit.repos.createOrUpdateFileContents.mockResolvedValue({ 
+    })
+    ;(mockOctokit.repos.createOrUpdateFileContents as unknown as jest.Mock).mockResolvedValue({ 
       data: {} 
-    } as any)
+    })
   })
 
   describe('getManifest', () => {
     it('should return existing manifest with SHA', async () => {
       const existingManifest = { files: ['post1.md', 'post2.md'] }
       
-      mockOctokit.repos.getContent.mockResolvedValueOnce({
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock).mockResolvedValueOnce({
         data: { 
           content: Buffer.from(JSON.stringify(existingManifest)).toString('base64'), 
           sha: 'manifest-sha' 
         }
-      } as any)
+      })
 
       const result = await manager.getManifest()
 
@@ -56,7 +61,7 @@ describe('BlogManifestManager', () => {
       const { isNotFoundError } = require('@/lib/githubUtils')
       isNotFoundError.mockReturnValue(true)
       
-      mockOctokit.repos.getContent.mockRejectedValueOnce({ status: 404 })
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock).mockRejectedValueOnce({ status: 404 })
 
       const result = await manager.getManifest()
 
@@ -68,7 +73,7 @@ describe('BlogManifestManager', () => {
       const { isNotFoundError } = require('@/lib/githubUtils')
       isNotFoundError.mockReturnValue(false)
       
-      mockOctokit.repos.getContent.mockRejectedValueOnce(new Error('API Error'))
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock).mockRejectedValueOnce(new Error('API Error'))
 
       await expect(manager.getManifest()).rejects.toThrow('API Error')
     })
@@ -110,12 +115,12 @@ describe('BlogManifestManager', () => {
     it('should add new post to beginning of manifest', async () => {
       const existingManifest = { files: ['old-post.md'] }
       
-      mockOctokit.repos.getContent.mockResolvedValueOnce({
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock).mockResolvedValueOnce({
         data: { 
           content: Buffer.from(JSON.stringify(existingManifest)).toString('base64'), 
           sha: 'manifest-sha' 
         }
-      } as any)
+      })
 
       await manager.addPost('new-post.md')
 
@@ -131,12 +136,12 @@ describe('BlogManifestManager', () => {
     it('should not add duplicate posts', async () => {
       const existingManifest = { files: ['existing-post.md'] }
       
-      mockOctokit.repos.getContent.mockResolvedValueOnce({
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock).mockResolvedValueOnce({
         data: { 
           content: Buffer.from(JSON.stringify(existingManifest)).toString('base64'), 
           sha: 'manifest-sha' 
         }
-      } as any)
+      })
 
       await manager.addPost('existing-post.md')
 
@@ -145,7 +150,7 @@ describe('BlogManifestManager', () => {
     })
 
     it('should handle errors gracefully', async () => {
-      mockOctokit.repos.getContent.mockRejectedValueOnce(new Error('Network error'))
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock).mockRejectedValueOnce(new Error('Network error'))
 
       // Should not throw error
       await expect(manager.addPost('test-post.md')).resolves.toBeUndefined()
@@ -156,12 +161,12 @@ describe('BlogManifestManager', () => {
     it('should remove post from manifest', async () => {
       const existingManifest = { files: ['post-to-remove.md', 'post-to-keep.md'] }
       
-      mockOctokit.repos.getContent.mockResolvedValueOnce({
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock).mockResolvedValueOnce({
         data: { 
           content: Buffer.from(JSON.stringify(existingManifest)).toString('base64'), 
           sha: 'manifest-sha' 
         }
-      } as any)
+      })
 
       await manager.removePost('post-to-remove.md')
 
@@ -177,12 +182,12 @@ describe('BlogManifestManager', () => {
     it('should handle removing non-existent post', async () => {
       const existingManifest = { files: ['existing-post.md'] }
       
-      mockOctokit.repos.getContent.mockResolvedValueOnce({
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock).mockResolvedValueOnce({
         data: { 
           content: Buffer.from(JSON.stringify(existingManifest)).toString('base64'), 
           sha: 'manifest-sha' 
         }
-      } as any)
+      })
 
       await manager.removePost('non-existent-post.md')
 
@@ -191,7 +196,7 @@ describe('BlogManifestManager', () => {
     })
 
     it('should handle errors gracefully', async () => {
-      mockOctokit.repos.getContent.mockRejectedValueOnce(new Error('Network error'))
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock).mockRejectedValueOnce(new Error('Network error'))
 
       // Should not throw error
       await expect(manager.removePost('test-post.md')).resolves.toBeUndefined()
@@ -203,7 +208,7 @@ describe('BlogManifestManager', () => {
       const { isNotFoundError } = require('@/lib/githubUtils')
       isNotFoundError.mockReturnValue(true)
       
-      mockOctokit.repos.getContent.mockRejectedValueOnce({ status: 404 })
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock).mockRejectedValueOnce({ status: 404 })
 
       await manager.ensureManifestExists()
 
@@ -226,7 +231,7 @@ describe('BlogManifestManager', () => {
       const { isNotFoundError } = require('@/lib/githubUtils')
       isNotFoundError.mockReturnValue(false)
       
-      mockOctokit.repos.getContent.mockRejectedValueOnce(new Error('API Error'))
+      ;(mockOctokit.repos.getContent as unknown as jest.Mock).mockRejectedValueOnce(new Error('API Error'))
 
       await expect(manager.ensureManifestExists()).rejects.toThrow('API Error')
     })
