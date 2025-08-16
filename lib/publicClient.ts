@@ -48,33 +48,10 @@ export class PublicGitHubClient {
         // Manifest doesn't exist, continue to fallback
       }
 
-      // Approach 2: Try common blog post filenames
-      const commonPosts = [
-        '2017-summary.md',
-        'a-complex-web-app-refactor.md', 
-        'a-day-of-remote-worker.md',
-        'async-action-in-redux.md',
-        'first-golang-project-fx.md',
-        'work-going-index.md',
-        '上海到阿姆斯特丹.md',
-        '二月葡萄牙游记.md',
-        '华为鸿蒙-harmaryos-next-线下活动小记.md',
-        '四月的尾巴逛德国-柏林.md',
-        '西班牙七天的旅行.md',
-        '逛逛济州岛.md'
-      ]
-
-      const posts = await Promise.all(
-        commonPosts.map(async (filename) => {
-          try {
-            return await this.getBlogPost(filename)
-          } catch {
-            return null
-          }
-        })
-      )
-
-      return posts.filter((post): post is BlogPost => post !== null)
+      // If manifest doesn't exist, return empty array
+      // The manifest should be the single source of truth for blog posts
+      console.warn('Blog manifest not found, returning empty array')
+      return []
     } catch (error) {
       console.error('Error fetching blog posts via raw URLs:', error)
       throw error
