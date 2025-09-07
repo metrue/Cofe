@@ -50,3 +50,26 @@ export function getRelativeTimeString(timestamp: string): string {
   if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
   return `${Math.floor(diffInSeconds / 86400)}d ago`;
 }
+
+/**
+ * Process memo content for preview in StatusCard
+ * - Strips image markdown syntax
+ * - Replaces images with [image] placeholder
+ * - Preserves other text content
+ */
+export function processMemoForPreview(content: string): { 
+  processedContent: string; 
+  hasImages: boolean;
+} {
+  // Match markdown image syntax: ![alt](url)
+  const imageRegex = /!\[([^\]]*)\]\([^\)]+\)/g;
+  const hasImages = imageRegex.test(content);
+  
+  // Replace images with a simple placeholder
+  const processedContent = content.replace(imageRegex, '[image]');
+  
+  return {
+    processedContent: processedContent.trim(),
+    hasImages
+  };
+}
