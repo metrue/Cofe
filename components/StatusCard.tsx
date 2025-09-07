@@ -4,9 +4,7 @@ import { FaGithub, FaLinkedin, FaPodcast, FaTwitter } from 'react-icons/fa'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Memo } from '@/lib/types'
-import { getRelativeTimeString } from '@/lib/utils'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import { getRelativeTimeString, processMemoForPreview } from '@/lib/utils'
 
 const SocialLink = ({ href, title, icon, label, textClassName = '' }: {
   href: string
@@ -121,34 +119,19 @@ export const StatusCard = ({
                 more
               </Link>
             </div>
-            {memo && (
-              <div className='text-base leading-relaxed break-words prose prose-sm max-w-none'>
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    img: ({ src, alt }) => (
-                      <img
-                        src={src}
-                        alt={alt || ''}
-                        className='max-w-full h-auto rounded'
-                      />
-                    ),
-                    a: ({ children, ...props }) => (
-                      <a
-                        {...props}
-                        className='text-gray-400 no-underline hover:text-gray-600 hover:underline hover:underline-offset-4 transition-colors duration-200'
-                        target='_blank'
-                        rel='noopener noreferrer'
-                      >
-                        {children}
-                      </a>
-                    ),
-                  }}
-                >
-                  {memo.content}
-                </ReactMarkdown>
-              </div>
-            )}
+            {memo && (() => {
+              const { processedContent, hasImages } = processMemoForPreview(memo.content);
+              return (
+                <div className='text-base leading-relaxed break-words'>
+                  <p>{processedContent}</p>
+                  {hasImages && (
+                    <p className='text-xs text-gray-400 mt-2 italic'>
+                      Contains images - view in &quot;more&quot; →
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </CardContent>
       </Card>
