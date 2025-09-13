@@ -50,7 +50,11 @@
     "blogTitle": " का Cofe ब्लॉग",
     "blogShortTitle": " का ब्लॉग",
     "blogDescription": "GitHub में संग्रहीत डेटा के साथ Markdown में ब्लॉग लिखें और सिंक करें।",
-    "demoPage": "डेमो पेज"
+    "demoPage": "डेमो पेज",
+    "externalDiscussions": "बाहरी चर्चाएं",
+    "addDiscussion": "चर्चा जोड़ें",
+    "remove": "हटाएं",
+    "enterDiscussionUrl": "चर्चा URL दर्ज करें"
   },
   "metadata": {
     "title": "Cofe - GitHub के साथ ब्लॉग और विचार लिखें।",

@@ -50,7 +50,11 @@
     "blogTitle": " Blog Cofe của",
     "blogShortTitle": " Blog của",
     "blogDescription": "Viết và đồng bộ hóa blog bằng Markdown với dữ liệu được lưu trữ trong GitHub.",
-    "demoPage": "Trang Demo"
+    "demoPage": "Trang Demo",
+    "externalDiscussions": "Thảo luận Bên ngoài",
+    "addDiscussion": "Thêm Thảo luận",
+    "remove": "Xóa",
+    "enterDiscussionUrl": "Nhập URL thảo luận"
   },
   "metadata": {
     "title": "Cofe - Viết blog và suy nghĩ với GitHub.",
