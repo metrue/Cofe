@@ -13,15 +13,17 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import Image from 'next/image'
+import LikeButton from './LikeButton'
 
 interface BlogPostContentProps {
   title: string
   date: string
   content: string
+  slug: string
   headerContent?: React.ReactNode
 }
 
-export function BlogPostContent({ title, date, content, headerContent }: BlogPostContentProps) {
+export function BlogPostContent({ title, date, content, slug, headerContent }: BlogPostContentProps) {
   return (
     <div className='max-w-lg sm:max-w-xl lg:max-w-2xl mx-auto mt-8 mb-12 px-6 sm:px-8 lg:px-12'>
       <header className='pb-8 lg:pb-12'>
@@ -103,6 +105,11 @@ export function BlogPostContent({ title, date, content, headerContent }: BlogPos
           >
             {content}
           </ReactMarkdown>
+        </div>
+        
+        {/* Like button section */}
+        <div className='mt-8 pt-6 border-t border-gray-100 flex justify-center'>
+          <LikeButton type="blog" id={slug} />
         </div>
       </main>
       <footer className='mt-12 pt-8 border-t border-gray-200'>

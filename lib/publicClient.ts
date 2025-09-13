@@ -1,5 +1,6 @@
 import { BlogPost, Memo } from './types'
 import { createGitHubAPIClient } from './client'
+import { LikesDatabase } from './likeUtils'
 
 const REPO = 'Cofe'
 
@@ -137,6 +138,29 @@ export class PublicGitHubClient {
   }
 
   /**
+   * Fetch likes using raw GitHub URLs (no API limits)
+   */
+  async getLikes(): Promise<LikesDatabase> {
+    try {
+      const response = await fetch(`${this.baseUrl}/data/likes.json`)
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log('likes.json not found, returning empty object')
+          return {}
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const likes = await response.json()
+      return typeof likes === 'object' && likes !== null ? likes : {}
+    } catch (error) {
+      console.error('Error fetching likes via raw URLs:', error)
+      return {}
+    }
+  }
+
+  /**
    * Check if the repository and basic structure exists
    */
   async checkRepositoryHealth(): Promise<boolean> {
@@ -215,6 +239,18 @@ export class HybridGitHubClient {
       console.warn('Public client failed for links, falling back to API:', error)
       if (this.apiClient) {
         return await this.apiClient.getLinks()
+      }
+      throw error
+    }
+  }
+
+  async getLikes(): Promise<LikesDatabase> {
+    try {
+      return await this.publicClient.getLikes()
+    } catch (error) {
+      console.warn('Public client failed for likes, falling back to API:', error)
+      if (this.apiClient) {
+        return await this.apiClient.getLikes()
       }
       throw error
     }
