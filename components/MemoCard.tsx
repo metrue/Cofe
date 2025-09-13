@@ -51,10 +51,16 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
                   <AiOutlineEllipsis className='h-4 w-4' />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="bottom" className="z-50">
+              <DropdownMenuContent 
+                align="end" 
+                side="bottom" 
+                className="z-50 bg-white border border-gray-200 shadow-lg rounded-md min-w-[120px]"
+                sideOffset={4}
+              >
                 <DropdownMenuItem
                   onSelect={() => onDelete(memo.id)}
                   disabled={isDeleting}
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 focus:bg-gray-100 text-red-600 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isDeleting ? (
                     <div className="flex items-center gap-2">
@@ -65,7 +71,11 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
                     t('delete')
                   )}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onEdit(memo.id)} disabled={isDeleting}>
+                <DropdownMenuItem 
+                  onClick={() => onEdit(memo.id)} 
+                  disabled={isDeleting}
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 focus:bg-gray-100 text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   {t('edit')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
