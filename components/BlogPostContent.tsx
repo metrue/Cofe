@@ -14,6 +14,8 @@ import remarkMath from 'remark-math'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import Image from 'next/image'
 import LikeButton from './LikeButton'
+import ExternalComments from './ExternalComments'
+import type { ExternalDiscussion } from '@/lib/types'
 
 interface BlogPostContentProps {
   title: string
@@ -21,9 +23,10 @@ interface BlogPostContentProps {
   content: string
   slug: string
   headerContent?: React.ReactNode
+  externalDiscussions?: ExternalDiscussion[]
 }
 
-export function BlogPostContent({ title, date, content, slug, headerContent }: BlogPostContentProps) {
+export function BlogPostContent({ title, date, content, slug, headerContent, externalDiscussions }: BlogPostContentProps) {
   return (
     <div className='max-w-lg sm:max-w-xl lg:max-w-2xl mx-auto mt-8 mb-12 px-6 sm:px-8 lg:px-12'>
       <header className='pb-8 lg:pb-12'>
@@ -111,6 +114,11 @@ export function BlogPostContent({ title, date, content, slug, headerContent }: B
         <div className='mt-8 pt-6 border-t border-gray-100 flex justify-center'>
           <LikeButton type="blog" id={slug} />
         </div>
+        
+        {/* External comments section */}
+        {externalDiscussions && externalDiscussions.length > 0 && (
+          <ExternalComments discussions={externalDiscussions} className='mt-8' />
+        )}
       </main>
       <footer className='mt-12 pt-8 border-t border-gray-200'>
         <Giscus

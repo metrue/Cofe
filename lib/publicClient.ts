@@ -1,4 +1,4 @@
-import { BlogPost, Memo } from './types'
+import { BlogPost, Memo, ExternalDiscussion } from './types'
 import { createGitHubAPIClient } from './client'
 import { LikesDatabase } from './likeUtils'
 
@@ -76,6 +76,33 @@ export class PublicGitHubClient {
       const content = await response.text()
       const titleMatch = content.match(/title:\s*(.+)/)
       const dateMatch = content.match(/date:\s*(.+)/)
+      
+      // Extract external discussions from frontmatter
+      const externalDiscussions: ExternalDiscussion[] = []
+      const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/)
+      if (frontmatterMatch) {
+        const frontmatter = frontmatterMatch[1]
+        const discussionsMatch = frontmatter.match(/external_discussions:\s*\n([\s\S]*?)(?=\n\w|\n$)/)
+        if (discussionsMatch) {
+          const discussionsText = discussionsMatch[1]
+          const discussionLines = discussionsText.split('\n').filter(line => line.trim())
+          
+          let currentDiscussion: Partial<ExternalDiscussion> = {}
+          for (const line of discussionLines) {
+            if (line.includes('platform:')) {
+              if (currentDiscussion.platform && currentDiscussion.url) {
+                externalDiscussions.push(currentDiscussion as ExternalDiscussion)
+              }
+              currentDiscussion = { platform: line.split(':')[1].trim() as ExternalDiscussion['platform'] }
+            } else if (line.includes('url:')) {
+              currentDiscussion.url = line.split('url:')[1].trim()
+            }
+          }
+          if (currentDiscussion.platform && currentDiscussion.url) {
+            externalDiscussions.push(currentDiscussion as ExternalDiscussion)
+          }
+        }
+      }
 
       return {
         id: filename.replace('.md', ''),
@@ -85,6 +112,7 @@ export class PublicGitHubClient {
         content,
         imageUrl: getFirstImageURLFrom(content),
         date: dateMatch ? new Date(dateMatch[1].trim()).toISOString() : new Date().toISOString(),
+        externalDiscussions: externalDiscussions.length > 0 ? externalDiscussions : undefined
       }
     } catch (error) {
       console.error(`Error fetching blog post ${filename}:`, error)
