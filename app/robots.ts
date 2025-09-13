@@ -1,7 +1,8 @@
 import { MetadataRoute } from 'next'
+import { getDynamicBaseUrl } from '@/lib/siteConfig'
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://cofe.ai'
+  const baseUrl = getDynamicBaseUrl()
   
   return {
     rules: {

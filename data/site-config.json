@@ -1,6 +1,7 @@
 {
   "title": "Minghe's Blog",
   "description": "Minghe's personal blog sharing travel experiences across Europe and Asia, tech insights, and daily thoughts. Built with GitHub-powered markdown writing.",
+  "baseUrl": "https://blog.minghe.me",
   "author": {
     "name": "Minghe",
     "bio": "Software engineer and travel enthusiast sharing experiences from around the world",

@@ -1,10 +1,11 @@
 import { MetadataRoute } from 'next'
 import { createOptimizedGitHubClient } from '@/lib/client'
+import { getDynamicBaseUrl } from '@/lib/siteConfig'
 
 export const revalidate = 3600 // Revalidate every hour
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://cofe.ai'
+  const baseUrl = getDynamicBaseUrl()
   const username = process.env.GITHUB_USERNAME || 'metrue'
   
   // Static pages
