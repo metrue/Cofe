@@ -50,7 +50,11 @@
       "blogTitle": " 的 Cofe 博客",
       "blogShortTitle": " 的博客",
       "blogDescription": "使用Markdown编写博客并同步，数据存储在GitHub中。",
-      "demoPage": "演示页面"
+      "demoPage": "演示页面",
+      "externalDiscussions": "外部讨论",
+      "addDiscussion": "添加讨论",
+      "remove": "移除",
+      "enterDiscussionUrl": "输入讨论链接"
     },
     "metadata": {
       "title": "Cofe - 使用GitHub编写博客和想法。",

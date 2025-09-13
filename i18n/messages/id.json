@@ -50,7 +50,11 @@
     "blogTitle": " Blog Cofe",
     "blogShortTitle": " Blog",
     "blogDescription": "Tulis dan sinkronkan blog dalam Markdown dengan data yang disimpan di GitHub.",
-    "demoPage": "Halaman Demo"
+    "demoPage": "Halaman Demo",
+    "externalDiscussions": "Diskusi Eksternal",
+    "addDiscussion": "Tambah Diskusi",
+    "remove": "Hapus",
+    "enterDiscussionUrl": "Masukkan URL diskusi"
   },
   "metadata": {
     "title": "Cofe - Tulis blog & pemikiran dengan GitHub.",

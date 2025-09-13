@@ -50,7 +50,11 @@
     "blogTitle": "의 Cofe 블로그",
     "blogShortTitle": "의 블로그",
     "blogDescription": "GitHub에 저장된 데이터로 Markdown으로 블로그를 작성하고 동기화합니다.",
-    "demoPage": "데모 페이지"
+    "demoPage": "데모 페이지",
+    "externalDiscussions": "외부 토론",
+    "addDiscussion": "토론 추가",
+    "remove": "제거",
+    "enterDiscussionUrl": "토론 URL 입력"
   },
   "metadata": {
     "title": "Cofe - GitHub로 블로그 및 생각 작성하기.",

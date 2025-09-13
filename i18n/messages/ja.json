@@ -49,7 +49,11 @@
     "blogTitle": " の Cofe ブログ",
     "blogShortTitle": " のブログ",
     "blogDescription": "GitHubに保存されたデータでMarkdownでブログを書いて同期します。",
-    "demoPage": "デモページ"
+    "demoPage": "デモページ",
+    "externalDiscussions": "外部ディスカッション",
+    "addDiscussion": "ディスカッションを追加",
+    "remove": "削除",
+    "enterDiscussionUrl": "ディスカッションURLを入力"
   },
   "metadata": {
     "title": "Cofe - GitHubでブログと思考を書く。",

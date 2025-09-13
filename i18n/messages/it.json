@@ -50,7 +50,11 @@
     "blogTitle": " Blog Cofe di",
     "blogShortTitle": " Blog di",
     "blogDescription": "Scrivi e sincronizza blog in Markdown con dati archiviati su GitHub.",
-    "demoPage": "Pagina Dimostrativa"
+    "demoPage": "Pagina Dimostrativa",
+    "externalDiscussions": "Discussioni Esterne",
+    "addDiscussion": "Aggiungi Discussione",
+    "remove": "Rimuovi",
+    "enterDiscussionUrl": "Inserisci URL discussione"
   },
   "metadata": {
     "title": "Cofe - Scrivi blog e pensieri con GitHub.",

@@ -50,7 +50,11 @@
     "blogTitle": "'s Cofe Blog",
     "blogShortTitle": "'s Blog",
     "blogDescription": "Schrijf en synchroniseer blogs in Markdown met gegevens opgeslagen in GitHub.",
-    "demoPage": "Demopagina"
+    "demoPage": "Demopagina",
+    "externalDiscussions": "Externe Discussies",
+    "addDiscussion": "Discussie Toevoegen",
+    "remove": "Verwijderen",
+    "enterDiscussionUrl": "Voer discussie-URL in"
   },
   "metadata": {
     "title": "Cofe - Schrijf blog & gedachten met GitHub.",

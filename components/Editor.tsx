@@ -394,7 +394,7 @@ export default function Editor({
           {type === "blog" && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">External Discussions</Label>
+                <Label className="text-sm font-medium">{t("externalDiscussions")}</Label>
                 <Button
                   type="button"
                   variant="outline"
@@ -402,7 +402,7 @@ export default function Editor({
                   onClick={addDiscussion}
                   disabled={isLoading || isImageUploading}
                 >
-                  Add Discussion
+                  {t("addDiscussion")}
                 </Button>
               </div>
               {discussions.map((discussion, index) => (
@@ -421,7 +421,7 @@ export default function Editor({
                     type="url"
                     value={discussion.url}
                     onChange={(e) => updateDiscussion(index, 'url', e.target.value)}
-                    placeholder="Enter discussion URL"
+                    placeholder={t("enterDiscussionUrl")}
                     className="flex-1 border-gray-200 focus:border-gray-300 focus:ring-gray-300"
                     disabled={isLoading || isImageUploading}
                   />
@@ -433,7 +433,7 @@ export default function Editor({
                     disabled={isLoading || isImageUploading}
                     className="text-red-600 hover:text-red-700"
                   >
-                    Remove
+                    {t("remove")}
                   </Button>
                 </div>
               ))}
