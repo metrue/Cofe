@@ -144,10 +144,10 @@ export default function LikeButton({ type, id, initialLikes, className = '' }: L
       onClick={toggleLike}
       disabled={isLoading}
       className={`
-        flex items-center gap-1 px-3 py-1.5 rounded-full border transition-all duration-200 ${className}
+        flex items-center gap-1 p-1 transition-all duration-200 ${className}
         ${likes.userLiked 
-          ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100' 
-          : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+          ? 'text-red-600' 
+          : 'text-gray-600 hover:text-gray-800'
         }
         ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         hover:scale-105 active:scale-95
