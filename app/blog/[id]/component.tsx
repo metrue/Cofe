@@ -141,6 +141,7 @@ export const PostContainer = ({ post }: { post: BlogPost }) => {
       content={contentWithoutFrontmatter}
       slug={post.id}
       headerContent={status === 'authenticated' ? headerContent : null}
+      discussions={post.discussions}
     />
   )
 }

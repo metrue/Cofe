@@ -1,15 +1,14 @@
 import BlogList from "@/components/BlogList";
 import { authOptions } from "@/lib/auth";
-import { createOptimizedGitHubClient } from '@/lib/client'
+import { createSmartClient } from '@/lib/smartClient'
 import { getServerSession } from "next-auth/next";
 
-export const revalidate = 60;
+export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 60;
 
 export default async function BlogPage() {
   const session = await getServerSession(authOptions);
 
-  const username = process.env.GITHUB_USERNAME ?? '';
-  const client = createOptimizedGitHubClient(username, session?.accessToken);
+  const client = createSmartClient(session?.accessToken);
 
   try {
     const posts = await client.getBlogPosts();

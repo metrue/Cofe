@@ -37,13 +37,13 @@ export async function POST(request: NextRequest) {
         if (!data.title || !data.content) {
           throw new ValidationError('Title and content are required');
         }
-        await createBlogPost(data.title, data.content, session.accessToken);
+        await createBlogPost(data.title, data.content, session.accessToken, data.discussions);
         return NextResponse.json({ message: 'Blog post created successfully' }, { headers });
       case 'updateBlogPost':
         if (!data.id || !data.title || !data.content) {
           throw new ValidationError('ID, title and content are required');
         }
-        await updateBlogPost(data.id, data.title, data.content, session.accessToken);
+        await updateBlogPost(data.id, data.title, data.content, session.accessToken, data.discussions);
         return NextResponse.json({ message: 'Blog post updated successfully' }, { headers });
       case 'deleteBlogPost':
         if (!data.id) {

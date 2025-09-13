@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import type { ExternalDiscussion } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
 import { CgImage } from "react-icons/cg";
@@ -55,6 +56,7 @@ export default function Editor({
   const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
   const { toast } = useToast();
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+  const [discussions, setDiscussions] = useState<ExternalDiscussion[]>([]);
 
   const fetchMemo = useCallback(
     async (id: string) => {
@@ -83,6 +85,7 @@ export default function Editor({
         const blogPost = await response.json();
         setTitle(blogPost.title);
         setContent(removeFrontmatter(blogPost.content));
+        setDiscussions(blogPost.discussions || []);
         setEditingMemoId(id);
       } catch (error) {
         console.error("Error fetching blog post:", error);
@@ -112,6 +115,8 @@ export default function Editor({
     setType(value);
     if (value === "blog") {
       setEditingMemoId(null);
+    } else {
+      setDiscussions([]);
     }
   };
 
@@ -137,6 +142,7 @@ export default function Editor({
           id: editingMemoId,
           title,
           content,
+          discussions: type === "blog" ? discussions : undefined,
         }),
       });
 
@@ -218,6 +224,21 @@ export default function Editor({
     },
     [session?.accessToken, cursorPosition, content, toast, t]
   );
+
+  const addDiscussion = () => {
+    setDiscussions([...discussions, { platform: 'v2ex', url: '' }]);
+  };
+
+  const removeDiscussion = (index: number) => {
+    setDiscussions(discussions.filter((_, i) => i !== index));
+  };
+
+  const updateDiscussion = (index: number, field: keyof ExternalDiscussion, value: string) => {
+    const updated = discussions.map((discussion, i) => 
+      i === index ? { ...discussion, [field]: value } : discussion
+    );
+    setDiscussions(updated);
+  };
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -368,6 +389,55 @@ export default function Editor({
               className="border-gray-200 focus:border-gray-300 focus:ring-gray-300"
               disabled={isLoading || isImageUploading}
             />
+          )}
+
+          {type === "blog" && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">External Discussions</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addDiscussion}
+                  disabled={isLoading || isImageUploading}
+                >
+                  Add Discussion
+                </Button>
+              </div>
+              {discussions.map((discussion, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <select
+                    value={discussion.platform}
+                    onChange={(e) => updateDiscussion(index, 'platform', e.target.value as ExternalDiscussion['platform'])}
+                    className="px-3 py-2 border border-gray-200 rounded-md focus:border-gray-300 focus:ring-gray-300"
+                    disabled={isLoading || isImageUploading}
+                  >
+                    <option value="v2ex">V2EX</option>
+                    <option value="reddit">Reddit</option>
+                    <option value="hackernews">Hacker News</option>
+                  </select>
+                  <Input
+                    type="url"
+                    value={discussion.url}
+                    onChange={(e) => updateDiscussion(index, 'url', e.target.value)}
+                    placeholder="Enter discussion URL"
+                    className="flex-1 border-gray-200 focus:border-gray-300 focus:ring-gray-300"
+                    disabled={isLoading || isImageUploading}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeDiscussion(index)}
+                    disabled={isLoading || isImageUploading}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
           )}
 
           <div className="border rounded-md relative" {...getRootProps()}>
