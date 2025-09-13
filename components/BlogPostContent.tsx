@@ -3,7 +3,6 @@
 import 'katex/dist/katex.min.css'
 
 
-import Giscus from '@giscus/react'
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
@@ -117,25 +116,9 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
         
         {/* External comments section */}
         {discussions && discussions.length > 0 && (
-          <ExternalComments discussions={discussions} className='mt-8' />
+          <ExternalComments discussions={discussions} />
         )}
       </main>
-      <footer className='mt-12 pt-8 border-t border-gray-200'>
-        <Giscus
-          repo='metrue/discussions'
-          repoId='R_kgDOHH4v0Q'
-          category='Announcements'
-          categoryId='DIC_kwDOHH4v0c4CObFA'
-          mapping='pathname'
-          strict='0'
-          reactionsEnabled='0'
-          emitMetadata='0'
-          inputPosition='bottom'
-          theme='light'
-          lang='en'
-          loading='lazy'
-        />
-      </footer>
     </div>
   )
 }
