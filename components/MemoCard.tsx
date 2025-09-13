@@ -33,25 +33,25 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
   return (
     <div
       key={memo.id}
-      className='relative flex flex-col justify-center p-4 rounded-lg leading-4 transition-all duration-300 ease-in-out hover:shadow-lg overflow-auto h-fit bg-white font-mono'
+      className='relative flex flex-col justify-center p-4 rounded-lg leading-4 transition-all duration-300 ease-in-out hover:shadow-lg overflow-visible h-fit bg-white font-mono'
     >
       <div className='text-gray-800 mb-2 prose max-w-none'>
-        <div className='flex items-start justify-between mb-2'>
-          <small className='text-gray-500'>
+        <div className='flex items-center justify-between mb-3'>
+          <small className='text-gray-500 text-xs'>
             {getRelativeTimeString(memo.timestamp)}
           </small>
-          <div className='flex items-center gap-1'>
-            <LikeButton type="memo" id={memo.id} className="text-xs" />
+          <div className='flex items-center gap-2 flex-shrink-0'>
+            <LikeButton type="memo" id={memo.id} className="text-xs scale-90" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant='ghost'
-                  className='text-gray-700 hover:text-black bg-transparent h-8 w-8 p-0'
+                  className='text-gray-600 hover:text-gray-900 bg-transparent h-6 w-6 p-0 rounded-full'
                 >
-                  <AiOutlineEllipsis className='h-5 w-5' />
+                  <AiOutlineEllipsis className='h-4 w-4' />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent align="end" side="bottom" className="z-50">
                 <DropdownMenuItem
                   onSelect={() => onDelete(memo.id)}
                   disabled={isDeleting}
