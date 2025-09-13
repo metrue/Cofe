@@ -33,41 +33,54 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
   return (
     <div
       key={memo.id}
-      className='relative flex flex-col justify-center p-4 rounded-lg leading-4 transition-all duration-300 ease-in-out hover:shadow-lg overflow-auto h-fit bg-white font-mono'
+      className='relative flex flex-col justify-center p-4 rounded-lg leading-4 transition-all duration-300 ease-in-out hover:shadow-lg overflow-visible h-fit bg-white font-mono'
     >
       <div className='text-gray-800 mb-2 prose max-w-none'>
-        <div>
-          <small className='text-gray-500 self-end mt-2'>
+        <div className='flex items-center justify-between mb-3'>
+          <small className='text-gray-500 text-xs'>
             {getRelativeTimeString(memo.timestamp)}
           </small>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant='ghost'
-                className='text-gray-700 hover:text-black float-right bg-transparent'
+          <div className='flex items-center gap-2 flex-shrink-0'>
+            <LikeButton type="memo" id={memo.id} className="text-xs scale-90" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant='ghost'
+                  className='text-gray-600 hover:text-gray-900 bg-transparent h-6 w-6 p-0 rounded-full'
+                >
+                  <AiOutlineEllipsis className='h-4 w-4' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="end" 
+                side="bottom" 
+                className="z-50 bg-white border border-gray-200 shadow-lg rounded-md min-w-[120px]"
+                sideOffset={4}
               >
-                <AiOutlineEllipsis className='h-5 w-5' />{' '}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem
-                onSelect={() => onDelete(memo.id)}
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <div className="flex items-center gap-2">
-                    <AiOutlineLoading3Quarters className="h-4 w-4 animate-spin" />
-                    {t('delete')}
-                  </div>
-                ) : (
-                  t('delete')
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(memo.id)} disabled={isDeleting}>
-                {t('edit')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem
+                  onSelect={() => onDelete(memo.id)}
+                  disabled={isDeleting}
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 focus:bg-gray-100 text-red-600 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isDeleting ? (
+                    <div className="flex items-center gap-2">
+                      <AiOutlineLoading3Quarters className="h-4 w-4 animate-spin" />
+                      {t('delete')}
+                    </div>
+                  ) : (
+                    t('delete')
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => onEdit(memo.id)} 
+                  disabled={isDeleting}
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 focus:bg-gray-100 text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {t('edit')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkMath]}
@@ -115,11 +128,6 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
         >
           {memo.content}
         </ReactMarkdown>
-      </div>
-      
-      {/* Like button section */}
-      <div className='mt-3 pt-3 border-t border-gray-100 flex justify-center'>
-        <LikeButton type="memo" id={memo.id} className="text-sm" />
       </div>
     </div>
   )
