@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { MessageCircle, ExternalLink, Loader2, AlertCircle } from 'lucide-react'
 
 interface ExternalDiscussion {
-  platform: 'v2ex' | 'reddit' | 'hackernews' | 'twitter' | 'weibo'
+  platform: 'v2ex' | 'reddit' | 'hackernews'
   url: string
 }
 
@@ -196,10 +196,6 @@ export default function ExternalComments({ discussions = [], className = '' }: E
         return '🔶'
       case 'hackernews':
         return '🅨'
-      case 'twitter':
-        return '𝕏'
-      case 'weibo':
-        return '🔴'
       default:
         return '💬'
     }

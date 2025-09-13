@@ -23,10 +23,10 @@ interface BlogPostContentProps {
   content: string
   slug: string
   headerContent?: React.ReactNode
-  externalDiscussions?: ExternalDiscussion[]
+  discussions?: ExternalDiscussion[]
 }
 
-export function BlogPostContent({ title, date, content, slug, headerContent, externalDiscussions }: BlogPostContentProps) {
+export function BlogPostContent({ title, date, content, slug, headerContent, discussions }: BlogPostContentProps) {
   return (
     <div className='max-w-lg sm:max-w-xl lg:max-w-2xl mx-auto mt-8 mb-12 px-6 sm:px-8 lg:px-12'>
       <header className='pb-8 lg:pb-12'>
@@ -116,8 +116,8 @@ export function BlogPostContent({ title, date, content, slug, headerContent, ext
         </div>
         
         {/* External comments section */}
-        {externalDiscussions && externalDiscussions.length > 0 && (
-          <ExternalComments discussions={externalDiscussions} className='mt-8' />
+        {discussions && discussions.length > 0 && (
+          <ExternalComments discussions={discussions} className='mt-8' />
         )}
       </main>
       <footer className='mt-12 pt-8 border-t border-gray-200'>

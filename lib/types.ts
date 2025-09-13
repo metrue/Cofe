@@ -1,5 +1,5 @@
 export interface ExternalDiscussion {
-  platform: 'v2ex' | 'reddit' | 'hackernews' | 'twitter' | 'weibo'
+  platform: 'v2ex' | 'reddit' | 'hackernews'
   url: string
 }
 
@@ -9,7 +9,7 @@ export interface BlogPost {
     content: string
     imageUrl: string | null
     date: string
-    externalDiscussions?: ExternalDiscussion[]
+    discussions?: ExternalDiscussion[]
   }
   
   export type Memo = {
