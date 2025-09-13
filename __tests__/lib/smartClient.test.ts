@@ -1,23 +1,25 @@
 import { jest } from '@jest/globals'
 import { SmartClient } from '../../lib/smartClient'
+import type { BlogPost, Memo } from '../../lib/types'
+import type { LikesDatabase } from '../../lib/likeUtils'
 
 // Mock local client 
 const mockLocalClient = {
-  getBlogPosts: jest.fn(),
-  getMemos: jest.fn(),
-  getLikes: jest.fn(),
-  getLinks: jest.fn(),
-  createMemo: jest.fn(),
-  updateLikes: jest.fn()
+  getBlogPosts: jest.fn<() => Promise<BlogPost[]>>().mockResolvedValue([]),
+  getMemos: jest.fn<() => Promise<Memo[]>>().mockResolvedValue([]),
+  getLikes: jest.fn<() => Promise<LikesDatabase>>().mockResolvedValue({}),
+  getLinks: jest.fn<() => Promise<Record<string, string>>>().mockResolvedValue({}),
+  createMemo: jest.fn<(memo: Memo) => Promise<Memo>>().mockImplementation((memo) => Promise.resolve(memo)),
+  updateLikes: jest.fn<(likesData: LikesDatabase) => Promise<void>>().mockResolvedValue(undefined)
 }
 
 // Mock GitHub client
 const mockGitHubClient = {
-  getBlogPosts: jest.fn(),
-  getMemos: jest.fn(),
-  getLikes: jest.fn(),
-  getLinks: jest.fn(),
-  updateLikes: jest.fn()
+  getBlogPosts: jest.fn<() => Promise<BlogPost[]>>().mockResolvedValue([]),
+  getMemos: jest.fn<() => Promise<Memo[]>>().mockResolvedValue([]),
+  getLikes: jest.fn<() => Promise<LikesDatabase>>().mockResolvedValue({}),
+  getLinks: jest.fn<() => Promise<Record<string, string>>>().mockResolvedValue({}),
+  updateLikes: jest.fn<(likesData: LikesDatabase) => Promise<void>>().mockResolvedValue(undefined)
 }
 
 // Mock the module dependencies
@@ -52,13 +54,18 @@ describe('SmartClient', () => {
 
   describe('development environment', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'development'
-      process.env.GITHUB_USERNAME = 'testuser'
+      process.env = { ...originalEnv, NODE_ENV: 'development', GITHUB_USERNAME: 'testuser' }
     })
 
     it('should use local client for getBlogPosts', async () => {
       const client = new SmartClient()
-      const mockPosts = [{ id: '1', title: 'Test Post' }]
+      const mockPosts: BlogPost[] = [{ 
+        id: '1', 
+        title: 'Test Post', 
+        content: 'Test content', 
+        date: '2025-01-01T00:00:00Z', 
+        imageUrl: null 
+      }]
       mockLocalClient.getBlogPosts.mockResolvedValue(mockPosts)
 
       const result = await client.getBlogPosts()
@@ -70,7 +77,7 @@ describe('SmartClient', () => {
 
     it('should use local client for getMemos', async () => {
       const client = new SmartClient()
-      const mockMemos = [{ id: '1', content: 'Test memo' }]
+      const mockMemos: Memo[] = [{ id: '1', content: 'Test memo', timestamp: '2025-01-01T00:00:00Z' }]
       mockLocalClient.getMemos.mockResolvedValue(mockMemos)
 
       const result = await client.getMemos()
@@ -93,7 +100,16 @@ describe('SmartClient', () => {
 
     it('should use local client for updateLikes', async () => {
       const client = new SmartClient()
-      const likesData = { 'blog:test': { 'like1': { timestamp: '2025-01-01T00:00:00Z' } } }
+      const likesData: LikesDatabase = { 
+        'blog:test': { 
+          'like1': { 
+            timestamp: '2025-01-01T00:00:00Z',
+            userAgent: 'test-agent',
+            country: 'US',
+            language: 'en'
+          } 
+        } 
+      }
 
       await client.updateLikes(likesData)
 
@@ -103,8 +119,7 @@ describe('SmartClient', () => {
 
   describe('production environment', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'production'
-      process.env.GITHUB_USERNAME = 'testuser'
+      process.env = { ...originalEnv, NODE_ENV: 'production', GITHUB_USERNAME: 'testuser' }
     })
 
     it('should use GitHub client for getBlogPosts', async () => {
@@ -159,8 +174,7 @@ describe('SmartClient', () => {
     beforeEach(() => {
       // Simulate client-side environment
       global.window = {} as any
-      process.env.NODE_ENV = 'development'
-      process.env.GITHUB_USERNAME = 'testuser'
+      process.env = { ...originalEnv, NODE_ENV: 'development', GITHUB_USERNAME: 'testuser' }
     })
 
     it('should use GitHub client even in development when on client-side', async () => {

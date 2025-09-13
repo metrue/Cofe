@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { LocalFileSystemClient } from '../../lib/localClient.server'
+import type { LikesDatabase } from '../../lib/likeUtils'
 
 // Mock fs module
 jest.mock('fs', () => ({
@@ -187,9 +188,14 @@ external_discussions:
 
   describe('updateLikes', () => {
     it('should write likes data to file', async () => {
-      const likesData = {
+      const likesData: LikesDatabase = {
         'blog:test-post': {
-          'like1': { timestamp: '2025-01-01T00:00:00Z', country: 'US' }
+          'like1': { 
+            timestamp: '2025-01-01T00:00:00Z', 
+            country: 'US',
+            userAgent: 'test-agent',
+            language: 'en'
+          }
         }
       }
 
@@ -213,9 +219,14 @@ external_discussions:
     })
 
     it('should return likes data when file exists', async () => {
-      const mockLikes = {
+      const mockLikes: LikesDatabase = {
         'blog:test-post': {
-          'like1': { timestamp: '2025-01-01T00:00:00Z', country: 'US' }
+          'like1': { 
+            timestamp: '2025-01-01T00:00:00Z', 
+            country: 'US',
+            userAgent: 'test-agent',
+            language: 'en'
+          }
         }
       }
 
