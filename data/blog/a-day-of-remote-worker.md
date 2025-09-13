@@ -1,7 +1,11 @@
 ---
 title: 远程工作者的一天
 date: 2019-06-09T16:30:26.223Z
+external_discussions:
+  - platform: v2ex
+    url: https://v2ex.com/t/572394
 ---
+
 
 ![remote-work.jpg](https://github.com/metrue/Cofe/blob/main/assets/images/2025-03-22/1742652676821.jpg?raw=true)
 
