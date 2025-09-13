@@ -10,6 +10,26 @@ interface Comment {
   platform: string
 }
 
+function decodeHtmlEntities(text: string): string {
+  // Create a temporary textarea element to decode HTML entities
+  if (typeof window !== 'undefined') {
+    const textarea = document.createElement('textarea')
+    textarea.innerHTML = text
+    return textarea.value
+  }
+  
+  // Server-side HTML entity decoding
+  return text
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, "/")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec))
+    .replace(/&#x([0-9a-fA-F]+);/g, (match, hex) => String.fromCharCode(parseInt(hex, 16)))
+}
+
 async function fetchV2exComments(url: string): Promise<Comment[]> {
   try {
     // Extract topic ID from URL
@@ -113,7 +133,7 @@ async function fetchHackerNewsComments(url: string): Promise<Comment[]> {
             comments.push({
               id: `hn-${child.id}`,
               author: child.author || 'Anonymous',
-              content: child.text,
+              content: decodeHtmlEntities(child.text),
               timestamp: child.created_at,
               votes: child.points,
               platform: 'hackernews',
