@@ -4,7 +4,10 @@ date: 2017-10-22T17:42:13.233Z
 external_discussions:
   - platform: hackernews
     url: https://news.ycombinator.com/item?id=15686661
+  - platform: v2ex
+    url: https://v2ex.com/t/406259
 ---
+
 
 
 ## 前言
