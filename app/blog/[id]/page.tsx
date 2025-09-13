@@ -1,12 +1,13 @@
 import { PostContainer } from './component'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { createOptimizedGitHubClient } from '@/lib/client'
+import { createSmartClient } from '@/lib/smartClient'
+
+export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 60;
 
 export default async function Page({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
-  const username = process.env.GITHUB_USERNAME ?? ''
-  const client = createOptimizedGitHubClient(username, session?.accessToken)
+  const client = createSmartClient(session?.accessToken)
   const posts = await client.getBlogPosts()
   const post = posts.find((p) => p.id === decodeURIComponent(params.id))
 

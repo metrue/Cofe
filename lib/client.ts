@@ -220,6 +220,7 @@ export const createGitHubAPIClient = (token: string) => new GitHubAPIClient(toke
  * Falls back to API for authenticated operations
  */
 export const createOptimizedGitHubClient = (owner: string, token?: string) => {
+  // In production, use GitHub clients
   if (token) {
     // For authenticated users, use hybrid approach
     return createHybridGitHubClient(owner, token)
@@ -227,4 +228,19 @@ export const createOptimizedGitHubClient = (owner: string, token?: string) => {
     // For public users, use raw URLs only
     return createHybridGitHubClient(owner)
   }
+}
+
+/**
+ * Create a client that uses local data in development, GitHub in production
+ * Only works on server-side due to fs dependency
+ */
+export const createDevelopmentOptimizedClient = async (owner: string, token?: string) => {
+  // Only use local client on server-side in development
+  if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
+    const { createLocalFileSystemClient } = await import('./localClient.server')
+    return createLocalFileSystemClient()
+  }
+  
+  // In production or client-side, use GitHub clients
+  return createOptimizedGitHubClient(owner, token)
 }
