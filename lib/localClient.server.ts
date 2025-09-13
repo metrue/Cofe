@@ -4,25 +4,29 @@ import type { BlogPost, Memo } from './types'
 import { LikesDatabase } from './likeUtils'
 import { parseBlogPostMetadata } from './markdown'
 
-const DATA_DIR = path.join(process.cwd(), 'data')
-const BLOG_DIR = path.join(DATA_DIR, 'blog')
-
 /**
  * Local file system client for development (server-side only)
  * Reads data from local data/ directory instead of GitHub
  */
 export class LocalFileSystemClient {
+  private get dataDir() {
+    return path.join(process.cwd(), 'data')
+  }
+
+  private get blogDir() {
+    return path.join(this.dataDir, 'blog')
+  }
   /**
    * Get all blog posts from local data/blog directory
    */
   async getBlogPosts(): Promise<BlogPost[]> {
     try {
-      if (!fs.existsSync(BLOG_DIR)) {
+      if (!fs.existsSync(this.blogDir)) {
         console.log('Blog directory does not exist, returning empty array')
         return []
       }
 
-      const files = fs.readdirSync(BLOG_DIR)
+      const files = fs.readdirSync(this.blogDir)
       const blogFiles = files.filter(file => 
         file.endsWith('.md') && file !== '.gitkeep'
       )
@@ -49,7 +53,7 @@ export class LocalFileSystemClient {
    */
   async getBlogPost(filename: string): Promise<BlogPost | null> {
     try {
-      const filePath = path.join(BLOG_DIR, filename)
+      const filePath = path.join(this.blogDir, filename)
       
       if (!fs.existsSync(filePath)) {
         return null
@@ -80,7 +84,7 @@ export class LocalFileSystemClient {
    */
   async getMemos(): Promise<Memo[]> {
     try {
-      const memosPath = path.join(DATA_DIR, 'memos.json')
+      const memosPath = path.join(this.dataDir, 'memos.json')
       
       if (!fs.existsSync(memosPath)) {
         console.log('memos.json not found, returning empty array')
@@ -102,7 +106,7 @@ export class LocalFileSystemClient {
    */
   async getLinks(): Promise<Record<string, string>> {
     try {
-      const configPath = path.join(DATA_DIR, 'site-config.json')
+      const configPath = path.join(this.dataDir, 'site-config.json')
       
       if (!fs.existsSync(configPath)) {
         return {}
@@ -123,7 +127,7 @@ export class LocalFileSystemClient {
    */
   async getLikes(): Promise<LikesDatabase> {
     try {
-      const likesPath = path.join(DATA_DIR, 'likes.json')
+      const likesPath = path.join(this.dataDir, 'likes.json')
       
       if (!fs.existsSync(likesPath)) {
         console.log('likes.json not found, returning empty object')
@@ -145,7 +149,7 @@ export class LocalFileSystemClient {
    */
   async updateLikes(likesData: LikesDatabase): Promise<void> {
     try {
-      const likesPath = path.join(DATA_DIR, 'likes.json')
+      const likesPath = path.join(this.dataDir, 'likes.json')
       const content = JSON.stringify(likesData, null, 2)
       fs.writeFileSync(likesPath, content, 'utf-8')
       console.log('Updated local likes data')
@@ -163,7 +167,7 @@ export class LocalFileSystemClient {
       const memos = await this.getMemos()
       const updatedMemos = [memo, ...memos]
       
-      const memosPath = path.join(DATA_DIR, 'memos.json')
+      const memosPath = path.join(this.dataDir, 'memos.json')
       const content = JSON.stringify(updatedMemos, null, 2)
       fs.writeFileSync(memosPath, content, 'utf-8')
       
@@ -179,7 +183,7 @@ export class LocalFileSystemClient {
    * Check if local data directory exists
    */
   async checkRepositoryHealth(): Promise<boolean> {
-    return fs.existsSync(DATA_DIR)
+    return fs.existsSync(this.dataDir)
   }
 
   /**
