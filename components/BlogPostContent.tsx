@@ -2,7 +2,6 @@
 
 import 'katex/dist/katex.min.css'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 import Giscus from '@giscus/react'
 import React from 'react'
@@ -24,18 +23,26 @@ interface BlogPostContentProps {
 
 export function BlogPostContent({ title, date, content, headerContent }: BlogPostContentProps) {
   return (
-    <Card className='max-w-3xl mx-auto mt-8 font-mono max-w-[min(36em,36em)]'>
-      <CardHeader className='flex justify-between items-start'>
-        <div>
-          <CardTitle className='text-3xl font-bold'>{title}</CardTitle>
-          <time className='text-xs text-gray-400' data-status-datetime=''>
-            {format(new Date(date), 'MMMM d, yyyy')}
-          </time>
+    <div className='max-w-lg sm:max-w-xl lg:max-w-2xl mx-auto mt-8 mb-12 px-6 sm:px-8 lg:px-12'>
+      <header className='pb-8 lg:pb-12'>
+        <div className='flex justify-between items-start'>
+          <div>
+            <h1 className='text-2xl lg:text-3xl font-normal leading-tight mb-2'>{title}</h1>
+            <time className='text-xs lg:text-sm text-gray-500 font-mono' data-status-datetime=''>
+              {format(new Date(date), 'MMM d, yyyy')}
+            </time>
+          </div>
+          {headerContent}
         </div>
-        {headerContent}
-      </CardHeader>
-      <CardContent>
-        <div className='prose max-w-none dark:prose-invert'>
+      </header>
+      <main>
+        <div className='prose prose-base max-w-none text-gray-900 dark:text-gray-100 leading-relaxed' 
+             style={{ 
+               fontFamily: 'system-ui, -apple-system, sans-serif',
+               fontSize: '1.1rem',
+               lineHeight: '1.62em',
+               wordWrap: 'break-word'
+             }}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
             rehypePlugins={[rehypeKatex]}
@@ -81,15 +88,15 @@ export function BlogPostContent({ title, date, content, headerContent }: BlogPos
                 </blockquote>
               ),
               img: ({ children, ...props }) => (
-                <figure className='flex justify-center'>
+                <figure className='my-8'>
                   <Image
                     src={props.src || ''}
                     alt={props.alt || 'image'}
-                    width={500}
-                    height={300}
-                    className='h-auto rounded-lg max-w-[min(100%,32em)]'
+                    width={800}
+                    height={600}
+                    className='h-auto max-w-full mx-auto block rounded'
                   />
-                  {children && <figcaption>{children}</figcaption>}
+                  {children && <figcaption className='text-center mt-2 text-sm text-gray-500'>{children}</figcaption>}
                 </figure>
               ),
             }}
@@ -97,21 +104,23 @@ export function BlogPostContent({ title, date, content, headerContent }: BlogPos
             {content}
           </ReactMarkdown>
         </div>
-      </CardContent>
-      <Giscus
-        repo='metrue/discussions'
-        repoId='R_kgDOHH4v0Q'
-        category='Announcements'
-        categoryId='DIC_kwDOHH4v0c4CObFA'
-        mapping='pathname'
-        strict='0'
-        reactionsEnabled='0'
-        emitMetadata='0'
-        inputPosition='bottom'
-        theme='light'
-        lang='en'
-        loading='lazy'
-      />
-    </Card>
+      </main>
+      <footer className='mt-12 pt-8 border-t border-gray-200'>
+        <Giscus
+          repo='metrue/discussions'
+          repoId='R_kgDOHH4v0Q'
+          category='Announcements'
+          categoryId='DIC_kwDOHH4v0c4CObFA'
+          mapping='pathname'
+          strict='0'
+          reactionsEnabled='0'
+          emitMetadata='0'
+          inputPosition='bottom'
+          theme='light'
+          lang='en'
+          loading='lazy'
+        />
+      </footer>
+    </div>
   )
 }
