@@ -4,7 +4,6 @@ import { headers } from 'next/headers'
 export interface SiteConfig {
   title: string
   description: string
-  baseUrl: string
   author: {
     name: string
     bio: string
@@ -21,10 +20,6 @@ export function getSiteConfig(): SiteConfig {
   return siteConfig
 }
 
-export function getBaseUrl(): string {
-  return siteConfig.baseUrl
-}
-
 export function getDynamicBaseUrl(): string {
   try {
     const headersList = headers()
@@ -35,9 +30,10 @@ export function getDynamicBaseUrl(): string {
       return `${protocol}://${host}`
     }
   } catch (error) {
-    // Fall back to static config if headers are not available
-    console.warn('Could not get dynamic base URL, falling back to site config:', error)
+    // Fall back to a default URL if headers are not available
+    console.warn('Could not get dynamic base URL, falling back to default:', error)
   }
   
-  return siteConfig.baseUrl
+  // Fallback for build time or when headers are not available
+  return 'https://blog.minghe.me'
 }
