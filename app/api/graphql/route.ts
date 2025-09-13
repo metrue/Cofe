@@ -111,10 +111,10 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getLikes: async (_parent, { type, id }, context) => {
       try {
-        const client = createPublicGitHubClient('metrue')
+        const username = process.env.GITHUB_USERNAME ?? ''
+        const client = createPublicGitHubClient(username)
         const likesData = await client.getLikes()
         
-        // Get user's IP and location for userLiked check
         const ip = getClientIP(context.request)
         const location = getLocationFromHeaders(context.request)
         const hashedIP = hashIP(ip)
@@ -210,7 +210,8 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
         const hashedIP = hashIP(ip)
         
         // Use public client to read likes, then authenticated client to write
-        const publicClient = createPublicGitHubClient('metrue')
+        const username = process.env.GITHUB_USERNAME ?? ''
+        const publicClient = createPublicGitHubClient(username)
         let likesData = await publicClient.getLikes()
         
         // Create a mutable copy since we need to modify it
