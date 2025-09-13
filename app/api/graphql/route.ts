@@ -2,8 +2,7 @@ import { createYoga } from 'graphql-yoga'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
-import { createGitHubAPIClient } from '@/lib/client'
-import { createPublicGitHubClient } from '@/lib/publicClient'
+import { createSmartClient } from '@/lib/smartClient'
 import { Memo } from '@/lib/types'
 import { 
   getClientIP, 
@@ -98,19 +97,9 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     memos: async (_parent, _args, _context) => {
       try {
-        // In development, use local client; in production, use GitHub client
-        if (process.env.NODE_ENV === 'development') {
-          const { createLocalFileSystemClient } = await import('@/lib/localClient.server')
-          const client = createLocalFileSystemClient()
-          const result = await client.getMemos()
-          return Array.isArray(result) ? result : []
-        } else {
-          // Use public client for queries - no authentication needed
-          // Default to 'metrue' owner, but could be made configurable
-          const client = createPublicGitHubClient('metrue')
-          const result = await client.getMemos()
-          return Array.isArray(result) ? result : []
-        }
+        const client = createSmartClient()
+        const result = await client.getMemos()
+        return Array.isArray(result) ? result : []
       } catch (error) {
         console.error('Error fetching memos:', error)
         return []
@@ -119,17 +108,8 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getLikes: async (_parent, { type, id }, context) => {
       try {
-        let likesData
-        
-        if (process.env.NODE_ENV === 'development') {
-          const { createLocalFileSystemClient } = await import('@/lib/localClient.server')
-          const client = createLocalFileSystemClient()
-          likesData = await client.getLikes()
-        } else {
-          const username = process.env.GITHUB_USERNAME ?? ''
-          const client = createPublicGitHubClient(username)
-          likesData = await client.getLikes()
-        }
+        const client = createSmartClient()
+        const likesData = await client.getLikes()
         
         const ip = getClientIP(context.request)
         const location = getLocationFromHeaders(context.request)
@@ -161,65 +141,8 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           ...(input.image && { image: input.image })
         }
 
-        if (process.env.NODE_ENV === 'development') {
-          // In development, save to local file
-          const { createLocalFileSystemClient } = await import('@/lib/localClient.server')
-          const client = createLocalFileSystemClient()
-          return await client.createMemo(newMemo)
-        } else {
-          // In production, use GitHub API
-          const client = createGitHubAPIClient(context.token!.accessToken!)
-          
-          // Get current memos
-          const memos = await client.getMemos() || []
-
-          // Add new memo at the beginning
-          const updatedMemos = [newMemo, ...memos]
-
-          // Update memos.json via GitHub API
-          const { Octokit } = await import('@octokit/rest')
-          const octokit = new Octokit({ auth: context.token!.accessToken! })
-          
-          // Get the authenticated user's login (username, not display name)
-          const { data: user } = await octokit.users.getAuthenticated()
-          const owner = user.login // This is the actual GitHub username
-        
-          try {
-            // Get current file to get its SHA
-            const currentFile = await octokit.repos.getContent({
-              owner,
-              repo: 'Cofe',
-              path: 'data/memos.json',
-            })
-
-            if (!Array.isArray(currentFile.data) && 'sha' in currentFile.data) {
-              // Update the file
-              await octokit.repos.createOrUpdateFileContents({
-                owner,
-                repo: 'Cofe',
-                path: 'data/memos.json',
-                message: `Add new memo: ${newMemo.id}`,
-                content: Buffer.from(JSON.stringify(updatedMemos, null, 2)).toString('base64'),
-                sha: currentFile.data.sha,
-              })
-            }
-          } catch (fileError) {
-            // If file doesn't exist, create it
-            if ((fileError as Error & { status?: number })?.status === 404) {
-              await octokit.repos.createOrUpdateFileContents({
-                owner,
-                repo: 'Cofe',
-                path: 'data/memos.json',
-                message: `Create memos.json with first memo: ${newMemo.id}`,
-                content: Buffer.from(JSON.stringify(updatedMemos, null, 2)).toString('base64'),
-              })
-            } else {
-              throw fileError
-            }
-          }
-
-          return newMemo
-        }
+        const client = createSmartClient(context.token?.accessToken)
+        return await client.createMemo(newMemo)
       } catch (error) {
         console.error('Error creating memo:', error)
         throw new Error('Failed to create memo')
@@ -233,17 +156,9 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
         const location = getLocationFromHeaders(context.request)
         const hashedIP = hashIP(ip)
         
-        // Get likes data (local in dev, GitHub in production)
-        let likesData
-        if (process.env.NODE_ENV === 'development') {
-          const { createLocalFileSystemClient } = await import('@/lib/localClient.server')
-          const localClient = createLocalFileSystemClient()
-          likesData = await localClient.getLikes()
-        } else {
-          const username = process.env.GITHUB_USERNAME ?? ''
-          const publicClient = createPublicGitHubClient(username)
-          likesData = await publicClient.getLikes()
-        }
+        // Get likes data using smart client
+        const client = createSmartClient(context.token?.accessToken)
+        let likesData = await client.getLikes()
         
         // Create a mutable copy since we need to modify it
         likesData = { ...likesData }
@@ -280,25 +195,8 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           likesData[itemKey][likeId] = likeData
         }
         
-        // Update likes data (local in dev, GitHub in production)
-        if (process.env.NODE_ENV === 'development') {
-          const { createLocalFileSystemClient } = await import('@/lib/localClient.server')
-          const localClient = createLocalFileSystemClient()
-          await localClient.updateLikes(likesData)
-        } else {
-          // In production, update via GitHub (requires authentication)
-          const authenticatedClient = context.token?.accessToken 
-            ? createGitHubAPIClient(context.token.accessToken)
-            : null
-            
-          if (authenticatedClient) {
-            await authenticatedClient.updateLikes(likesData)
-          } else {
-            // For now, if no auth token, we can't persist likes
-            // In production, you might want to queue this operation or use a service account
-            console.warn('No authentication token available for updating likes')
-          }
-        }
+        // Update likes data using smart client
+        await client.updateLikes(likesData)
         
         // Calculate final result
         const finalLikeInfo = getLikeInfo(likesData, itemKey, hashedIP, location.country)
