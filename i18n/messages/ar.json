@@ -50,7 +50,11 @@
     "blogTitle": " مدونة Cofe الخاصة بـ",
     "blogShortTitle": " مدونة",
     "blogDescription": "اكتب وزامن المدونة بصيغة Markdown مع تخزين البيانات في GitHub.",
-    "demoPage": "صفحة العرض التوضيحي"
+    "demoPage": "صفحة العرض التوضيحي",
+    "externalDiscussions": "النقاشات الخارجية",
+    "addDiscussion": "إضافة نقاش",
+    "remove": "إزالة",
+    "enterDiscussionUrl": "أدخل رابط النقاش"
   },
   "metadata": {
     "title": "Cofe - اكتب وزامن منشورات مدونتك وأفكارك بتسجيل دخول GitHub بنقرة واحدة",

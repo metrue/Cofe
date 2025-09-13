@@ -50,7 +50,11 @@
     "blogTitle": " บล็อก Cofe ของ",
     "blogShortTitle": " บล็อกของ",
     "blogDescription": "เขียนและซิงค์บล็อกใน Markdown โดยเก็บข้อมูลไว้ใน GitHub",
-    "demoPage": "หน้าสาธิต"
+    "demoPage": "หน้าสาธิต",
+    "externalDiscussions": "การอภิปรายภายนอก",
+    "addDiscussion": "เพิ่มการอภิปราย",
+    "remove": "ลบ",
+    "enterDiscussionUrl": "ป้อน URL การอภิปราย"
   },
   "metadata": {
     "title": "Cofe - เขียนบล็อกและความคิดด้วย GitHub",

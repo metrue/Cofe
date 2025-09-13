@@ -50,7 +50,11 @@
     "blogTitle": " 的 Cofe 網誌",
     "blogShortTitle": " 的網誌",
     "blogDescription": "使用Markdown編寫網誌並同步，數據存儲在GitHub中。",
-    "demoPage": "示範頁面"
+    "demoPage": "示範頁面",
+    "externalDiscussions": "外部討論",
+    "addDiscussion": "添加討論",
+    "remove": "移除",
+    "enterDiscussionUrl": "輸入討論連結"
   },
   "metadata": {
     "title": "Cofe - 使用GitHub編寫網誌和想法。",

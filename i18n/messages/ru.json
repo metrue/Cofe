@@ -50,7 +50,11 @@
     "blogTitle": " Блог Cofe",
     "blogShortTitle": " Блог",
     "blogDescription": "Пишите и синхронизируйте блоги в Markdown с данными, хранящимися в GitHub.",
-    "demoPage": "Демо-страница"
+    "demoPage": "Демо-страница",
+    "externalDiscussions": "Внешние Обсуждения",
+    "addDiscussion": "Добавить Обсуждение",
+    "remove": "Удалить",
+    "enterDiscussionUrl": "Введите URL обсуждения"
   },
   "metadata": {
     "title": "Cofe - Пишите блог и мысли с GitHub.",

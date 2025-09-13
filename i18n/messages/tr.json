@@ -50,7 +50,11 @@
     "blogTitle": " Cofe Blogu",
     "blogShortTitle": " Blogu",
     "blogDescription": "GitHub'da depolanan verilerle Markdown'da blog yazın ve senkronize edin.",
-    "demoPage": "Demo Sayfası"
+    "demoPage": "Demo Sayfası",
+    "externalDiscussions": "Dış Tartışmalar",
+    "addDiscussion": "Tartışma Ekle",
+    "remove": "Kaldır",
+    "enterDiscussionUrl": "Tartışma URL'si girin"
   },
   "metadata": {
     "title": "Cofe - GitHub ile blog ve düşünceler yazın.",
