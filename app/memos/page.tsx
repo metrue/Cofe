@@ -1,12 +1,12 @@
 import { AvatarCard } from '@/components/AvatarCard'
 import MemosList from '@/components/MemosList'
-import { createOptimizedGitHubClient } from '@/lib/client'
+import { createSmartClient } from '@/lib/smartClient'
 
 export const revalidate = 60
 
 export default async function MemosPage() {
   const username = process.env.GITHUB_USERNAME ?? ''
-  const client = createOptimizedGitHubClient(username)
+  const client = createSmartClient()
   const memos = await client.getMemos()
   const links = await client.getLinks()
   return (

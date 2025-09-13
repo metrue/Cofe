@@ -1,4 +1,4 @@
-import { Memo } from './types';
+import { Memo, ExternalDiscussion } from './types';
 import { Octokit } from '@octokit/rest';
 import path from 'path';
 import {
@@ -15,6 +15,16 @@ import {
 import { BlogManifestManager } from './blogManifest';
 
 const REPO = 'Cofe';
+
+function formatDiscussions(discussions: ExternalDiscussion[]): string {
+  if (!discussions.length) return '';
+  
+  const formatted = discussions.map(d => 
+    `  - platform: ${d.platform}\n    url: ${d.url}`
+  ).join('\n');
+  
+  return `external_discussions:\n${formatted}\n`;
+}
 
 async function ensureRepoExists(octokit: Octokit, owner: string, repo: string) {
   try {
@@ -149,7 +159,8 @@ function createBlogManifestManager(octokit: Octokit, owner: string, repo: string
 export async function createBlogPost(
   title: string,
   content: string,
-  accessToken: string
+  accessToken: string,
+  discussions: ExternalDiscussion[] = []
 ): Promise<void> {
   const octokit = getOctokit(accessToken)
   const { owner, repo } = await getRepoInfo(accessToken)
@@ -159,10 +170,11 @@ export async function createBlogPost(
   const filename = `${title.toLowerCase().replace(/\s+/g, '-')}.md`
   const path = `data/blog/${filename}`
   const date = new Date().toISOString() // Store full ISO string
+  const discussionsYaml = formatDiscussions(discussions)
   const fullContent = `---
 title: ${title}
 date: ${date}
----
+${discussionsYaml}---
 
 ${content}`
 
@@ -438,7 +450,8 @@ export async function updateBlogPost(
   id: string,
   title: string,
   content: string,
-  accessToken: string
+  accessToken: string,
+  discussions: ExternalDiscussion[] = []
 ): Promise<void> {
   console.log('Updating blog post...')
   if (!accessToken) {
@@ -458,11 +471,12 @@ export async function updateBlogPost(
     )
     const dateMatch = existingContent.match(/date:\s*(.+)/)
     const date = dateMatch ? dateMatch[1] : new Date().toISOString()
+    const discussionsYaml = formatDiscussions(discussions)
 
     const updatedContent = `---
 title: ${title}
 date: ${date}
----
+${discussionsYaml}---
 
 ${content}`
 
