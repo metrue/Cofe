@@ -1,7 +1,11 @@
 ---
 title: 用 Golang 写一个支持各种编程语言的 serverless 框架
 date: 2017-10-22T17:42:13.233Z
+external_discussions:
+  - platform: hackernews
+    url: https://news.ycombinator.com/item?id=15686661
 ---
+
 
 ## 前言
 
