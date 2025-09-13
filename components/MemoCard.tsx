@@ -36,38 +36,41 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
       className='relative flex flex-col justify-center p-4 rounded-lg leading-4 transition-all duration-300 ease-in-out hover:shadow-lg overflow-auto h-fit bg-white font-mono'
     >
       <div className='text-gray-800 mb-2 prose max-w-none'>
-        <div>
-          <small className='text-gray-500 self-end mt-2'>
+        <div className='flex items-start justify-between mb-2'>
+          <small className='text-gray-500'>
             {getRelativeTimeString(memo.timestamp)}
           </small>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant='ghost'
-                className='text-gray-700 hover:text-black float-right bg-transparent'
-              >
-                <AiOutlineEllipsis className='h-5 w-5' />{' '}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem
-                onSelect={() => onDelete(memo.id)}
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <div className="flex items-center gap-2">
-                    <AiOutlineLoading3Quarters className="h-4 w-4 animate-spin" />
-                    {t('delete')}
-                  </div>
-                ) : (
-                  t('delete')
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(memo.id)} disabled={isDeleting}>
-                {t('edit')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className='flex items-center gap-1'>
+            <LikeButton type="memo" id={memo.id} className="text-xs" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant='ghost'
+                  className='text-gray-700 hover:text-black bg-transparent h-8 w-8 p-0'
+                >
+                  <AiOutlineEllipsis className='h-5 w-5' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem
+                  onSelect={() => onDelete(memo.id)}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <div className="flex items-center gap-2">
+                      <AiOutlineLoading3Quarters className="h-4 w-4 animate-spin" />
+                      {t('delete')}
+                    </div>
+                  ) : (
+                    t('delete')
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onEdit(memo.id)} disabled={isDeleting}>
+                  {t('edit')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkMath]}
@@ -115,11 +118,6 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
         >
           {memo.content}
         </ReactMarkdown>
-      </div>
-      
-      {/* Like button section */}
-      <div className='mt-3 pt-3 border-t border-gray-100 flex justify-center'>
-        <LikeButton type="memo" id={memo.id} className="text-sm" />
       </div>
     </div>
   )
