@@ -1,4 +1,5 @@
 import { BlogPost, Memo } from './types'
+import { LikesDatabase } from './likeUtils'
 
 import { Octokit } from '@octokit/rest'
 import { createHybridGitHubClient } from './publicClient'
@@ -139,6 +140,74 @@ class GitHubAPIClient {
     } catch (error) {
       console.warn('Error fetching links:', error)
       return {}
+    }
+  }
+
+  async getLikes(owner?: string): Promise<LikesDatabase> {
+    const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
+    if (!owner) {
+      const { data: user } = await octokit.users.getAuthenticated()
+      owner = user.login
+    }
+    try {
+      const response = await octokit.repos.getContent({
+        owner,
+        repo: REPO,
+        path: 'data/likes.json',
+      })
+
+      if (Array.isArray(response.data) || !('content' in response.data)) {
+        return {}
+      }
+
+      const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
+      return JSON.parse(content) as LikesDatabase
+    } catch (error) {
+      console.error('Error fetching likes:', error)
+      // If likes.json doesn't exist, return empty object
+      if (error instanceof Error && 'status' in error && (error as { status: number }).status === 404) {
+        return {}
+      }
+      throw error
+    }
+  }
+
+  async updateLikes(likesData: LikesDatabase, owner?: string): Promise<void> {
+    const octokit = new Octokit({ auth: this.accessToken })
+    if (!owner) {
+      const { data: user } = await octokit.users.getAuthenticated()
+      owner = user.login
+    }
+
+    try {
+      // Get current file to get its SHA
+      let sha: string | undefined
+      try {
+        const currentFile = await octokit.repos.getContent({
+          owner,
+          repo: REPO,
+          path: 'data/likes.json',
+        })
+
+        if (!Array.isArray(currentFile.data) && 'sha' in currentFile.data) {
+          sha = currentFile.data.sha
+        }
+      } catch (error) {
+        // File doesn't exist, sha will be undefined for create operation
+      }
+
+      // Update or create the file
+      await octokit.repos.createOrUpdateFileContents({
+        owner,
+        repo: REPO,
+        path: 'data/likes.json',
+        message: `Update likes data - ${new Date().toISOString()}`,
+        content: Buffer.from(JSON.stringify(likesData, null, 2)).toString('base64'),
+        ...(sha && { sha }),
+      })
+    } catch (error) {
+      console.error('Error updating likes:', error)
+      throw new Error('Failed to update likes data')
     }
   }
 }

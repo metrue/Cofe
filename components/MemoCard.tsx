@@ -18,6 +18,7 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useTranslations } from 'next-intl'
+import LikeButton from './LikeButton'
 
 interface MemoCardProps {
   memo: Memo
@@ -114,6 +115,11 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
         >
           {memo.content}
         </ReactMarkdown>
+      </div>
+      
+      {/* Like button section */}
+      <div className='mt-3 pt-3 border-t border-gray-100 flex justify-center'>
+        <LikeButton type="memo" id={memo.id} className="text-sm" />
       </div>
     </div>
   )
