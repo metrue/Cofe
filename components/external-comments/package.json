@@ -1,0 +1,46 @@
+{
+  "name": "external-comments-react",
+  "version": "1.0.0",
+  "description": "React components for fetching and displaying comments from external discussion platforms",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "lib/",
+    "components/",
+    "README.md"
+  ],
+  "keywords": [
+    "react",
+    "comments",
+    "v2ex",
+    "reddit",
+    "hackernews",
+    "server-components",
+    "next.js",
+    "typescript"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/external-comments-react.git"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

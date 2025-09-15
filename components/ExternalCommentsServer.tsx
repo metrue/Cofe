@@ -1,61 +1,23 @@
-'use client'
-
-import React, { useState, useCallback, useEffect } from 'react'
+import React from 'react'
 import Image from 'next/image'
-import { type ExternalDiscussion, type Comment } from '@/lib/external-comments'
+import { fetchAllExternalComments, type ExternalDiscussion, type Comment } from '@/lib/external-comments'
 
-interface ExternalCommentsProps {
+interface ExternalCommentsServerProps {
   discussions?: ExternalDiscussion[]
   className?: string
 }
 
-export default function ExternalComments({ discussions = [], className = '' }: ExternalCommentsProps) {
-  const [commentsByPlatform, setCommentsByPlatform] = useState<Record<string, Comment[]>>({})
-  const [loading, setLoading] = useState<Record<string, boolean>>({})
+// React Server Component - runs on the server
+export default async function ExternalCommentsServer({ 
+  discussions = [], 
+  className = '' 
+}: ExternalCommentsServerProps) {
+  if (discussions.length === 0) {
+    return null
+  }
 
-  const fetchCommentsForPlatform = useCallback(async (discussion: ExternalDiscussion): Promise<Comment[]> => {
-    try {
-      const response = await fetch(`/api/external-comments?platform=${discussion.platform}&url=${encodeURIComponent(discussion.url)}`)
-      if (!response.ok) throw new Error(`Failed to fetch ${discussion.platform} comments`)
-      
-      const data = await response.json()
-      return data.comments || []
-    } catch (error) {
-      console.error(`Error fetching comments from ${discussion.platform}:`, error)
-      return []
-    }
-  }, [])
-
-  const fetchAllComments = useCallback(async () => {
-    const loadingState: Record<string, boolean> = {}
-    discussions.forEach(d => {
-      loadingState[d.platform] = true
-    })
-    setLoading(loadingState)
-
-    const commentsData: Record<string, Comment[]> = {}
-    
-    for (const discussion of discussions) {
-      try {
-        const platformComments = await fetchCommentsForPlatform(discussion)
-        commentsData[discussion.platform] = platformComments
-      } catch (err) {
-        console.error(`Failed to fetch comments from ${discussion.platform}:`, err)
-        commentsData[discussion.platform] = []
-      }
-      
-      // Update loading state for this platform
-      setLoading(prev => ({ ...prev, [discussion.platform]: false }))
-    }
-
-    setCommentsByPlatform(commentsData)
-  }, [discussions, fetchCommentsForPlatform])
-
-  useEffect(() => {
-    if (discussions.length > 0) {
-      fetchAllComments()
-    }
-  }, [discussions, fetchAllComments])
+  // Fetch all comments on the server
+  const commentsByPlatform = await fetchAllExternalComments(discussions)
 
   const getPlatformName = (platform: string) => {
     switch (platform) {
@@ -70,16 +32,11 @@ export default function ExternalComments({ discussions = [], className = '' }: E
     }
   }
 
-  if (discussions.length === 0) {
-    return null
-  }
-
   return (
     <div className={`mt-16 ${className}`}>
       <div className="space-y-12">
         {discussions.map((discussion) => {
           const platformComments = commentsByPlatform[discussion.platform] || []
-          const isLoading = loading[discussion.platform]
           
           return (
             <div key={`${discussion.platform}-${discussion.url}`}>
@@ -99,12 +56,6 @@ export default function ExternalComments({ discussions = [], className = '' }: E
                     >
                       {getPlatformName(discussion.platform)}
                     </a>
-                    {isLoading && (
-                      <>
-                        <span className="mx-2">·</span>
-                        <span className="text-gray-500">Loading comments...</span>
-                      </>
-                    )}
                   </div>
                 </div>
               </div>
@@ -117,7 +68,7 @@ export default function ExternalComments({ discussions = [], className = '' }: E
                 </div>
               )}
 
-              {!isLoading && platformComments.length === 0 && (
+              {platformComments.length === 0 && (
                 <div className="text-xs text-gray-500 mt-2 text-center">
                   No comments found.
                 </div>
@@ -152,14 +103,6 @@ function CommentItem({ comment, depth = 0 }: { comment: Comment; depth?: number 
                   width={24}
                   height={24}
                   className="w-full h-full object-cover rounded-full"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    const parent = target.parentElement;
-                    if (parent) {
-                      parent.innerHTML = comment.author.charAt(0).toUpperCase();
-                    }
-                  }}
                 />
               ) : (
                 comment.author.charAt(0).toUpperCase()
