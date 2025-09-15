@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { fetchCommentsForPlatform, type ExternalDiscussion } from '@/lib/external-comments'
+// In production, this would be: import { fetchCommentsForPlatform, type ExternalDiscussion } from 'external-comments-react'
+import { fetchCommentsForPlatform, type ExternalDiscussion } from '@/components/external-comments/src/utils/fetch-comments'
 
 export async function GET(request: NextRequest) {
   try {

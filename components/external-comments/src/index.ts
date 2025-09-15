@@ -1,13 +1,19 @@
-// Hybrid export for both client and server components
+// Main exports for the external-comments-react package
 export { default as ExternalComments } from './components/ExternalComments'
 export { default as ExternalCommentsServer } from './components/ExternalCommentsServer'
 
-// Re-export types and utilities
-export type { ExternalDiscussion, Comment, FetchOptions } from './lib/external-comments'
+// Utility functions for custom implementations
 export { 
   fetchCommentsForPlatform, 
   fetchAllExternalComments,
   fetchV2exComments,
   fetchRedditComments,
   fetchHackerNewsComments
-} from './lib/external-comments'
+} from './utils/fetch-comments'
+
+// Type definitions
+export type { 
+  Comment, 
+  ExternalDiscussion, 
+  FetchOptions 
+} from './types'
