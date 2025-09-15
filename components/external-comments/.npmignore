@@ -1,0 +1,14 @@
+# Source files
+lib/
+components/
+*.ts
+*.tsx
+tsconfig.json
+
+# Development files
+test.js
+build.sh
+.npmignore
+
+# Only include built files
+!dist/
