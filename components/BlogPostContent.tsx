@@ -13,6 +13,8 @@ import remarkMath from 'remark-math'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import Image from 'next/image'
 import LikeButton from './LikeButton'
+import type { LikeInfo } from '@/lib/likeUtils'
+
 interface BlogPostContentProps {
   title: string
   date: string
@@ -20,9 +22,10 @@ interface BlogPostContentProps {
   slug: string
   headerContent?: React.ReactNode
   discussionsComponent?: React.ReactNode
+  initialLikes?: LikeInfo
 }
 
-export function BlogPostContent({ title, date, content, slug, headerContent, discussionsComponent }: BlogPostContentProps) {
+export function BlogPostContent({ title, date, content, slug, headerContent, discussionsComponent, initialLikes }: BlogPostContentProps) {
   return (
     <div className='max-w-lg sm:max-w-xl lg:max-w-2xl mx-auto mt-8 mb-12 px-6 sm:px-8 lg:px-12'>
       <header className='pb-8 lg:pb-12'>
@@ -115,7 +118,7 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
         
         {/* Like button section */}
         <div className='mt-8 pt-6 border-t border-gray-100 flex justify-center'>
-          <LikeButton type="blog" id={slug} />
+          <LikeButton type="blog" id={slug} initialLikes={initialLikes} />
         </div>
         
         {/* External discussions section - Server component, no API route needed! */}

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { BlogPostContent } from '@/components/BlogPostContent'
 import type { BlogPost } from '@/lib/types'
+import type { LikeInfo } from '@/lib/likeUtils'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,7 +39,7 @@ function decodeContent(content: string): string {
   }
 }
 
-export const PostContainer = ({ post, discussionsComponent }: { post: BlogPost, discussionsComponent?: React.ReactNode }) => {
+export const PostContainer = ({ post, discussionsComponent, initialLikes }: { post: BlogPost, discussionsComponent?: React.ReactNode, initialLikes?: LikeInfo }) => {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const router = useRouter()
@@ -142,6 +143,7 @@ export const PostContainer = ({ post, discussionsComponent }: { post: BlogPost, 
       slug={post.id}
       headerContent={status === 'authenticated' ? headerContent : null}
       discussionsComponent={discussionsComponent}
+      initialLikes={initialLikes}
     />
   )
 }
