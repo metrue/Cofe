@@ -13,19 +13,16 @@ import remarkMath from 'remark-math'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import Image from 'next/image'
 import LikeButton from './LikeButton'
-import ExternalComments from './ExternalComments'
-import type { ExternalDiscussion } from '@/lib/types'
-
 interface BlogPostContentProps {
   title: string
   date: string
   content: string
   slug: string
   headerContent?: React.ReactNode
-  discussions?: ExternalDiscussion[]
+  discussionsComponent?: React.ReactNode
 }
 
-export function BlogPostContent({ title, date, content, slug, headerContent, discussions }: BlogPostContentProps) {
+export function BlogPostContent({ title, date, content, slug, headerContent, discussionsComponent }: BlogPostContentProps) {
   return (
     <div className='max-w-lg sm:max-w-xl lg:max-w-2xl mx-auto mt-8 mb-12 px-6 sm:px-8 lg:px-12'>
       <header className='pb-8 lg:pb-12'>
@@ -91,8 +88,15 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
                   {children}
                 </blockquote>
               ),
+              p: ({ children }) => {
+                // Check if this paragraph only contains an image
+                const isImageOnly = React.Children.toArray(children).every(child => 
+                  React.isValidElement(child) && child.type === 'img'
+                )
+                return isImageOnly ? <>{children}</> : <p>{children}</p>
+              },
               img: ({ children, ...props }) => (
-                <figure className='my-8'>
+                <div className='my-8'>
                   <Image
                     src={props.src || ''}
                     alt={props.alt || 'image'}
@@ -100,8 +104,8 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
                     height={600}
                     className='h-auto max-w-full mx-auto block rounded'
                   />
-                  {children && <figcaption className='text-center mt-2 text-sm text-gray-500'>{children}</figcaption>}
-                </figure>
+                  {children && <div className='text-center mt-2 text-sm text-gray-500'>{children}</div>}
+                </div>
               ),
             }}
           >
@@ -114,10 +118,8 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
           <LikeButton type="blog" id={slug} />
         </div>
         
-        {/* External comments section */}
-        {discussions && discussions.length > 0 && (
-          <ExternalComments discussions={discussions} />
-        )}
+        {/* External discussions section - Server component, no API route needed! */}
+        {discussionsComponent}
       </main>
     </div>
   )
