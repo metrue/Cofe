@@ -38,7 +38,7 @@ function decodeContent(content: string): string {
   }
 }
 
-export const PostContainer = ({ post }: { post: BlogPost }) => {
+export const PostContainer = ({ post, discussionsComponent }: { post: BlogPost, discussionsComponent?: React.ReactNode }) => {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const router = useRouter()
@@ -141,7 +141,7 @@ export const PostContainer = ({ post }: { post: BlogPost }) => {
       content={contentWithoutFrontmatter}
       slug={post.id}
       headerContent={status === 'authenticated' ? headerContent : null}
-      discussions={post.discussions}
+      discussionsComponent={discussionsComponent}
     />
   )
 }
