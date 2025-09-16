@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { ExternalDiscussion } from "discussing";
+import type { ExternalDiscussion } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
 import { CgImage } from "react-icons/cg";

@@ -13,7 +13,8 @@ import remarkMath from 'remark-math'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import Image from 'next/image'
 import LikeButton from './LikeButton'
-import { Discussion, type ExternalDiscussion } from 'discussing'
+import ExternalComments from './ExternalComments'
+import type { ExternalDiscussion } from '@/lib/types'
 
 interface BlogPostContentProps {
   title: string
@@ -115,12 +116,7 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
         
         {/* External comments section */}
         {discussions && discussions.length > 0 && (
-          <Discussion 
-            discussions={discussions} 
-            className="mt-8 pt-6 border-t border-gray-100"
-            enableRefresh={true}
-            refreshInterval={300}
-          />
+          <ExternalComments discussions={discussions} />
         )}
       </main>
     </div>
