@@ -78,15 +78,43 @@ export default function Editor({
     async (id: string) => {
       if (!session?.accessToken) return;
       try {
-        const response = await fetch(`/api/github?action=getBlogPost&id=${id}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch blog post");
+        const response = await fetch('/api/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: `
+              query GetBlogPost($id: String!) {
+                blogPost(id: $id) {
+                  id
+                  title
+                  content
+                  discussions {
+                    platform
+                    url
+                    title
+                    count
+                  }
+                }
+              }
+            `,
+            variables: { id },
+          }),
+        });
+        
+        const result = await response.json();
+        if (result.errors) {
+          throw new Error(result.errors[0].message);
         }
-        const blogPost = await response.json();
-        setTitle(blogPost.title);
-        setContent(removeFrontmatter(blogPost.content));
-        setDiscussions(blogPost.discussions || []);
-        setEditingMemoId(id);
+        
+        const blogPost = result.data.blogPost;
+        if (blogPost) {
+          setTitle(blogPost.title);
+          setContent(removeFrontmatter(blogPost.content));
+          setDiscussions(blogPost.discussions || []);
+          setEditingMemoId(id);
+        }
       } catch (error) {
         console.error("Error fetching blog post:", error);
       }
@@ -125,26 +153,100 @@ export default function Editor({
     setIsLoading(true);
     setIsSuccess(false);
     try {
-      const response = await fetch("/api/github", {
+      let query: string;
+      let variables: Record<string, unknown>;
+
+      if (type === "blog") {
+        if (editingMemoId) {
+          // Update blog post
+          query = `
+            mutation UpdateBlogPost($id: String!, $input: UpdateBlogPostInput!) {
+              updateBlogPost(id: $id, input: $input) {
+                id
+                title
+                content
+              }
+            }
+          `;
+          variables = {
+            id: editingMemoId,
+            input: {
+              title,
+              content,
+              discussions,
+            },
+          };
+        } else {
+          // Create blog post
+          query = `
+            mutation CreateBlogPost($input: CreateBlogPostInput!) {
+              createBlogPost(input: $input) {
+                id
+                title
+                content
+              }
+            }
+          `;
+          variables = {
+            input: {
+              title,
+              content,
+              discussions,
+            },
+          };
+        }
+      } else {
+        if (editingMemoId) {
+          // Update memo
+          query = `
+            mutation UpdateMemo($id: String!, $input: UpdateMemoInput!) {
+              updateMemo(id: $id, input: $input) {
+                id
+                content
+                timestamp
+              }
+            }
+          `;
+          variables = {
+            id: editingMemoId,
+            input: {
+              content,
+            },
+          };
+        } else {
+          // Create memo
+          query = `
+            mutation CreateMemo($input: CreateMemoInput!) {
+              createMemo(input: $input) {
+                id
+                content
+                timestamp
+              }
+            }
+          `;
+          variables = {
+            input: {
+              content,
+            },
+          };
+        }
+      }
+
+      const response = await fetch("/api/graphql", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          action:
-            type === "blog"
-              ? editingMemoId
-                ? "updateBlogPost"
-                : "createBlogPost"
-              : editingMemoId
-              ? "updateMemo"
-              : "createMemo",
-          id: editingMemoId,
-          title,
-          content,
-          discussions: type === "blog" ? discussions : undefined,
+          query,
+          variables,
         }),
       });
+
+      const result = await response.json();
+      if (result.errors) {
+        throw new Error(result.errors[0].message);
+      }
 
       if (!response.ok) {
         throw new Error(t("failedPublish"));
