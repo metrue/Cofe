@@ -32,16 +32,26 @@ export default function PublicMemosList({
     try {
       setDeletingMemoId(id);
 
-      const response = await fetch('/api/github', {
+      const response = await fetch('/api/graphql', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          action: 'deleteMemo',
-          id,
-        })
-      })
+          query: `
+            mutation DeleteMemo($id: String!) {
+              deleteMemo(id: $id)
+            }
+          `,
+          variables: { id },
+        }),
+      });
+
+      const result = await response.json();
+      if (result.errors) {
+        throw new Error(result.errors[0].message);
+      }
+
       if (!response.ok) {
         throw new Error('Failed to delete memo')
       }

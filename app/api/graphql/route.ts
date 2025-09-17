@@ -3,7 +3,8 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 import { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { createSmartClient } from '@/lib/smartClient'
-import { Memo } from '@/lib/types'
+import { Memo, BlogPost, Link, ExternalDiscussion } from '@/lib/types'
+import { createBlogPost, updateBlogPost, deleteBlogPost, updateMemo, deleteMemo } from '@/lib/githubApi'
 import { 
   getClientIP, 
   getLocationFromHeaders, 
@@ -29,6 +30,9 @@ interface GraphQLContext {
 type QueryResolvers = {
   memos: (parent: unknown, args: unknown, context: GraphQLContext) => Promise<Memo[]>
   getLikes: (parent: unknown, args: { type: string; id: string }, context: GraphQLContext) => Promise<LikeInfo>
+  blogPosts: (parent: unknown, args: unknown, context: GraphQLContext) => Promise<BlogPost[]>
+  blogPost: (parent: unknown, args: { id: string }, context: GraphQLContext) => Promise<BlogPost | null>
+  links: (parent: unknown, args: unknown, context: GraphQLContext) => Promise<Link[]>
 }
 
 type MutationResolvers = {
@@ -37,11 +41,36 @@ type MutationResolvers = {
     args: { input: { content: string; image?: string } }, 
     context: GraphQLContext
   ) => Promise<Memo>
+  updateMemo: (
+    parent: unknown,
+    args: { id: string; input: { content: string; image?: string } },
+    context: GraphQLContext
+  ) => Promise<Memo>
+  deleteMemo: (
+    parent: unknown,
+    args: { id: string },
+    context: GraphQLContext
+  ) => Promise<boolean>
   toggleLike: (
     parent: unknown,
     args: { type: string; id: string },
     context: GraphQLContext
   ) => Promise<LikeResult>
+  createBlogPost: (
+    parent: unknown,
+    args: { input: { title: string; content: string; discussions?: ExternalDiscussion[] } },
+    context: GraphQLContext
+  ) => Promise<BlogPost>
+  updateBlogPost: (
+    parent: unknown,
+    args: { id: string; input: { title: string; content: string; discussions?: ExternalDiscussion[] } },
+    context: GraphQLContext
+  ) => Promise<BlogPost>
+  deleteBlogPost: (
+    parent: unknown,
+    args: { id: string },
+    context: GraphQLContext
+  ) => Promise<boolean>
 }
 
 type LikeInfo = {
@@ -64,9 +93,56 @@ const typeDefs = `
     image: String
   }
 
+  type Discussion {
+    platform: String!
+    url: String!
+    title: String
+    count: Int
+  }
+
+  type BlogPost {
+    id: String!
+    title: String!
+    content: String!
+    date: String!
+    discussions: [Discussion]
+  }
+
+  type Link {
+    id: String!
+    title: String!
+    url: String!
+    description: String
+    tags: [String]
+  }
+
   input CreateMemoInput {
     content: String!
     image: String
+  }
+
+  input UpdateMemoInput {
+    content: String!
+    image: String
+  }
+
+  input CreateBlogPostInput {
+    title: String!
+    content: String!
+    discussions: [DiscussionInput]
+  }
+
+  input UpdateBlogPostInput {
+    title: String!
+    content: String!
+    discussions: [DiscussionInput]
+  }
+
+  input DiscussionInput {
+    platform: String!
+    url: String!
+    title: String
+    count: Int
   }
 
   type LikeInfo {
@@ -84,11 +160,19 @@ const typeDefs = `
   type Query {
     memos: [Memo!]!
     getLikes(type: String!, id: String!): LikeInfo!
+    blogPosts: [BlogPost!]!
+    blogPost(id: String!): BlogPost
+    links: [Link!]!
   }
 
   type Mutation {
     createMemo(input: CreateMemoInput!): Memo!
+    updateMemo(id: String!, input: UpdateMemoInput!): Memo!
+    deleteMemo(id: String!): Boolean!
     toggleLike(type: String!, id: String!): LikeResult!
+    createBlogPost(input: CreateBlogPostInput!): BlogPost!
+    updateBlogPost(id: String!, input: UpdateBlogPostInput!): BlogPost!
+    deleteBlogPost(id: String!): Boolean!
   }
 `
 
@@ -122,6 +206,39 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
       } catch (error) {
         console.error('Error fetching likes:', error)
         return { count: 0, countries: [], userLiked: false }
+      }
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    blogPosts: async (_parent, _args, context) => {
+      try {
+        const client = createSmartClient(context.token?.accessToken)
+        const result = await client.getBlogPosts()
+        return Array.isArray(result) ? result : []
+      } catch (error) {
+        console.error('Error fetching blog posts:', error)
+        return []
+      }
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    blogPost: async (_parent, { id }, context) => {
+      try {
+        const client = createSmartClient(context.token?.accessToken)
+        const post = await client.getBlogPost(`${id}.md`)
+        return post || null
+      } catch (error) {
+        console.error('Error fetching blog post:', error)
+        return null
+      }
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    links: async (_parent, _args, context) => {
+      try {
+        const client = createSmartClient(context.token?.accessToken)
+        const result = await client.getLinks()
+        return Array.isArray(result) ? result : []
+      } catch (error) {
+        console.error('Error fetching links:', error)
+        return []
       }
     },
   },
@@ -209,6 +326,96 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
       } catch (error) {
         console.error('Error toggling like:', error)
         throw new Error('Failed to toggle like')
+      }
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    updateMemo: async (_parent, { id, input }, context) => {
+      if (!context.token?.accessToken) {
+        throw new Error('Authentication required')
+      }
+
+      try {
+        await updateMemo(id, input.content, context.token.accessToken)
+        // Return the updated memo
+        const client = createSmartClient(context.token.accessToken)
+        const memos = await client.getMemos()
+        const updatedMemo = Array.isArray(memos) ? memos.find(m => m.id === id) : null
+        if (!updatedMemo) {
+          throw new Error('Memo not found after update')
+        }
+        return updatedMemo
+      } catch (error) {
+        console.error('Error updating memo:', error)
+        throw new Error('Failed to update memo')
+      }
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    deleteMemo: async (_parent, { id }, context) => {
+      if (!context.token?.accessToken) {
+        throw new Error('Authentication required')
+      }
+
+      try {
+        await deleteMemo(id, context.token.accessToken)
+        return true
+      } catch (error) {
+        console.error('Error deleting memo:', error)
+        throw new Error('Failed to delete memo')
+      }
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    createBlogPost: async (_parent, { input }, context) => {
+      if (!context.token?.accessToken) {
+        throw new Error('Authentication required')
+      }
+
+      try {
+        await createBlogPost(input.title, input.content, context.token.accessToken, input.discussions)
+        // Return the created blog post
+        const client = createSmartClient(context.token.accessToken)
+        const posts = await client.getBlogPosts()
+        const createdPost = Array.isArray(posts) ? posts.find(p => p.title === input.title) : null
+        if (!createdPost) {
+          throw new Error('Blog post not found after creation')
+        }
+        return createdPost
+      } catch (error) {
+        console.error('Error creating blog post:', error)
+        throw new Error('Failed to create blog post')
+      }
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    updateBlogPost: async (_parent, { id, input }, context) => {
+      if (!context.token?.accessToken) {
+        throw new Error('Authentication required')
+      }
+
+      try {
+        await updateBlogPost(id, input.title, input.content, context.token.accessToken, input.discussions)
+        // Return the updated blog post
+        const client = createSmartClient(context.token.accessToken)
+        const post = await client.getBlogPost(`${id}.md`)
+        if (!post) {
+          throw new Error('Blog post not found after update')
+        }
+        return post
+      } catch (error) {
+        console.error('Error updating blog post:', error)
+        throw new Error('Failed to update blog post')
+      }
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    deleteBlogPost: async (_parent, { id }, context) => {
+      if (!context.token?.accessToken) {
+        throw new Error('Authentication required')
+      }
+
+      try {
+        await deleteBlogPost(id, context.token.accessToken)
+        return true
+      } catch (error) {
+        console.error('Error deleting blog post:', error)
+        throw new Error('Failed to delete blog post')
       }
     },
   },
