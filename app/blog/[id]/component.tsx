@@ -60,16 +60,25 @@ export const PostContainer = ({ post, discussionsComponent }: { post: BlogPost, 
 
     setIsDeleting(true)
     try {
-      const response = await fetch('/api/github', {
+      const response = await fetch('/api/graphql', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          action: 'deleteBlogPost',
-          id: post.id,
+          query: `
+            mutation DeleteBlogPost($id: String!) {
+              deleteBlogPost(id: $id)
+            }
+          `,
+          variables: { id: post.id },
         }),
       })
+
+      const result = await response.json()
+      if (result.errors) {
+        throw new Error(result.errors[0].message)
+      }
 
       if (!response.ok) {
         throw new Error('Failed to delete blog post')
