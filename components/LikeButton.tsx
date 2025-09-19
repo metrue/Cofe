@@ -32,15 +32,15 @@ export default function LikeButton({ type, id, initialLikes, className = '' }: L
         },
         body: JSON.stringify({
           query: `
-            query GetLikes($type: String!, $id: String!) {
-              getLikes(type: $type, id: $id) {
+            query GetLikes($itemType: String!, $id: String!) {
+              getLikes(itemType: $itemType, id: $id) {
                 count
                 countries
                 userLiked
               }
             }
           `,
-          variables: { type, id },
+          variables: { itemType: type, id },
         }),
       })
 
@@ -82,15 +82,15 @@ export default function LikeButton({ type, id, initialLikes, className = '' }: L
         },
         body: JSON.stringify({
           query: `
-            mutation ToggleLike($type: String!, $id: String!) {
-              toggleLike(type: $type, id: $id) {
+            mutation ToggleLike($itemType: String!, $id: String!) {
+              toggleLike(itemType: $itemType, id: $id) {
                 liked
                 count
                 countries
               }
             }
           `,
-          variables: { type, id },
+          variables: { itemType: type, id },
         }),
       })
 

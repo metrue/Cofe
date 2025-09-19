@@ -13,6 +13,7 @@ import {
   hasUserLiked, 
   getLikeInfo, 
   createItemKey,
+  createUserFingerprint,
   LikeData 
 } from '@/lib/likeUtils'
 
@@ -29,7 +30,7 @@ interface GraphQLContext {
 // GraphQL resolver types
 type QueryResolvers = {
   memos: (parent: unknown, args: unknown, context: GraphQLContext) => Promise<Memo[]>
-  getLikes: (parent: unknown, args: { type: string; id: string }, context: GraphQLContext) => Promise<LikeInfo>
+  getLikes: (parent: unknown, args: { itemType: string; id: string }, context: GraphQLContext) => Promise<LikeInfo>
   blogPosts: (parent: unknown, args: unknown, context: GraphQLContext) => Promise<BlogPost[]>
   blogPost: (parent: unknown, args: { id: string }, context: GraphQLContext) => Promise<BlogPost | null>
   links: (parent: unknown, args: unknown, context: GraphQLContext) => Promise<Link[]>
@@ -53,7 +54,7 @@ type MutationResolvers = {
   ) => Promise<boolean>
   toggleLike: (
     parent: unknown,
-    args: { type: string; id: string },
+    args: { itemType: string; id: string },
     context: GraphQLContext
   ) => Promise<LikeResult>
   createBlogPost: (
@@ -159,7 +160,7 @@ const typeDefs = `
 
   type Query {
     memos: [Memo!]!
-    getLikes(type: String!, id: String!): LikeInfo!
+    getLikes(itemType: String!, id: String!): LikeInfo!
     blogPosts: [BlogPost!]!
     blogPost(id: String!): BlogPost
     links: [Link!]!
@@ -169,7 +170,7 @@ const typeDefs = `
     createMemo(input: CreateMemoInput!): Memo!
     updateMemo(id: String!, input: UpdateMemoInput!): Memo!
     deleteMemo(id: String!): Boolean!
-    toggleLike(type: String!, id: String!): LikeResult!
+    toggleLike(itemType: String!, id: String!): LikeResult!
     createBlogPost(input: CreateBlogPostInput!): BlogPost!
     updateBlogPost(id: String!, input: UpdateBlogPostInput!): BlogPost!
     deleteBlogPost(id: String!): Boolean!
@@ -190,17 +191,22 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
       }
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    getLikes: async (_parent, { type, id }, context) => {
+    getLikes: async (_parent, { itemType, id }, context) => {
       try {
         const client = createSmartClient()
         const likesData = await client.getLikes()
         
+        console.log('getLikes - fetched data:', JSON.stringify(likesData, null, 2))
+        
         const ip = getClientIP(context.request)
         const location = getLocationFromHeaders(context.request)
         const hashedIP = hashIP(ip)
+        const userFingerprint = createUserFingerprint(hashedIP, location)
         
-        const itemKey = createItemKey(type as 'blog' | 'memo', id)
-        const likeInfo = getLikeInfo(likesData, itemKey, hashedIP, location.country)
+        const itemKey = createItemKey(itemType as 'blog' | 'memo', id)
+        const likeInfo = getLikeInfo(likesData, itemKey, userFingerprint)
+        
+        console.log('getLikes - computed like info:', JSON.stringify(likeInfo, null, 2))
         
         return likeInfo
       } catch (error) {
@@ -266,25 +272,30 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
       }
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    toggleLike: async (_parent, { type, id }, context) => {
+    toggleLike: async (_parent, { itemType, id }, context) => {
       try {
         // Get user's IP and location
         const ip = getClientIP(context.request)
         const location = getLocationFromHeaders(context.request)
         const hashedIP = hashIP(ip)
+        const userFingerprint = createUserFingerprint(hashedIP, location)
         
         // Get likes data using smart client
         const client = createSmartClient(context.token?.accessToken)
         let likesData = await client.getLikes()
         
+        console.log('toggleLike - original likes data:', JSON.stringify(likesData, null, 2))
+        
         // Create a mutable copy since we need to modify it
         likesData = { ...likesData }
         
-        const itemKey = createItemKey(type as 'blog' | 'memo', id)
+        const itemKey = createItemKey(itemType as 'blog' | 'memo', id)
         const timestamp = new Date().toISOString()
         
+        console.log('toggleLike - itemKey:', itemKey, 'userFingerprint:', userFingerprint)
+        
         // Check if user has already liked
-        const { hasLiked, existingLikeId } = hasUserLiked(likesData, itemKey, hashedIP, location.country)
+        const { hasLiked, existingLikeId } = hasUserLiked(likesData, itemKey, userFingerprint)
         
         if (hasLiked && existingLikeId) {
           // Remove like (toggle off)
@@ -298,7 +309,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           }
         } else {
           // Add like (toggle on)
-          const likeId = generateLikeId(hashedIP, location.country, timestamp)
+          const likeId = generateLikeId(userFingerprint, timestamp)
           const likeData: LikeData = {
             timestamp,
             userAgent: location.userAgent,
@@ -312,11 +323,13 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           likesData[itemKey][likeId] = likeData
         }
         
+        console.log('toggleLike - likes data before update:', JSON.stringify(likesData, null, 2))
+        
         // Update likes data using smart client
         await client.updateLikes(likesData)
         
         // Calculate final result
-        const finalLikeInfo = getLikeInfo(likesData, itemKey, hashedIP, location.country)
+        const finalLikeInfo = getLikeInfo(likesData, itemKey, userFingerprint)
         
         return {
           liked: finalLikeInfo.userLiked,
