@@ -15,6 +15,7 @@ Before committing any changes, ensure:
 ## Workflow Best Practices
 
 ### Git Workflow
+- **NEVER commit directly to main branch** - Always use feature/bugfix branches
 - Use descriptive branch names (e.g., `fix/hackernews-comment-html-entities`)
 - Write clear, detailed commit messages
 - Create comprehensive PR descriptions with problem/solution/testing sections
