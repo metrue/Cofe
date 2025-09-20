@@ -86,13 +86,24 @@ Or deploy anywhere that supports Next.js applications.
 
 Cofe includes privacy-first analytics powered by [Umami](https://umami.is). It's completely optional and disabled by default.
 
+#### Quick Setup
+1. Sign up at [cloud.umami.is](https://cloud.umami.is) or [self-host Umami](https://umami.is/docs)
+2. Create a website and get your Website ID
+3. Add environment variables:
+
 ```bash
-# Add to your .env.local to enable analytics
+# Required to enable analytics
 NEXT_PUBLIC_ANALYTICS_ENABLED=true
 NEXT_PUBLIC_UMAMI_WEBSITE_ID=your-website-id
+
+# Optional: Custom Umami instance (defaults to cloud.umami.is)
+NEXT_PUBLIC_UMAMI_SCRIPT_URL=https://your-umami-instance.com/script.js
+
+# Optional: Restrict tracking to specific domains
+NEXT_PUBLIC_UMAMI_DOMAINS=yourdomain.com,www.yourdomain.com
 ```
 
-📖 [Full Analytics Documentation](./docs/ANALYTICS.md)
+**Note**: `NEXT_PUBLIC_` prefix is required for these variables to be available in the browser.
 
 ## 🎯 Perfect For
 

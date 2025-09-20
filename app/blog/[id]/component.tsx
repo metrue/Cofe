@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { BlogPostContent } from '@/components/BlogPostContent'
+import { useUmamiTracking } from '@/components/Analytics'
 import type { BlogPost } from '@/lib/types'
 import {
   DropdownMenu,
@@ -45,8 +46,18 @@ export const PostContainer = ({ post, discussionsComponent }: { post: BlogPost, 
   const { toast } = useToast()
   // eslint-disable-next-line
   const { data: session, status } = useSession()
+  const trackEvent = useUmamiTracking()
 
   const t = useTranslations('HomePage')
+
+  // Track blog post view
+  useEffect(() => {
+    trackEvent('blog-post-view', {
+      postId: post.id,
+      postTitle: post.title,
+      postDate: post.date
+    })
+  }, [trackEvent, post.id, post.title, post.date])
 
   const decodedTitle = decodeContent(post.title)
   const decodedContent = decodeContent(post.content)
