@@ -33,6 +33,12 @@ Cofe is designed with simplicity in mind - write your thoughts, share your ideas
 - No manual setup required - just add discussion links to your posts
 - Beautifully rendered comment threads
 
+### 📊 **Privacy-First Analytics** *(Optional)*
+- Configurable Umami analytics integration
+- Cookieless, GDPR-compliant tracking
+- Self-hosted or cloud options available
+- Completely optional - disabled by default
+
 ### 🎨 **Beautiful Design**
 - Minimalist interface inspired by the best
 - Carefully crafted typography and spacing
@@ -75,6 +81,18 @@ Deploy to Vercel with one click:
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/metrue/Cofe)
 
 Or deploy anywhere that supports Next.js applications.
+
+### Optional: Enable Analytics
+
+Cofe includes privacy-first analytics powered by [Umami](https://umami.is). It's completely optional and disabled by default.
+
+```bash
+# Add to your .env.local to enable analytics
+NEXT_PUBLIC_ANALYTICS_ENABLED=true
+NEXT_PUBLIC_UMAMI_WEBSITE_ID=your-website-id
+```
+
+📖 [Full Analytics Documentation](./docs/ANALYTICS.md)
 
 ## 🎯 Perfect For
 
