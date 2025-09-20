@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { Heart } from 'lucide-react'
+import { useUmamiTracking } from './Analytics'
 
 interface LikeInfo {
   count: number
@@ -22,6 +23,7 @@ export default function LikeButton({ type, id, initialLikes, className = '' }: L
   )
   const [isLoading, setIsLoading] = useState(false)
   const [hasInteracted, setHasInteracted] = useState(false)
+  const trackEvent = useUmamiTracking()
 
   const fetchLikes = useCallback(async () => {
     try {
@@ -102,6 +104,14 @@ export default function LikeButton({ type, id, initialLikes, className = '' }: L
           count: result.data.toggleLike.count,
           countries: result.data.toggleLike.countries,
           userLiked: result.data.toggleLike.liked
+        })
+        
+        // Track like action
+        trackEvent('like-action', {
+          itemType: type,
+          itemId: id,
+          action: result.data.toggleLike.liked ? 'like' : 'unlike',
+          newCount: result.data.toggleLike.count
         })
       } else if (result.errors) {
         console.error('GraphQL errors:', result.errors)

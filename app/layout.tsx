@@ -6,7 +6,6 @@ import CreateButton from '@/components/CreateButton'
 import Head from 'next/head'
 import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
-import Script from 'next/script'
 import { SessionProvider } from '../components/SessionProvider'
 import { Toaster } from '@/components/ui/toaster'
 import { authOptions } from '@/lib/auth'
@@ -14,6 +13,7 @@ import { getIconUrls } from '@/lib/githubApi'
 import { getServerSession } from 'next-auth/next'
 import { gowun_wodum } from '@/components/ui/font'
 import { getSiteConfig } from '@/lib/siteConfig'
+import Analytics from '@/components/Analytics'
 
 export async function generateMetadata(): Promise<Metadata> {
   const session = await getServerSession(authOptions)
@@ -66,13 +66,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <meta name='apple-mobile-web-app-status-bar-style' content='default' />
         <link rel='apple-touch-icon' href={iconPath} />
       </Head>
-      <Script async src='https://www.googletagmanager.com/gtag/js?id=G-1MF16MH92D' />
-      <Script id='google-analytics'>{`
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-5WTLPRB4YS');
-      `}</Script>
+      <Analytics />
       <body className={`${gowun_wodum.className} bg-[#f6f8fa]`}>
         <NextIntlClientProvider messages={messages}>
           <SessionProvider>
