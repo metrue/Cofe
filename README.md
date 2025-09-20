@@ -103,7 +103,7 @@ NEXT_PUBLIC_UMAMI_SCRIPT_URL=https://your-umami-instance.com/script.js
 NEXT_PUBLIC_UMAMI_DOMAINS=yourdomain.com,www.yourdomain.com
 ```
 
-**Note**: `NEXT_PUBLIC_` prefix is required for these variables to be available in the browser.
+**Why `NEXT_PUBLIC_` prefix?** In Next.js, environment variables are server-side only by default. The `NEXT_PUBLIC_` prefix tells Next.js to expose these variables to the browser, which is required for client-side analytics tracking.
 
 ## 🎯 Perfect For
 
