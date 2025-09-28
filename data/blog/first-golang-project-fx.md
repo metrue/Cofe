@@ -6,7 +6,10 @@ external_discussions:
     url: https://news.ycombinator.com/item?id=15686661
   - platform: v2ex
     url: https://v2ex.com/t/406259
+  - platform: v2ex
+    url: https://www.reddit.com/r/programming/comments/7su688/fx_is_a_homemade_faas_tool_like_aws_lambda/
 ---
+
 
 
 
