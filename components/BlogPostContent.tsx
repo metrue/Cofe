@@ -38,10 +38,7 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
                 {format(new Date(date), 'MMM d, yyyy')}
               </time>
               {location?.city && (
-                <span className='flex items-center gap-1'>
-                  <span>•</span>
-                  <span>📍 {location.city}{location.street ? ` · ${location.street}` : ''}</span>
-                </span>
+                <span>🖊 {location.city}{location.street ? ` · ${location.street}` : ''}</span>
               )}
             </div>
           </div>

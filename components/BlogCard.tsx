@@ -24,14 +24,8 @@ export const BlogCard = ({ post }: { post: BlogPost }) => (
           {post.title}
         </h3>
 
-        <p className="text-white text-sm font-light flex items-center gap-2">
+        <p className="text-white text-sm font-light">
           {formatDate(post.date)}
-          {post.city && (
-            <span className="flex items-center gap-1">
-              <span>•</span>
-              <span>📍 {post.city}{post.street ? ` · ${post.street}` : ''}</span>
-            </span>
-          )}
         </p>
       </div>
     </Link>
