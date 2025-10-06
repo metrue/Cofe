@@ -10,7 +10,7 @@ export default async function MemosPage() {
   const memos = await client.getMemos()
   const links = await client.getLinks()
   return (
-    <div className='max-w-4xl mx-auto px-4 py-8'>
+    <div className='max-w-3xl mx-auto px-4 py-8'>
       <AvatarCard name={username} links={links} />
 
       <div className='max-w-2xl mx-auto'>

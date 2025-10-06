@@ -33,7 +33,7 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
   return (
     <div
       key={memo.id}
-      className='relative flex flex-col justify-center p-4 rounded-lg leading-4 transition-all duration-300 ease-in-out hover:shadow-lg overflow-visible h-fit bg-white font-mono'
+      className='relative flex flex-col justify-center p-6 rounded-lg leading-5 transition-all duration-200 hover:shadow-md overflow-visible h-fit bg-white border border-gray-200'
     >
       <div className='text-gray-800 mb-2 prose max-w-none'>
         <div className='flex items-center justify-between mb-3'>

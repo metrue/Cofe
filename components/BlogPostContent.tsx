@@ -28,31 +28,29 @@ interface BlogPostContentProps {
 
 export function BlogPostContent({ title, date, content, slug, headerContent, discussionsComponent, location }: BlogPostContentProps) {
   return (
-    <div className='max-w-lg sm:max-w-xl lg:max-w-2xl mx-auto mt-8 mb-12 px-6 sm:px-8 lg:px-12'>
-      <header className='pb-8 lg:pb-12'>
-        <div className='flex justify-between items-start'>
-          <div>
-            <h1 className='text-2xl lg:text-3xl font-normal leading-tight mb-2'>{title}</h1>
-            <div className='text-xs lg:text-sm text-gray-500 font-mono flex items-center gap-2'>
-              <time data-status-datetime=''>
+    <div className='max-w-3xl mx-auto px-4 py-8'>
+      <header className='mb-8'>
+        <div className='flex justify-between items-start mb-6'>
+          <div className='flex-1'>
+            <h1 className='text-3xl font-bold leading-tight mb-3 text-gray-900'>{title}</h1>
+            <div className='text-sm text-gray-600 flex items-center gap-3'>
+              <time dateTime={date}>
                 {format(new Date(date), 'MMM d, yyyy')}
               </time>
               {location?.city && (
-                <span>🖊 {location.city}{location.street ? ` · ${location.street}` : ''}</span>
+                <span className='flex items-center gap-1'>🖊 {location.city}{location.street ? ` · ${location.street}` : ''}</span>
               )}
             </div>
           </div>
-          {headerContent}
+          {headerContent && (
+            <div className='ml-4'>
+              {headerContent}
+            </div>
+          )}
         </div>
       </header>
-      <main>
-        <div className='prose prose-base max-w-none text-gray-900 dark:text-gray-100 leading-relaxed' 
-             style={{ 
-               fontFamily: 'system-ui, -apple-system, sans-serif',
-               fontSize: '1.1rem',
-               lineHeight: '1.62em',
-               wordWrap: 'break-word'
-             }}>
+      <main className='bg-white rounded-lg border border-gray-200 p-8'>
+        <div className='prose prose-lg max-w-none text-gray-900 leading-relaxed'>
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
             rehypePlugins={[rehypeKatex]}
@@ -105,15 +103,18 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
                 return isImageOnly ? <>{children}</> : <p>{children}</p>
               },
               img: ({ children, ...props }) => (
-                <div className='my-8'>
-                  <Image
-                    src={props.src || ''}
-                    alt={props.alt || 'image'}
-                    width={800}
-                    height={600}
-                    className='h-auto max-w-full mx-auto block rounded'
-                  />
-                  {children && <div className='text-center mt-2 text-sm text-gray-500'>{children}</div>}
+                <div className='my-6 flex justify-center'>
+                  <div className='max-w-2xl w-full'>
+                    <Image
+                      src={props.src || ''}
+                      alt={props.alt || 'image'}
+                      width={600}
+                      height={400}
+                      className='h-auto w-full object-cover rounded-lg shadow-sm'
+                      style={{ maxHeight: '400px' }}
+                    />
+                    {children && <div className='text-center mt-3 text-sm text-gray-500 italic'>{children}</div>}
+                  </div>
                 </div>
               ),
             }}
@@ -126,10 +127,14 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
         <div className='mt-8 pt-6 border-t border-gray-100 flex justify-center'>
           <LikeButton type="blog" id={slug} />
         </div>
-        
-        {/* External discussions section - Server component, no API route needed! */}
-        {discussionsComponent}
       </main>
+      
+      {/* External discussions section */}
+      {discussionsComponent && (
+        <div className='mt-6'>
+          {discussionsComponent}
+        </div>
+      )}
     </div>
   )
 }

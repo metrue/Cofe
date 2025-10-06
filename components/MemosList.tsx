@@ -65,31 +65,35 @@ export default function PublicMemosList({
   }
 
 
+  if (formattedMemos.length === 0) {
+    return (
+      <div className='flex flex-col items-center mt-16 space-y-6'>
+        <div className='text-center space-y-3'>
+          <h2 className='text-2xl font-semibold text-gray-900'>No memos yet</h2>
+          <p className='text-gray-500 max-w-md'>Capture quick thoughts and moments by creating your first memo.</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <div className="grid grid-cols-2 md:grid-cols-2 gap-2">
-        <div className="flex flex-col gap-2">
-          {formattedMemos.filter((_, index) => index % 2 !== 0).map((memo) => (
+    <div className="space-y-4">
+      <div className="mb-8">
+        <h2 className='text-2xl font-semibold mb-2'>Recent Memos</h2>
+        <p className='text-gray-600'>Quick thoughts and moments</p>
+      </div>
+      
+      <div className="columns-1 md:columns-2 gap-4 space-y-4">
+        {formattedMemos.map((memo) => (
+          <div key={memo.id} className="break-inside-avoid mb-4">
             <MemoCard
-              key={memo.id}
               memo={memo}
               onDelete={handleDelete}
               onEdit={() => {}}
               isDeleting={deletingMemoId === memo.id}
             />
-          ))}
-        </div>
-        <div className="flex flex-col gap-2">
-          {memos.filter((_, index) => index % 2 === 0).map((memo) => (
-            <MemoCard
-              key={memo.id}
-              memo={memo}
-              onDelete={handleDelete}
-              onEdit={() => {}}
-              isDeleting={deletingMemoId === memo.id}
-            />
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );
