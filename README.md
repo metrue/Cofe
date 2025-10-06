@@ -1,6 +1,6 @@
 # ☕ Cofe
 
-**A beautifully simple blog and memo app that just works.**
+A beautifully simple blog and memo app that just works.
 
 Write thoughts. Share ideas. Let GitHub handle the rest.
 
