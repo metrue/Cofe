@@ -49,9 +49,9 @@ export const StatusCard = ({
   links: Record<string, string>
 }) => {
   return (
-    <div className='max-w-2xl mx-auto p-4 w-full'>
-      <Card className='w-full overflow-visible border border-white bg-white rounded-lg shadow-sm'>
-        <CardContent className='p-6'>
+    <div className='max-w-3xl mx-auto px-4 pt-8 pb-4 w-full'>
+      <Card className='w-full overflow-visible border border-gray-200 bg-white rounded-lg shadow-sm'>
+        <CardContent className='p-8'>
           {/* Avatar and Social Links Section */}
           <div className='flex flex-col items-center space-y-3'>
             <Avatar src={avatar} alt='Blogger Avatar' href='/' />

@@ -2,8 +2,6 @@
 
 import "katex/dist/katex.min.css";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { ExternalDiscussion } from "discussing";
@@ -58,7 +56,14 @@ export default function Editor({
   const { toast } = useToast();
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
   const [discussions, setDiscussions] = useState<ExternalDiscussion[]>([]);
-  const { location } = useGeolocation();
+  const { location, loading: locationLoading, requestLocation } = useGeolocation();
+  const [postLocation, setPostLocation] = useState<{
+    latitude?: number;
+    longitude?: number;
+    city?: string;
+    street?: string;
+  } | null>(null);
+  const [isLocationAttached, setIsLocationAttached] = useState(false);
 
   const fetchMemo = useCallback(
     async (id: string) => {
@@ -92,6 +97,10 @@ export default function Editor({
                   id
                   title
                   content
+                  latitude
+                  longitude
+                  city
+                  street
                   discussions {
                     platform
                     url
@@ -116,6 +125,17 @@ export default function Editor({
           setContent(removeFrontmatter(blogPost.content));
           setDiscussions(blogPost.discussions || []);
           setEditingMemoId(id);
+          
+          // Set existing location if available
+          if (blogPost.latitude || blogPost.city) {
+            setPostLocation({
+              latitude: blogPost.latitude,
+              longitude: blogPost.longitude,
+              city: blogPost.city,
+              street: blogPost.street
+            });
+            setIsLocationAttached(true);
+          }
         }
       } catch (error) {
         console.error("Error fetching blog post:", error);
@@ -176,6 +196,12 @@ export default function Editor({
               title,
               content,
               discussions,
+              ...(isLocationAttached && postLocation && {
+                latitude: postLocation.latitude,
+                longitude: postLocation.longitude,
+                city: postLocation.city,
+                street: postLocation.street
+              })
             },
           };
         } else {
@@ -194,11 +220,11 @@ export default function Editor({
               title,
               content,
               discussions,
-              ...(location && {
-                latitude: location.latitude,
-                longitude: location.longitude,
-                city: location.city,
-                street: location.street
+              ...(isLocationAttached && postLocation && {
+                latitude: postLocation.latitude,
+                longitude: postLocation.longitude,
+                city: postLocation.city,
+                street: postLocation.street
               })
             },
           };
@@ -443,163 +469,236 @@ export default function Editor({
   );
 
   return (
-    <Card className="max-w-2xl mx-auto shadow-md border border-gray-100 relative">
+    <div className="max-w-4xl mx-auto px-4 py-8">
       {(isLoading || isImageUploading) && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-lg shadow-xl">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-600" />
+          </div>
         </div>
       )}
-      <CardHeader className="border-b border-gray-100 pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex flex-col items-start">
-            {type === "blog" ? t("createBlogPost") : t("createMemo")}
-            <span className="mt-2 text-xs font-normal text-gray-400 flex items-center">
-              <span className="text-gray-400">{t("publicContentWarning")}</span>
-              <GrInfo
-                className="m-1 cursor-pointer text-black"
-                data-tooltip-id="public-content-tooltip"
-              />
-              <Tooltip id="public-content-tooltip" place="top">
-                {t("publicContentTooltip")}
-              </Tooltip>
-            </span>
-          </CardTitle>
+      
+      {/* Header with type selector */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-3xl font-bold">
+            {type === "blog" ? "New Blog Post" : "New Memo"}
+          </h1>
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => handleTypeChange("blog")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                type === "blog" 
+                  ? "bg-white text-black shadow-sm" 
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Blog Post
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTypeChange("memo")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                type === "memo" 
+                  ? "bg-white text-black shadow-sm" 
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Memo
+            </button>
+          </div>
         </div>
-      </CardHeader>
-      <CardContent className="pt-4">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <RadioGroup
-            value={type}
-            onValueChange={handleTypeChange}
-            className="flex space-x-4"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem
-                value="blog"
-                id="blog"
-                className={type === "blog" ? "text-white bg-black" : ""}
-              />
-              <Label htmlFor="blog" className="text-sm">
-                {t("blog")}
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem
-                value="memo"
-                id="memo"
-                className={type === "memo" ? "text-white bg-black" : ""}
-              />
-              <Label htmlFor="memo" className="text-sm">
-                {t("memos")}
-              </Label>
-            </div>
-          </RadioGroup>
+        <p className="text-sm text-gray-500 flex items-center gap-1">
+          <span className="inline-block w-2 h-2 bg-green-400 rounded-full"></span>
+          {t("publicContentWarning")}
+          <GrInfo
+            className="cursor-pointer text-gray-400 hover:text-gray-600"
+            data-tooltip-id="public-content-tooltip"
+          />
+          <Tooltip id="public-content-tooltip" place="top">
+            {t("publicContentTooltip")}
+          </Tooltip>
+        </p>
+      </div>
 
-          {type === "blog" && (
-            <Input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={t("enterTitle")}
-              required
-              className="border-gray-200 focus:border-gray-300 focus:ring-gray-300"
-              disabled={isLoading || isImageUploading}
-            />
-          )}
+      <form onSubmit={handleSubmit} className="space-y-6">
 
+          {/* Title and Metadata Section */}
           {type === "blog" && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">{t("externalDiscussions")}</Label>
+            <div className="space-y-4 bg-white rounded-lg border border-gray-200 p-6">
+              <div>
+                <Label htmlFor="title" className="text-sm font-medium text-gray-700 mb-2">
+                  Title
+                </Label>
+                <Input
+                  id="title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter a compelling title..."
+                  required
+                  className="text-lg font-medium border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                  disabled={isLoading || isImageUploading}
+                />
+              </div>
+              
+              {/* Location for blog posts */}
+              <div className="flex items-center gap-3 pt-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={addDiscussion}
-                  disabled={isLoading || isImageUploading}
+                  onClick={async () => {
+                    await requestLocation();
+                    if (location) {
+                      setPostLocation(location);
+                      setIsLocationAttached(true);
+                      toast({
+                        title: "Location attached",
+                        description: `${location.city}${location.street ? ` · ${location.street}` : ''}`,
+                        duration: 3000,
+                      });
+                    }
+                  }}
+                  disabled={locationLoading}
+                  className="flex items-center gap-2 text-sm"
                 >
-                  {t("addDiscussion")}
+                  {locationLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <span className="text-base">📍</span>
+                  )}
+                  {isLocationAttached ? "Update Location" : "Add Location"}
                 </Button>
+                
+                {isLocationAttached && postLocation && (
+                  <>
+                    <span className="text-sm text-gray-600 flex-1">
+                      🖊 {postLocation.city}{postLocation.street ? ` · ${postLocation.street}` : ''}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setPostLocation(null);
+                        setIsLocationAttached(false);
+                        toast({
+                          title: "Location removed",
+                          duration: 2000,
+                        });
+                      }}
+                      className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      Remove
+                    </Button>
+                  </>
+                )}
               </div>
-              {discussions.map((discussion, index) => (
-                <div key={index} className="flex gap-2 items-center">
-                  <select
-                    value={discussion.platform}
-                    onChange={(e) => updateDiscussion(index, 'platform', e.target.value as ExternalDiscussion['platform'])}
-                    className="px-3 py-2 border border-gray-200 rounded-md focus:border-gray-300 focus:ring-gray-300"
-                    disabled={isLoading || isImageUploading}
-                  >
-                    <option value="v2ex">V2EX</option>
-                    <option value="reddit">Reddit</option>
-                    <option value="hackernews">Hacker News</option>
-                  </select>
-                  <Input
-                    type="url"
-                    value={discussion.url}
-                    onChange={(e) => updateDiscussion(index, 'url', e.target.value)}
-                    placeholder={t("enterDiscussionUrl")}
-                    className="flex-1 border-gray-200 focus:border-gray-300 focus:ring-gray-300"
-                    disabled={isLoading || isImageUploading}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeDiscussion(index)}
-                    disabled={isLoading || isImageUploading}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    {t("remove")}
-                  </Button>
-                </div>
-              ))}
             </div>
           )}
 
-          <div className="border rounded-md relative" {...getRootProps()}>
+          {/* External Discussions - Collapsible */}
+          {type === "blog" && discussions.length > 0 && (
+            <details className="bg-white rounded-lg border border-gray-200">
+              <summary className="px-6 py-3 cursor-pointer hover:bg-gray-50">
+                <span className="text-sm font-medium text-gray-700">
+                  External Discussions ({discussions.length})
+                </span>
+              </summary>
+              <div className="px-6 pb-4 space-y-3">
+                {discussions.map((discussion, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <select
+                      value={discussion.platform}
+                      onChange={(e) => updateDiscussion(index, 'platform', e.target.value as ExternalDiscussion['platform'])}
+                      className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-blue-500 text-sm"
+                      disabled={isLoading || isImageUploading}
+                    >
+                      <option value="v2ex">V2EX</option>
+                      <option value="reddit">Reddit</option>
+                      <option value="hackernews">Hacker News</option>
+                    </select>
+                    <Input
+                      type="url"
+                      value={discussion.url}
+                      onChange={(e) => updateDiscussion(index, 'url', e.target.value)}
+                      placeholder="Paste discussion URL..."
+                      className="flex-1 border-gray-200 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                      disabled={isLoading || isImageUploading}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeDiscussion(index)}
+                      disabled={isLoading || isImageUploading}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+          
+
+          {/* Content Editor */}
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden" {...getRootProps()}>
             <input {...getInputProps()} />
-            <div className="flex border-b">
-              <button
-                type="button"
-                onClick={() => setIsPreview(false)}
-                className={`text-sm px-4 py-2 ${
-                  !isPreview ? "bg-gray-100" : ""
-                }`}
-                disabled={isLoading || isImageUploading}
-              >
-                {t("write")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsPreview(true)}
-                className={`text-sm px-4 py-2 ${
-                  isPreview ? "bg-gray-100 border-b-2 border-black" : ""
-                }`}
-                disabled={isLoading || isImageUploading}
-              >
-                {t("preview")}
-              </button>
-              <label
-                htmlFor="image-upload"
-                className="text-sm px-4 py-2 cursor-pointer hover:bg-gray-100"
-              >
-                <CgImage className="h-5 w-5" />
-                <input
-                  id="image-upload"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleImageUpload(e.target.files[0]);
-                    }
-                  }}
-                  disabled={isLoading || isImageUploading}
-                />
-              </label>
+            <div className="border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between px-4">
+                <div className="flex">
+                  <button
+                    type="button"
+                    onClick={() => setIsPreview(false)}
+                    className={`px-4 py-3 text-sm font-medium transition-colors ${
+                      !isPreview 
+                        ? "text-blue-600 border-b-2 border-blue-600 bg-white" 
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                    disabled={isLoading || isImageUploading}
+                  >
+                    Write
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsPreview(true)}
+                    className={`px-4 py-3 text-sm font-medium transition-colors ${
+                      isPreview 
+                        ? "text-blue-600 border-b-2 border-blue-600 bg-white" 
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                    disabled={isLoading || isImageUploading}
+                  >
+                    Preview
+                  </button>
+                </div>
+                <label
+                  htmlFor="image-upload"
+                  className="p-2 text-gray-600 hover:text-gray-900 cursor-pointer transition-colors"
+                  title="Upload image"
+                >
+                  <CgImage className="h-5 w-5" />
+                  <input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleImageUpload(e.target.files[0]);
+                      }
+                    }}
+                    disabled={isLoading || isImageUploading}
+                  />
+                </label>
+              </div>
             </div>
             {isPreview ? (
-              <div className="p-4 prose max-w-none">
+              <div className="p-6 prose prose-gray max-w-none min-h-[400px]">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkMath]}
                   rehypePlugins={[rehypeKatex]}
@@ -659,43 +758,94 @@ export default function Editor({
                   setCursorPosition(e.currentTarget.selectionStart)
                 }
                 onPaste={handlePaste}
-                placeholder={t("writeContent")}
-                className="min-h-[300px] border-0 focus:ring-0"
+                placeholder={type === "blog" ? "Write your blog post content... (Markdown supported)" : "What's on your mind?"}
+                className="min-h-[400px] p-6 border-0 focus:ring-0 resize-none"
                 required
                 disabled={isLoading || isImageUploading}
               />
             )}
             {isDragActive && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50">
-                <p className="text-lg font-semibold">{t("dropImageHere")}</p>
+              <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 border-2 border-dashed border-blue-400 rounded-lg">
+                <div className="text-center">
+                  <CgImage className="h-12 w-12 mx-auto text-blue-500 mb-2" />
+                  <p className="text-lg font-medium text-gray-700">Drop image here</p>
+                </div>
               </div>
             )}
           </div>
 
-          {isSuccess && (
-            <div className="text-xs font-normal text-gray-400 text-center m-2">
-              {t("successPublished")}
+          {/* Location for Memos */}
+          {type === "memo" && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-600">
+                    {location ? (
+                      <span className="flex items-center gap-2">
+                        <span>📍</span>
+                        <span>@ {location.city}{location.street ? ` · ${location.street}` : ''}</span>
+                      </span>
+                    ) : (
+                      "Location will be captured when publishing"
+                    )}
+                  </span>
+                </div>
+              </div>
             </div>
           )}
 
-          <div className="flex justify-center">
-            <Button
-              type="submit"
-              disabled={isLoading || isImageUploading}
-              className="px-12 py-5 bg-black hover:bg-gray-800 text-white"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t("publishing")}
-                </>
-              ) : (
-                t("publish")
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {type === "blog" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addDiscussion}
+                  disabled={isLoading || isImageUploading}
+                  className="text-sm"
+                >
+                  + Add Discussion Link
+                </Button>
               )}
-            </Button>
+              {isSuccess && (
+                <span className="text-sm text-green-600 flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 bg-green-600 rounded-full"></span>
+                  {t("successPublished")}
+                </span>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push(type === "blog" ? "/blog" : "/memos")}
+                disabled={isLoading || isImageUploading}
+                className="px-6"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading || isImageUploading || (!content || (type === "blog" && !title))}
+                className="px-8 bg-black hover:bg-gray-800 text-white disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t("publishing")}
+                  </>
+                ) : (
+                  <>
+                    {editingMemoId ? "Update" : "Publish"}
+                    {type === "blog" ? " Post" : " Memo"}
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </form>
-      </CardContent>
-    </Card>
+    </div>
   );
 }
