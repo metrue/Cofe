@@ -39,7 +39,7 @@ type QueryResolvers = {
 type MutationResolvers = {
   createMemo: (
     parent: unknown, 
-    args: { input: { content: string; image?: string } }, 
+    args: { input: { content: string; image?: string; latitude?: number; longitude?: number; city?: string; street?: string } }, 
     context: GraphQLContext
   ) => Promise<Memo>
   updateMemo: (
@@ -59,7 +59,7 @@ type MutationResolvers = {
   ) => Promise<LikeResult>
   createBlogPost: (
     parent: unknown,
-    args: { input: { title: string; content: string; discussions?: ExternalDiscussion[] } },
+    args: { input: { title: string; content: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
     context: GraphQLContext
   ) => Promise<BlogPost>
   updateBlogPost: (
@@ -92,6 +92,10 @@ const typeDefs = `
     content: String!
     timestamp: String!
     image: String
+    latitude: Float
+    longitude: Float
+    city: String
+    street: String
   }
 
   type Discussion {
@@ -107,6 +111,10 @@ const typeDefs = `
     content: String!
     date: String!
     discussions: [Discussion]
+    latitude: Float
+    longitude: Float
+    city: String
+    street: String
   }
 
   type Link {
@@ -120,6 +128,10 @@ const typeDefs = `
   input CreateMemoInput {
     content: String!
     image: String
+    latitude: Float
+    longitude: Float
+    city: String
+    street: String
   }
 
   input UpdateMemoInput {
@@ -131,6 +143,10 @@ const typeDefs = `
     title: String!
     content: String!
     discussions: [DiscussionInput]
+    latitude: Float
+    longitude: Float
+    city: String
+    street: String
   }
 
   input UpdateBlogPostInput {
@@ -261,7 +277,11 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           id: Date.now().toString(),
           content: input.content,
           timestamp: new Date().toISOString(),
-          ...(input.image && { image: input.image })
+          ...(input.image && { image: input.image }),
+          ...(input.latitude && { latitude: input.latitude }),
+          ...(input.longitude && { longitude: input.longitude }),
+          ...(input.city && { city: input.city }),
+          ...(input.street && { street: input.street })
         }
 
         const client = createSmartClient(context.token?.accessToken)
@@ -383,7 +403,13 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
       }
 
       try {
-        await createBlogPost(input.title, input.content, context.token.accessToken, input.discussions)
+        const location = {
+          latitude: input.latitude,
+          longitude: input.longitude,
+          city: input.city,
+          street: input.street
+        }
+        await createBlogPost(input.title, input.content, context.token.accessToken, input.discussions, location)
         // Return the created blog post
         const client = createSmartClient(context.token.accessToken)
         const posts = await client.getBlogPosts()

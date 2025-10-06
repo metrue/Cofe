@@ -162,6 +162,7 @@ export const PostContainer = ({ post, discussionsComponent }: { post: BlogPost, 
       slug={post.id}
       headerContent={status === 'authenticated' ? headerContent : null}
       discussionsComponent={discussionsComponent}
+      location={post.city ? { city: post.city, street: post.street } : undefined}
     />
   )
 }

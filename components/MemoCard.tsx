@@ -37,8 +37,14 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
     >
       <div className='text-gray-800 mb-2 prose max-w-none'>
         <div className='flex items-center justify-between mb-3'>
-          <small className='text-gray-500 text-xs'>
+          <small className='text-gray-500 text-xs flex items-center gap-2'>
             {getRelativeTimeString(memo.timestamp)}
+            {memo.city && (
+              <span className='flex items-center gap-1'>
+                <span>•</span>
+                <span>📍 {memo.city}{memo.street ? ` · ${memo.street}` : ''}</span>
+              </span>
+            )}
           </small>
           <div className='flex items-center gap-2 flex-shrink-0'>
             <LikeButton type="memo" id={memo.id} className="text-xs scale-90" />

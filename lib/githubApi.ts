@@ -160,7 +160,8 @@ export async function createBlogPost(
   title: string,
   content: string,
   accessToken: string,
-  discussions: ExternalDiscussion[] = []
+  discussions: ExternalDiscussion[] = [],
+  location?: { latitude?: number; longitude?: number; city?: string; street?: string }
 ): Promise<void> {
   const octokit = getOctokit(accessToken)
   const { owner, repo } = await getRepoInfo(accessToken)
@@ -171,10 +172,15 @@ export async function createBlogPost(
   const path = `data/blog/${filename}`
   const date = new Date().toISOString() // Store full ISO string
   const discussionsYaml = formatDiscussions(discussions)
+  const locationYaml = location ? `latitude: ${location.latitude || ''}
+longitude: ${location.longitude || ''}
+city: ${location.city || ''}
+street: ${location.street || ''}
+` : ''
   const fullContent = `---
 title: ${title}
 date: ${date}
-${discussionsYaml}---
+${locationYaml}${discussionsYaml}---
 
 ${content}`
 
@@ -194,7 +200,8 @@ ${content}`
 export async function createMemo(
   content: string,
   image: string | undefined,
-  accessToken: string
+  accessToken: string,
+  location?: { latitude?: number; longitude?: number; city?: string; street?: string }
 ): Promise<void> {
   console.log('Creating memo...')
   if (!accessToken) {
@@ -243,6 +250,10 @@ export async function createMemo(
       content,
       timestamp: new Date().toISOString(),
       image,
+      ...(location?.latitude && { latitude: location.latitude }),
+      ...(location?.longitude && { longitude: location.longitude }),
+      ...(location?.city && { city: location.city }),
+      ...(location?.street && { street: location.street })
     }
 
     // Add new memo to the beginning of the array
