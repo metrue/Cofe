@@ -40,10 +40,7 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
           <small className='text-gray-500 text-xs flex items-center gap-2'>
             {getRelativeTimeString(memo.timestamp)}
             {memo.city && (
-              <span className='flex items-center gap-1'>
-                <span>•</span>
-                <span>📍 {memo.city}{memo.street ? ` · ${memo.street}` : ''}</span>
-              </span>
+              <span>@ {memo.city}{memo.street ? ` · ${memo.street}` : ''}</span>
             )}
           </small>
           <div className='flex items-center gap-2 flex-shrink-0'>
