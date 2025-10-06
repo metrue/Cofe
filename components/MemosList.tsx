@@ -78,11 +78,6 @@ export default function PublicMemosList({
 
   return (
     <div className="space-y-4">
-      <div className="mb-8">
-        <h2 className='text-2xl font-semibold mb-2'>Recent Memos</h2>
-        <p className='text-gray-600'>Quick thoughts and moments</p>
-      </div>
-      
       <div className="columns-1 md:columns-2 gap-4 space-y-4">
         {formattedMemos.map((memo) => (
           <div key={memo.id} className="break-inside-avoid mb-4">
