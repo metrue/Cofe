@@ -12,6 +12,8 @@ external_discussions:
 
 Cofe is a beautifully simple blog and memo app that stores everything in your GitHub repository. No databases, no complex setups - just write and publish.
 
+> **Live Example**: See Cofe in action at [blog.minghe.me](https://blog.minghe.me) - a real blog powered by Cofe.
+
 ## Quick Start
 
 ### 1. GitHub OAuth Setup
