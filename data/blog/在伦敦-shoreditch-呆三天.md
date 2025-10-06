@@ -1,11 +1,11 @@
 ---
 title: 在伦敦 Shoreditch 呆三天
 date: 2025-10-06T09:28:06.524Z
-latitude: 37.79399565538643
-longitude: -122.39500390434104
-city: San Francisco
-street: Market Street
+external_discussions:
+  - platform: v2ex
+    url: https://v2ex.com/t/1163528
 ---
+
 
 > 最近一年多冲冲撞撞的来去一些地方，突然某些时刻觉得，原来自己也拥有了某种程度的自由，移动意义上的自由.
 
