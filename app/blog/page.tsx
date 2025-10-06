@@ -1,14 +1,11 @@
 import BlogList from "@/components/BlogList";
-import { authOptions } from "@/lib/auth";
 import { createSmartClient } from '@/lib/smartClient'
-import { getServerSession } from "next-auth/next";
 
 export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 60;
 
 export default async function BlogPage() {
-  const session = await getServerSession(authOptions);
-
-  const client = createSmartClient(session?.accessToken);
+  // No authentication needed for viewing blog posts
+  const client = createSmartClient();
 
   try {
     const posts = await client.getBlogPosts();
