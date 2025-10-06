@@ -29,27 +29,23 @@ interface BlogPostContentProps {
 export function BlogPostContent({ title, date, content, slug, headerContent, discussionsComponent, location }: BlogPostContentProps) {
   return (
     <div className='max-w-3xl mx-auto px-4 py-8'>
-      <header className='mb-8'>
-        <div className='flex justify-between items-start mb-6'>
-          <div className='flex-1'>
-            <h1 className='text-3xl font-bold leading-tight mb-3 text-gray-900'>{title}</h1>
-            <div className='text-sm text-gray-600 flex items-center gap-3'>
-              <time dateTime={date}>
-                {format(new Date(date), 'MMM d, yyyy')}
-              </time>
-              {location?.city && (
-                <span className='flex items-center gap-1'>🖊 {location.city}{location.street ? ` · ${location.street}` : ''}</span>
-              )}
-            </div>
-          </div>
-          {headerContent && (
-            <div className='ml-4'>
-              {headerContent}
-            </div>
-          )}
+      {headerContent && (
+        <div className='flex justify-end mb-6'>
+          {headerContent}
         </div>
-      </header>
+      )}
       <main className='bg-white rounded-lg border border-gray-200 p-8'>
+        <header className='mb-8'>
+          <h1 className='text-3xl font-bold leading-tight mb-3 text-gray-900'>{title}</h1>
+          <div className='text-sm text-gray-600 flex items-center gap-3'>
+            <time dateTime={date}>
+              {format(new Date(date), 'MMM d, yyyy')}
+            </time>
+            {location?.city && (
+              <span className='flex items-center gap-1'>🖊 {location.city}{location.street ? ` · ${location.street}` : ''}</span>
+            )}
+          </div>
+        </header>
         <div className='prose prose-lg max-w-none text-gray-900 leading-relaxed'>
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
