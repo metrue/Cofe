@@ -6,7 +6,6 @@ Write thoughts. Share ideas. Let GitHub handle the rest.
 
 > **Live Example**: [blog.minghe.me](https://blog.minghe.me)
 
-![Cofe App Screenshot](https://github.com/metrue/cofe/blob/main/data/assets/images/Cofe-app.png?raw=true)
 
 ## What You Get
 
@@ -40,18 +39,14 @@ cd Cofe && npm install && npm run dev
 
 > **Living documentation** - Updated with every new feature!
 
-## Built With
+## Screenshots
 
-Next.js 14 • Tailwind CSS • GitHub API • Vercel
+### Desktop Experience
+![Home Desktop](https://github.com/metrue/cofe/blob/main/assets/images/home_desktop.png?raw=true)
 
-## Contributing
+![Memos Desktop](https://github.com/metrue/cofe/blob/main/assets/images/memos_desktop.png?raw=true)
 
-Found a bug? Have an idea? [Open an issue](https://github.com/metrue/Cofe/issues) or submit a PR!
+### Mobile & Editor
+![Post Mobile](https://github.com/metrue/cofe/blob/main/assets/images/post_mobile.png?raw=true)
 
-See our [development guidelines](./CLAUDE.md) for best practices.
-
----
-
-**Made with love by developers, for developers**
-
-*Fork it. Star it. Make it yours.*
+![Memo Editor](https://github.com/metrue/cofe/blob/main/assets/images/memo_editor.png?raw=true)
