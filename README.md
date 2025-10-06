@@ -42,6 +42,4 @@ cd Cofe && npm install && npm run dev
 
 ![Memos Desktop](https://github.com/metrue/cofe/blob/main/assets/images/memos_desktop.png?raw=true)
 
-![Post Mobile](https://github.com/metrue/cofe/blob/main/assets/images/post_mobile.png?raw=true)
-
 ![Memo Editor](https://github.com/metrue/cofe/blob/main/assets/images/memo_editor.png?raw=true)
