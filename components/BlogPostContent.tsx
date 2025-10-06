@@ -20,18 +20,30 @@ interface BlogPostContentProps {
   slug: string
   headerContent?: React.ReactNode
   discussionsComponent?: React.ReactNode
+  location?: {
+    city?: string
+    street?: string
+  }
 }
 
-export function BlogPostContent({ title, date, content, slug, headerContent, discussionsComponent }: BlogPostContentProps) {
+export function BlogPostContent({ title, date, content, slug, headerContent, discussionsComponent, location }: BlogPostContentProps) {
   return (
     <div className='max-w-lg sm:max-w-xl lg:max-w-2xl mx-auto mt-8 mb-12 px-6 sm:px-8 lg:px-12'>
       <header className='pb-8 lg:pb-12'>
         <div className='flex justify-between items-start'>
           <div>
             <h1 className='text-2xl lg:text-3xl font-normal leading-tight mb-2'>{title}</h1>
-            <time className='text-xs lg:text-sm text-gray-500 font-mono' data-status-datetime=''>
-              {format(new Date(date), 'MMM d, yyyy')}
-            </time>
+            <div className='text-xs lg:text-sm text-gray-500 font-mono flex items-center gap-2'>
+              <time data-status-datetime=''>
+                {format(new Date(date), 'MMM d, yyyy')}
+              </time>
+              {location?.city && (
+                <span className='flex items-center gap-1'>
+                  <span>•</span>
+                  <span>📍 {location.city}{location.street ? ` · ${location.street}` : ''}</span>
+                </span>
+              )}
+            </div>
           </div>
           {headerContent}
         </div>
