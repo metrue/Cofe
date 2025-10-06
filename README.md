@@ -2,9 +2,7 @@
 
 A beautifully simple blog and memo app that just works.
 
-Write thoughts. Share ideas. Let GitHub handle the rest.
-
-> **Live Example**: [blog.minghe.me](https://blog.minghe.me)
+Write thoughts. Share ideas. Let GitHub handle the rest. Originally inspired by [tinymind](https://github.com/mazzzystar/tinymind), now see it in action at [blog.minghe.me](https://blog.minghe.me).
 
 
 ## What You Get
@@ -37,16 +35,13 @@ cd Cofe && npm install && npm run dev
 - Migration from other platforms
 - Troubleshooting & best practices
 
-> **Living documentation** - Updated with every new feature!
 
 ## Screenshots
 
-### Desktop Experience
 ![Home Desktop](https://github.com/metrue/cofe/blob/main/assets/images/home_desktop.png?raw=true)
 
 ![Memos Desktop](https://github.com/metrue/cofe/blob/main/assets/images/memos_desktop.png?raw=true)
 
-### Mobile & Editor
 ![Post Mobile](https://github.com/metrue/cofe/blob/main/assets/images/post_mobile.png?raw=true)
 
 ![Memo Editor](https://github.com/metrue/cofe/blob/main/assets/images/memo_editor.png?raw=true)
