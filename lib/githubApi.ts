@@ -462,7 +462,8 @@ export async function updateBlogPost(
   title: string,
   content: string,
   accessToken: string,
-  discussions: ExternalDiscussion[] = []
+  discussions: ExternalDiscussion[] = [],
+  location?: { latitude?: number; longitude?: number; city?: string; street?: string }
 ): Promise<void> {
   console.log('Updating blog post...')
   if (!accessToken) {
@@ -483,11 +484,16 @@ export async function updateBlogPost(
     const dateMatch = existingContent.match(/date:\s*(.+)/)
     const date = dateMatch ? dateMatch[1] : new Date().toISOString()
     const discussionsYaml = formatDiscussions(discussions)
+    const locationYaml = location ? `latitude: ${location.latitude || ''}
+longitude: ${location.longitude || ''}
+city: ${location.city || ''}
+street: ${location.street || ''}
+` : ''
 
     const updatedContent = `---
 title: ${title}
 date: ${date}
-${discussionsYaml}---
+${locationYaml}${discussionsYaml}---
 
 ${content}`
 

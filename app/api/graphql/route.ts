@@ -64,7 +64,7 @@ type MutationResolvers = {
   ) => Promise<BlogPost>
   updateBlogPost: (
     parent: unknown,
-    args: { id: string; input: { title: string; content: string; discussions?: ExternalDiscussion[] } },
+    args: { id: string; input: { title: string; content: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
     context: GraphQLContext
   ) => Promise<BlogPost>
   deleteBlogPost: (
@@ -153,6 +153,10 @@ const typeDefs = `
     title: String!
     content: String!
     discussions: [DiscussionInput]
+    latitude: Float
+    longitude: Float
+    city: String
+    street: String
   }
 
   input DiscussionInput {
@@ -430,7 +434,13 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
       }
 
       try {
-        await updateBlogPost(id, input.title, input.content, context.token.accessToken, input.discussions)
+        const location = {
+          latitude: input.latitude,
+          longitude: input.longitude,
+          city: input.city,
+          street: input.street
+        }
+        await updateBlogPost(id, input.title, input.content, context.token.accessToken, input.discussions, location)
         // Return the updated blog post
         const client = createSmartClient(context.token.accessToken)
         const post = await client.getBlogPost(`${id}.md`)
