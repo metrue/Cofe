@@ -1,140 +1,47 @@
-# ☕ Cofe
+# Cofe
 
-**A beautifully simple blog and memo app that just works.**
+A beautifully simple blog and memo app that just works.
 
-Cofe is designed with simplicity in mind - write your thoughts, share your ideas, and let the platform handle the rest. Originally inspired by [tinymind](https://github.com/mazzzystar/tinymind), but evolved into something uniquely elegant.
+Write thoughts. Share ideas. Let GitHub handle the rest. Originally inspired by [tinymind](https://github.com/mazzzystar/tinymind), now see it in action at [blog.minghe.me](https://blog.minghe.me).
 
-![Cofe App Screenshot](https://github.com/metrue/cofe/blob/main/data/assets/images/Cofe-app.png?raw=true)
 
-## ✨ Why Choose Cofe?
+## What You Get
 
-- **🎯 Zero Configuration** - Start writing immediately, no complex setup
-- **📱 Works Everywhere** - Responsive design that looks great on any device  
-- **⚡ Lightning Fast** - Optimized performance with smart caching
-- **🔒 Secure by Default** - GitHub OAuth integration for peace of mind
-- **💾 Your Data, Your Control** - Everything stored in your GitHub repository
+- **Rich Blog Posts** - Markdown, syntax highlighting, math, images
+- **Quick Memos** - Instant thoughts with location tagging  
+- **Discussion Integration** - Auto-connect HN, Reddit, V2EX comments
+- **GitHub Powered** - Your data, your control, always
+- **Works Everywhere** - Mobile-first, lightning fast
 
-## 🌟 Key Features
+## Get Started in 2 Minutes
 
-### 📝 **Effortless Writing**
-- Rich markdown support with live preview
-- Syntax highlighting for code blocks
-- Mathematical expressions with KaTeX
-- Image support with drag & drop
-
-### 💭 **Quick Memos**  
-- Capture thoughts instantly
-- Clean, distraction-free interface
-- Smart timestamps and organization
-- Like system for engagement
-
-### 🌐 **External Discussions**
-- Automatic integration with Hacker News, Reddit, and V2EX comments
-- No manual setup required - just add discussion links to your posts
-- Beautifully rendered comment threads
-
-### 📊 **Privacy-First Analytics** *(Optional)*
-- Configurable Umami analytics integration
-- Cookieless, GDPR-compliant tracking
-- Self-hosted or cloud options available
-- Completely optional - disabled by default
-
-### 🎨 **Beautiful Design**
-- Minimalist interface inspired by the best
-- Carefully crafted typography and spacing
-- Dark mode support (coming soon)
-- Mobile-first responsive design
-
-## 🚀 Quick Start
-
-Getting started with Cofe is incredibly simple:
-
-### 1. **Set up GitHub OAuth**
-Create a new OAuth App in your GitHub settings and get your credentials.
-
-### 2. **Clone and Run**
 ```bash
 git clone https://github.com/metrue/Cofe.git
-cd Cofe
-npm install
-
-# Set your environment variables
-export GITHUB_USERNAME='your-username'
-export GITHUB_ID='your-github-oauth-id'  
-export GITHUB_SECRET='your-github-oauth-secret'
-export NEXTAUTH_SECRET='your-nextauth-secret'
-
-# Start writing!
-npm run dev
+cd Cofe && npm install && npm run dev
 ```
 
-### 3. **Start Creating**
-- Visit `http://localhost:3000` 
-- Sign in with GitHub
-- Start writing your first post or memo
-- That's it! 🎉
-
-## 🛠️ Deployment
-
-Deploy to Vercel with one click:
+**That's it.** Visit `localhost:3000`, sign in with GitHub, start writing.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/metrue/Cofe)
 
-Or deploy anywhere that supports Next.js applications.
+## Documentation
 
-### Optional: Enable Analytics
+**[→ Complete Cofe Guide](/blog/cofe)** - Everything you need in one place:
 
-Cofe includes privacy-first analytics powered by [Umami](https://umami.is). It's completely optional and disabled by default.
+- Quick start & GitHub OAuth setup
+- Customization & analytics integration  
+- API reference & GraphQL queries
+- Deployment & performance tips
+- Migration from other platforms
+- Troubleshooting & best practices
 
-#### Quick Setup
-1. Sign up at [cloud.umami.is](https://cloud.umami.is) or [self-host Umami](https://umami.is/docs)
-2. Create a website and get your Website ID
-3. Add environment variables:
 
-```bash
-# Required to enable analytics
-NEXT_PUBLIC_ANALYTICS_ENABLED=true
-NEXT_PUBLIC_UMAMI_WEBSITE_ID=your-website-id
+## Screenshots
 
-# Optional: Custom Umami instance (defaults to cloud.umami.is)
-NEXT_PUBLIC_UMAMI_SCRIPT_URL=https://your-umami-instance.com/script.js
+![Home Desktop](https://github.com/metrue/cofe/blob/main/assets/images/home_desktop.png?raw=true)
 
-# Optional: Restrict tracking to specific domains
-NEXT_PUBLIC_UMAMI_DOMAINS=yourdomain.com,www.yourdomain.com
-```
+![Memos Desktop](https://github.com/metrue/cofe/blob/main/assets/images/memos_desktop.png?raw=true)
 
-**Why `NEXT_PUBLIC_` prefix?** In Next.js, environment variables are server-side only by default. The `NEXT_PUBLIC_` prefix tells Next.js to expose these variables to the browser, which is required for client-side analytics tracking.
+![Post Mobile](https://github.com/metrue/cofe/blob/main/assets/images/post_mobile.png?raw=true)
 
-## 🎯 Perfect For
-
-- **Personal Blogs** - Share your thoughts and expertise
-- **Developer Journals** - Document your coding journey  
-- **Project Notes** - Keep track of ideas and progress
-- **Knowledge Sharing** - Build your personal knowledge base
-
-## 🤝 Contributing
-
-Cofe is open source and contributions are welcome! Whether it's:
-- 🐛 Bug reports and fixes
-- ✨ New feature suggestions  
-- 📝 Documentation improvements
-- 🎨 UI/UX enhancements
-
-Check out our [development guidelines](./CLAUDE.md) for best practices.
-
-## 📋 Technical Details
-
-For developers who want to know more:
-- **Framework**: Next.js 14 with App Router
-- **Styling**: Tailwind CSS
-- **Authentication**: NextAuth.js with GitHub OAuth
-- **Data Storage**: GitHub repository (JSON files)
-- **Deployment**: Vercel-ready, works anywhere
-
-*API documentation available in [docs/API.md](./docs/API.md) for advanced integrations.*
-
----
-
-**Made with ☕ and lots of ❤️**
-
-*Fork it, star it, make it yours.*
+![Memo Editor](https://github.com/metrue/cofe/blob/main/assets/images/memo_editor.png?raw=true)
