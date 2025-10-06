@@ -29,6 +29,7 @@ import { useDropzone } from "react-dropzone";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslations } from "next-intl";
+import { useGeolocation } from "@/hooks/useGeolocation";
 
 function removeFrontmatter(content: string): string {
   const frontmatterRegex = /^---\n([\s\S]*?)\n---\n/;
@@ -57,6 +58,7 @@ export default function Editor({
   const { toast } = useToast();
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
   const [discussions, setDiscussions] = useState<ExternalDiscussion[]>([]);
+  const { location } = useGeolocation();
 
   const fetchMemo = useCallback(
     async (id: string) => {
@@ -192,6 +194,12 @@ export default function Editor({
               title,
               content,
               discussions,
+              ...(location && {
+                latitude: location.latitude,
+                longitude: location.longitude,
+                city: location.city,
+                street: location.street
+              })
             },
           };
         }
@@ -227,6 +235,12 @@ export default function Editor({
           variables = {
             input: {
               content,
+              ...(location && {
+                latitude: location.latitude,
+                longitude: location.longitude,
+                city: location.city,
+                street: location.street
+              })
             },
           };
         }

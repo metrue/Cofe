@@ -10,6 +10,10 @@ export interface BlogPost {
     imageUrl: string | null
     date: string
     discussions?: ExternalDiscussion[]
+    latitude?: number
+    longitude?: number
+    city?: string
+    street?: string
   }
   
   export type Memo = {
@@ -17,6 +21,10 @@ export interface BlogPost {
     content: string
     timestamp: string
     image?: string
+    latitude?: number
+    longitude?: number
+    city?: string
+    street?: string
   }
 
   export type Link = {

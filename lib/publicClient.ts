@@ -85,7 +85,11 @@ export class PublicGitHubClient {
         content,
         imageUrl: getFirstImageURLFrom(content),
         date: metadata.date ? new Date(metadata.date.trim()).toISOString() : new Date().toISOString(),
-        discussions: metadata.discussions.length > 0 ? metadata.discussions : undefined
+        discussions: metadata.discussions.length > 0 ? metadata.discussions : undefined,
+        latitude: metadata.latitude,
+        longitude: metadata.longitude,
+        city: metadata.city,
+        street: metadata.street
       }
     } catch (error) {
       console.error(`Error fetching blog post ${filename}:`, error)

@@ -4,6 +4,10 @@ export interface BlogPostMetadata {
   title: string
   date: string
   discussions: ExternalDiscussion[]
+  latitude?: number
+  longitude?: number
+  city?: string
+  street?: string
 }
 
 /**
@@ -70,11 +74,19 @@ export function parseBlogPostMetadata(content: string): BlogPostMetadata {
   
   const titleMatch = frontmatter.match(/title:\s*(.+)/)
   const dateMatch = frontmatter.match(/date:\s*(.+)/)
+  const latitudeMatch = frontmatter.match(/latitude:\s*(.+)/)
+  const longitudeMatch = frontmatter.match(/longitude:\s*(.+)/)
+  const cityMatch = frontmatter.match(/city:\s*(.+)/)
+  const streetMatch = frontmatter.match(/street:\s*(.+)/)
   
   return {
     title: titleMatch ? titleMatch[1].trim() : '',
     date: dateMatch ? dateMatch[1].trim() : new Date().toISOString(),
-    discussions: parseExternalDiscussions(frontmatter)
+    discussions: parseExternalDiscussions(frontmatter),
+    ...(latitudeMatch && { latitude: parseFloat(latitudeMatch[1].trim()) }),
+    ...(longitudeMatch && { longitude: parseFloat(longitudeMatch[1].trim()) }),
+    ...(cityMatch && { city: cityMatch[1].trim() }),
+    ...(streetMatch && { street: streetMatch[1].trim() })
   }
 }
 
