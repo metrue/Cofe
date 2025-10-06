@@ -1,10 +1,15 @@
 ---
 title: 在伦敦 Shoreditch 呆三天
 date: 2025-10-06T09:28:06.524Z
+latitude: 37.793858561729316
+longitude: -122.39492676950107
+city: San Francisco
+street: Market Street
 external_discussions:
   - platform: v2ex
     url: https://v2ex.com/t/1163528
 ---
+
 
 
 
