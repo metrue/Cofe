@@ -99,15 +99,16 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
                 return isImageOnly ? <>{children}</> : <p>{children}</p>
               },
               img: ({ children, ...props }) => (
-                <div className='my-6 flex justify-center'>
-                  <div className='max-w-2xl w-full'>
+                <div className='my-8 flex justify-center'>
+                  <div className='w-full'>
                     <Image
                       src={props.src || ''}
                       alt={props.alt || 'image'}
-                      width={600}
-                      height={400}
-                      className='h-auto w-full object-cover rounded-lg shadow-sm'
-                      style={{ maxHeight: '400px' }}
+                      width={1200}
+                      height={800}
+                      className='h-auto w-full object-contain rounded-lg shadow-md'
+                      quality={100}
+                      priority
                     />
                     {children && <div className='text-center mt-3 text-sm text-gray-500 italic'>{children}</div>}
                   </div>
