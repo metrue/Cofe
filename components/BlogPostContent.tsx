@@ -46,7 +46,7 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
             )}
           </div>
         </header>
-        <div className='prose prose-lg max-w-none text-gray-900 leading-relaxed'>
+        <div className='prose prose-lg max-w-none text-gray-900 leading-relaxed prose-p:my-3 prose-img:my-0'>
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
             rehypePlugins={[rehypeKatex]}
@@ -99,7 +99,7 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
                 return isImageOnly ? <>{children}</> : <p>{children}</p>
               },
               img: ({ children, ...props }) => (
-                <div className='my-8 flex justify-center'>
+                <div className='flex justify-center'>
                   <div className='w-full'>
                     <Image
                       src={props.src || ''}
@@ -110,7 +110,7 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
                       quality={100}
                       priority
                     />
-                    {children && <div className='text-center mt-3 text-sm text-gray-500 italic'>{children}</div>}
+                    {children && <div className='text-center mt-2 text-sm text-gray-500 italic'>{children}</div>}
                   </div>
                 </div>
               ),
