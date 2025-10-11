@@ -11,6 +11,7 @@ import { CgImage } from "react-icons/cg";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter";
@@ -62,6 +63,7 @@ export default function Editor({
     street?: string;
   } | null>(null);
   const [isLocationAttached, setIsLocationAttached] = useState(false);
+  const [isPublished, setIsPublished] = useState(true);
 
   const fetchMemo = useCallback(
     async (id: string) => {
@@ -95,6 +97,7 @@ export default function Editor({
                   id
                   title
                   content
+                  status
                   latitude
                   longitude
                   city
@@ -123,6 +126,7 @@ export default function Editor({
           setContent(removeFrontmatter(blogPost.content));
           setDiscussions(blogPost.discussions || []);
           setEditingMemoId(id);
+          setIsPublished(blogPost.status === 'published');
           
           // Set existing location if available
           if (blogPost.latitude || blogPost.city) {
@@ -168,6 +172,7 @@ export default function Editor({
     }
   };
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -178,13 +183,14 @@ export default function Editor({
 
       if (type === "blog") {
         if (editingMemoId) {
-          // Update blog post
+          // Update existing blog post
           query = `
             mutation UpdateBlogPost($id: String!, $input: UpdateBlogPostInput!) {
               updateBlogPost(id: $id, input: $input) {
                 id
                 title
                 content
+                status
               }
             }
           `;
@@ -193,6 +199,7 @@ export default function Editor({
             input: {
               title,
               content,
+              status: isPublished ? 'published' : 'draft',
               discussions,
               ...(isLocationAttached && postLocation && {
                 latitude: postLocation.latitude,
@@ -203,13 +210,14 @@ export default function Editor({
             },
           };
         } else {
-          // Create blog post
+          // Create new blog post
           query = `
             mutation CreateBlogPost($input: CreateBlogPostInput!) {
               createBlogPost(input: $input) {
                 id
                 title
                 content
+                status
               }
             }
           `;
@@ -217,6 +225,7 @@ export default function Editor({
             input: {
               title,
               content,
+              status: isPublished ? 'published' : 'draft',
               discussions,
               ...(isLocationAttached && postLocation && {
                 latitude: postLocation.latitude,
@@ -295,7 +304,7 @@ export default function Editor({
         title: t("success"),
         description: editingMemoId
           ? `${type === "blog" ? t("blogPostUpdated") : t("memoUpdated")}`
-          : `${type === "blog" ? t("blogPostCreated") : t("memoCreated")}`,
+          : `${type === "blog" ? (isPublished ? t("blogPostCreated") : "Draft saved") : t("memoCreated")}`,
         duration: 3000,
       });
       setTimeout(() => {
@@ -512,9 +521,11 @@ export default function Editor({
           {type === "blog" && (
             <div className="space-y-4 bg-white rounded-lg border border-gray-200 p-6">
               <div>
-                <Label htmlFor="title" className="text-sm font-medium text-gray-700 mb-2">
-                  Title
-                </Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="title" className="text-sm font-medium text-gray-700">
+                    Title
+                  </Label>
+                </div>
                 <Input
                   id="title"
                   type="text"
@@ -800,7 +811,7 @@ export default function Editor({
                 </span>
               )}
             </div>
-            <div className="flex gap-3">
+            <div className="flex items-center gap-4">
               <Button
                 type="button"
                 variant="outline"
@@ -810,6 +821,24 @@ export default function Editor({
               >
                 Cancel
               </Button>
+              
+              {type === "blog" && (
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="publish-toggle" className="text-sm text-gray-600">
+                    Draft
+                  </Label>
+                  <Switch
+                    id="publish-toggle"
+                    checked={isPublished}
+                    onCheckedChange={setIsPublished}
+                    disabled={isLoading || isImageUploading}
+                  />
+                  <Label htmlFor="publish-toggle" className="text-sm text-gray-600">
+                    Published
+                  </Label>
+                </div>
+              )}
+              
               <Button
                 type="submit"
                 disabled={isLoading || isImageUploading || (!content || (type === "blog" && !title))}
@@ -818,11 +847,11 @@ export default function Editor({
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t("publishing")}
+                    {t("saving")}
                   </>
                 ) : (
                   <>
-                    {editingMemoId ? "Update" : "Publish"}
+                    {editingMemoId ? "Update" : "Save"}
                     {type === "blog" ? " Post" : " Memo"}
                   </>
                 )}

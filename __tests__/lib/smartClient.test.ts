@@ -64,7 +64,9 @@ describe('SmartClient', () => {
         title: 'Test Post', 
         content: 'Test content', 
         date: '2025-01-01T00:00:00Z', 
-        imageUrl: null 
+        imageUrl: null,
+        status: 'published',
+        lastModified: '2025-01-01T00:00:00Z'
       }]
       mockLocalClient.getBlogPosts.mockResolvedValue(mockPosts)
 

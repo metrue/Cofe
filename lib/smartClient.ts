@@ -11,6 +11,8 @@ interface DataClient {
   getLikes: () => Promise<LikesDatabase>
   createMemo?: (memo: Memo) => Promise<Memo>
   updateLikes?: (likesData: LikesDatabase) => Promise<void>
+  getDrafts?: () => Promise<BlogPost[]>
+  getAllBlogPosts?: () => Promise<BlogPost[]>
 }
 
 /**
@@ -182,6 +184,33 @@ export class SmartClient {
         return
       }
       return await client.updateLikes(likesData)
+    }
+  }
+
+  async getDrafts(): Promise<BlogPost[]> {
+    if (!this.accessToken) {
+      return []
+    }
+    
+    const allPosts = await this.getAllBlogPosts()
+    return allPosts.filter(post => post.status === 'draft')
+  }
+
+  async getAllBlogPosts(): Promise<BlogPost[]> {
+    if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
+      const client = await this.getLocalClient()
+      if (client?.getAllBlogPosts) {
+        return await client.getAllBlogPosts()
+      } else {
+        return await client?.getBlogPosts() || []
+      }
+    } else {
+      const client = this.getGitHubClient()
+      if (client.getAllBlogPosts) {
+        return await client.getAllBlogPosts()
+      } else {
+        return await client.getBlogPosts()
+      }
     }
   }
 }

@@ -75,7 +75,10 @@ export class LocalFileSystemClient {
         latitude: metadata.latitude,
         longitude: metadata.longitude,
         city: metadata.city,
-        street: metadata.street
+        street: metadata.street,
+        status: metadata.status || 'published',
+        publishedAt: metadata.publishedAt || metadata.date,
+        lastModified: metadata.lastModified || metadata.date || new Date().toISOString()
       }
     } catch (error) {
       console.error(`Error reading blog post ${filename}:`, error)
