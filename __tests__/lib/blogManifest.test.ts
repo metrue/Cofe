@@ -48,7 +48,7 @@ describe('BlogManifestManager', () => {
 
       const result = await manager.getManifest()
 
-      expect(result.manifest).toEqual(existingManifest)
+      expect(result.manifest).toEqual({ published: ['post1.md', 'post2.md'], drafts: [] })
       expect(result.sha).toBe('manifest-sha')
       expect(mockOctokit.repos.getContent).toHaveBeenCalledWith({
         owner: mockOwner,
@@ -65,7 +65,7 @@ describe('BlogManifestManager', () => {
 
       const result = await manager.getManifest()
 
-      expect(result.manifest).toEqual({ files: [] })
+      expect(result.manifest).toEqual({ published: [], drafts: [] })
       expect(result.sha).toBeUndefined()
     })
 
@@ -83,7 +83,7 @@ describe('BlogManifestManager', () => {
     it('should save manifest without SHA for new file', async () => {
       const manifest = { files: ['new-post.md'] }
 
-      await manager.saveManifest(manifest)
+      await manager.saveManifest(manifest as any)
 
       expect(mockOctokit.repos.createOrUpdateFileContents).toHaveBeenCalledWith({
         owner: mockOwner,
@@ -98,7 +98,7 @@ describe('BlogManifestManager', () => {
       const manifest = { files: ['updated-post.md'] }
       const sha = 'existing-sha'
 
-      await manager.saveManifest(manifest, sha)
+      await manager.saveManifest(manifest as any, sha)
 
       expect(mockOctokit.repos.createOrUpdateFileContents).toHaveBeenCalledWith({
         owner: mockOwner,
@@ -124,7 +124,7 @@ describe('BlogManifestManager', () => {
 
       await manager.addPost('new-post.md')
 
-      const expectedManifest = { files: ['new-post.md', 'old-post.md'] }
+      const expectedManifest = { published: ['new-post.md', 'old-post.md'], drafts: [] }
       expect(mockOctokit.repos.createOrUpdateFileContents).toHaveBeenCalledWith(
         expect.objectContaining({
           content: Buffer.from(JSON.stringify(expectedManifest, null, 2)).toString('base64'),
@@ -170,7 +170,7 @@ describe('BlogManifestManager', () => {
 
       await manager.removePost('post-to-remove.md')
 
-      const expectedManifest = { files: ['post-to-keep.md'] }
+      const expectedManifest = { published: ['post-to-keep.md'], drafts: [] }
       expect(mockOctokit.repos.createOrUpdateFileContents).toHaveBeenCalledWith(
         expect.objectContaining({
           content: Buffer.from(JSON.stringify(expectedManifest, null, 2)).toString('base64'),
@@ -214,7 +214,7 @@ describe('BlogManifestManager', () => {
 
       expect(mockOctokit.repos.createOrUpdateFileContents).toHaveBeenCalledWith(
         expect.objectContaining({
-          content: Buffer.from(JSON.stringify({ files: [] }, null, 2)).toString('base64'),
+          content: Buffer.from(JSON.stringify({ published: [], drafts: [] }, null, 2)).toString('base64'),
         })
       )
     })

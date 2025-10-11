@@ -94,7 +94,10 @@ class GitHubAPIClient {
         latitude: metadata.latitude,
         longitude: metadata.longitude,
         city: metadata.city,
-        street: metadata.street
+        street: metadata.street,
+        status: metadata.status || 'published', // Default to published for existing posts
+        publishedAt: metadata.publishedAt || metadata.date,
+        lastModified: metadata.lastModified || metadata.date || new Date().toISOString()
       }
     }
   }
