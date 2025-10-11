@@ -8,7 +8,6 @@ import type { ExternalDiscussion } from "discussing";
 
 import { Button } from "@/components/ui/button";
 import { CgImage } from "react-icons/cg";
-import { GrInfo } from "react-icons/gr";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
@@ -16,7 +15,6 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { Textarea } from "@/components/ui/textarea";
-import { Tooltip } from "react-tooltip";
 import { createGitHubAPIClient } from "@/lib/client"
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
@@ -478,28 +476,14 @@ export default function Editor({
         </div>
       )}
       
-      {/* Header with type selector */}
+      {/* Header - Clean and minimal */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold">
-            {type === "blog" ? "New Blog Post" : "New Memo"}
-          </h1>
+        <div className="flex justify-end">
           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
             <button
               type="button"
-              onClick={() => handleTypeChange("blog")}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                type === "blog" 
-                  ? "bg-white text-black shadow-sm" 
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              Blog Post
-            </button>
-            <button
-              type="button"
               onClick={() => handleTypeChange("memo")}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                 type === "memo" 
                   ? "bg-white text-black shadow-sm" 
                   : "text-gray-600 hover:text-gray-900"
@@ -507,19 +491,19 @@ export default function Editor({
             >
               Memo
             </button>
+            <button
+              type="button"
+              onClick={() => handleTypeChange("blog")}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                type === "blog" 
+                  ? "bg-white text-black shadow-sm" 
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Blog
+            </button>
           </div>
         </div>
-        <p className="text-sm text-gray-500 flex items-center gap-1">
-          <span className="inline-block w-2 h-2 bg-green-400 rounded-full"></span>
-          {t("publicContentWarning")}
-          <GrInfo
-            className="cursor-pointer text-gray-400 hover:text-gray-600"
-            data-tooltip-id="public-content-tooltip"
-          />
-          <Tooltip id="public-content-tooltip" place="top">
-            {t("publicContentTooltip")}
-          </Tooltip>
-        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
