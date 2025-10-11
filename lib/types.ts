@@ -14,6 +14,9 @@ export interface BlogPost {
     longitude?: number
     city?: string
     street?: string
+    status: 'draft' | 'published'
+    publishedAt?: string
+    lastModified: string
   }
   
   export type Memo = {
