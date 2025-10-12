@@ -59,12 +59,12 @@ type MutationResolvers = {
   ) => Promise<LikeResult>
   createBlogPost: (
     parent: unknown,
-    args: { input: { title: string; content: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
+    args: { input: { title: string; content: string; status?: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
     context: GraphQLContext
   ) => Promise<BlogPost>
   updateBlogPost: (
     parent: unknown,
-    args: { id: string; input: { title: string; content: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
+    args: { id: string; input: { title: string; content: string; status?: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
     context: GraphQLContext
   ) => Promise<BlogPost>
   deleteBlogPost: (
@@ -74,12 +74,12 @@ type MutationResolvers = {
   ) => Promise<boolean>
   saveDraft: (
     parent: unknown,
-    args: { input: { title: string; content: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
+    args: { input: { title: string; content: string; status?: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
     context: GraphQLContext
   ) => Promise<BlogPost>
   updateDraft: (
     parent: unknown,
-    args: { id: string; input: { title: string; content: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
+    args: { id: string; input: { title: string; content: string; status?: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
     context: GraphQLContext
   ) => Promise<BlogPost>
   publishDraft: (
@@ -165,6 +165,7 @@ const typeDefs = `
   input CreateBlogPostInput {
     title: String!
     content: String!
+    status: String
     discussions: [DiscussionInput]
     latitude: Float
     longitude: Float
@@ -175,6 +176,7 @@ const typeDefs = `
   input UpdateBlogPostInput {
     title: String!
     content: String!
+    status: String
     discussions: [DiscussionInput]
     latitude: Float
     longitude: Float
@@ -440,7 +442,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           city: input.city,
           street: input.street
         }
-        await createBlogPost(input.title, input.content, context.token.accessToken, input.discussions, location)
+        await createBlogPost(input.title, input.content, context.token.accessToken, input.discussions, location, input.status)
         // Return the created blog post
         const client = createSmartClient(context.token.accessToken)
         const posts = await client.getBlogPosts()
@@ -467,7 +469,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           city: input.city,
           street: input.street
         }
-        await updateBlogPost(id, input.title, input.content, context.token.accessToken, input.discussions, location)
+        await updateBlogPost(id, input.title, input.content, context.token.accessToken, input.discussions, location, input.status)
         // Return the updated blog post
         const client = createSmartClient(context.token.accessToken)
         const post = await client.getBlogPost(`${id}.md`)

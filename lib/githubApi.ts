@@ -161,7 +161,8 @@ export async function createBlogPost(
   content: string,
   accessToken: string,
   discussions: ExternalDiscussion[] = [],
-  location?: { latitude?: number; longitude?: number; city?: string; street?: string }
+  location?: { latitude?: number; longitude?: number; city?: string; street?: string },
+  status: string = 'published'
 ): Promise<void> {
   const octokit = getOctokit(accessToken)
   const { owner, repo } = await getRepoInfo(accessToken)
@@ -177,10 +178,11 @@ longitude: ${location.longitude || ''}
 city: ${location.city || ''}
 street: ${location.street || ''}
 ` : ''
+  const statusYaml = status !== 'published' ? `status: ${status}\n` : ''
   const fullContent = `---
 title: ${title}
 date: ${date}
-${locationYaml}${discussionsYaml}---
+${statusYaml}${locationYaml}${discussionsYaml}---
 
 ${content}`
 
@@ -463,7 +465,8 @@ export async function updateBlogPost(
   content: string,
   accessToken: string,
   discussions: ExternalDiscussion[] = [],
-  location?: { latitude?: number; longitude?: number; city?: string; street?: string }
+  location?: { latitude?: number; longitude?: number; city?: string; street?: string },
+  status?: string
 ): Promise<void> {
   console.log('Updating blog post...')
   if (!accessToken) {
@@ -490,10 +493,16 @@ city: ${location.city || ''}
 street: ${location.street || ''}
 ` : ''
 
+    // Extract existing status if not provided
+    const statusMatch = existingContent.match(/status:\s*(.+)/)
+    const currentStatus = statusMatch ? statusMatch[1].trim() : 'published'
+    const finalStatus = status !== undefined ? status : currentStatus
+    const statusYaml = finalStatus !== 'published' ? `status: ${finalStatus}\n` : ''
+    
     const updatedContent = `---
 title: ${title}
 date: ${date}
-${locationYaml}${discussionsYaml}---
+${statusYaml}${locationYaml}${discussionsYaml}---
 
 ${content}`
 
