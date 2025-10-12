@@ -30,28 +30,34 @@ export class PublicGitHubClient {
 
   /**
    * Fetch blog posts using raw GitHub URLs (no API limits)
+   * Note: PublicClient cannot list directories, so this requires a manifest file
    */
-  async getBlogPosts(): Promise<BlogPost[]> {
+  async getBlogPosts(includeAuthenticatedDrafts = false): Promise<BlogPost[]> {
     try {
-      // First try to get a list of blog files from a manifest or directory listing
-      // Since we can't list directory contents via raw URLs, we'll try common approaches
-      
-      // Approach 1: Try to fetch a blog manifest file if it exists
+      // Try to fetch a blog manifest file if it exists
       try {
         const manifestResponse = await fetch(`${this.baseUrl}/data/blog-manifest.json`)
         if (manifestResponse.ok) {
           const manifest = await manifestResponse.json()
+          // Handle both legacy and new manifest formats
+          const files = manifest.files || [...(manifest.published || []), ...(manifest.drafts || [])]
           const posts = await Promise.all(
-            manifest.files.map((filename: string) => this.getBlogPost(filename))
+            files.map((filename: string) => this.getBlogPost(filename))
           )
-          return posts.filter((post): post is BlogPost => post !== null)
+          const validPosts = posts.filter((post): post is BlogPost => post !== null)
+          
+          // Filter based on authentication
+          if (includeAuthenticatedDrafts) {
+            return validPosts
+          } else {
+            return validPosts.filter(post => post.status === 'published')
+          }
         }
       } catch {
         // Manifest doesn't exist, continue to fallback
       }
 
       // If manifest doesn't exist, return empty array
-      // The manifest should be the single source of truth for blog posts
       console.warn('Blog manifest not found, returning empty array')
       return []
     } catch (error) {
@@ -166,6 +172,21 @@ export class PublicGitHubClient {
       console.error('Error fetching likes via raw URLs:', error)
       return {}
     }
+  }
+
+  /**
+   * Get all draft posts (requires authentication context)
+   */
+  async getDrafts(): Promise<BlogPost[]> {
+    const allPosts = await this.getBlogPosts(true)
+    return allPosts.filter(post => post.status === 'draft')
+  }
+
+  /**
+   * Get all blog posts (both published and drafts)
+   */
+  async getAllBlogPosts(): Promise<BlogPost[]> {
+    return this.getBlogPosts(true)
   }
 
   /**

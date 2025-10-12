@@ -166,8 +166,7 @@ describe('githubApi', () => {
         sha: 'file-sha',
       })
 
-      // Should have called createOrUpdateFileContents for manifest update
-      expect(mockOctokit.repos.createOrUpdateFileContents).toHaveBeenCalled()
+      // File deletion is complete - no manifest update needed
     })
 
     it('should handle URL-encoded blog post IDs', async () => {

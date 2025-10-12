@@ -2,10 +2,6 @@
 title: The Complete Cofe Guide
 date: 2025-10-06T10:30:00.000Z
 status: draft
-latitude: 
-longitude: 
-city: 
-street: 
 external_discussions:
   - platform: hackernews
     url: https://news.ycombinator.com/item?id=example

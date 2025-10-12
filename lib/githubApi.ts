@@ -12,7 +12,6 @@ import {
   createFileIfNotExists,
   type UpdateFileParams
 } from './githubUtils';
-import { BlogManifestManager } from './blogManifest';
 
 const REPO = 'Cofe';
 
@@ -134,26 +133,9 @@ async function ensureContentStructure(octokit: Octokit, owner: string, repo: str
   }
 }
 
-async function ensureBlogManifest(octokit: Octokit, owner: string, repo: string) {
-  try {
-    const manifestManager = createBlogManifestManager(octokit, owner, repo)
-    await manifestManager.ensureManifestExists()
-  } catch (error) {
-    console.error('Error ensuring blog manifest:', error)
-    // Don't fail the whole operation if manifest initialization fails
-  }
-}
-
 async function initializeGitHubStructure(octokit: Octokit, owner: string, repo: string) {
   await ensureRepoExists(octokit, owner, repo)
   await ensureContentStructure(octokit, owner, repo)
-}
-
-/**
- * Create a blog manifest manager instance
- */
-function createBlogManifestManager(octokit: Octokit, owner: string, repo: string): BlogManifestManager {
-  return new BlogManifestManager(octokit, owner, repo)
 }
 
 export async function createBlogPost(
@@ -167,7 +149,6 @@ export async function createBlogPost(
   const octokit = getOctokit(accessToken)
   const { owner, repo } = await getRepoInfo(accessToken)
   await initializeGitHubStructure(octokit, owner, repo)
-  await ensureBlogManifest(octokit, owner, repo)
 
   const filename = `${title.toLowerCase().replace(/\s+/g, '-')}.md`
   const path = `data/blog/${filename}`
@@ -193,10 +174,6 @@ ${content}`
     message: `Add blog post: ${title}`,
     content: Buffer.from(fullContent).toString('base64'),
   })
-
-  // Update blog manifest
-  const manifestManager = createBlogManifestManager(octokit, owner, repo)
-  await manifestManager.addPost(filename)
 }
 
 export async function createMemo(
@@ -417,7 +394,6 @@ export async function deleteBlogPost(id: string, accessToken: string): Promise<v
 
   try {
     const { owner, repo } = await getRepoInfo(accessToken)
-    await ensureBlogManifest(octokit, owner, repo)
 
     // Decode the ID and create the file path
     const decodedId = decodeURIComponent(id)
@@ -445,10 +421,6 @@ export async function deleteBlogPost(id: string, accessToken: string): Promise<v
       message: 'Delete blog post',
       sha: currentFile.data.sha,
     })
-
-    // Update blog manifest
-    const manifestManager = createBlogManifestManager(octokit, owner, repo)
-    await manifestManager.removePost(filename)
 
     console.log('Blog post deleted successfully')
 

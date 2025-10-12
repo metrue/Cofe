@@ -3,17 +3,9 @@ import { createGitHubAPIClient } from './client'
 import type { BlogPost, Memo } from './types'
 import type { LikesDatabase } from './likeUtils'
 
-interface DataClient {
-  getBlogPosts: () => Promise<BlogPost[]>
-  getBlogPost?: (name: string) => Promise<BlogPost | undefined | null>
-  getMemos: () => Promise<Memo[]>
-  getLinks: () => Promise<Record<string, string>>
-  getLikes: () => Promise<LikesDatabase>
-  createMemo?: (memo: Memo) => Promise<Memo>
-  updateLikes?: (likesData: LikesDatabase) => Promise<void>
-  getDrafts?: () => Promise<BlogPost[]>
-  getAllBlogPosts?: () => Promise<BlogPost[]>
-}
+// Use any to allow flexible client interfaces with different signatures
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DataClient = any
 
 /**
  * Smart client that automatically chooses the right data source:
@@ -54,12 +46,20 @@ export class SmartClient {
   }
 
   async getBlogPosts(): Promise<BlogPost[]> {
+    const includeAuthenticatedDrafts = !!this.accessToken
+    
     if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
       const client = await this.getLocalClient()
-      return client ? await client.getBlogPosts() : []
+      return client ? await client.getBlogPosts(includeAuthenticatedDrafts) : []
     } else {
       const client = this.getGitHubClient()
-      return await client.getBlogPosts()
+      // Handle different signatures: GitHubAPIClient has (owner?, includeAuthenticatedDrafts)
+      // PublicGitHubClient has (includeAuthenticatedDrafts)
+      if (client.getBlogPosts.length > 1) {
+        return await client.getBlogPosts(undefined, includeAuthenticatedDrafts)
+      } else {
+        return await client.getBlogPosts(includeAuthenticatedDrafts)
+      }
     }
   }
 
@@ -192,8 +192,28 @@ export class SmartClient {
       return []
     }
     
-    const allPosts = await this.getAllBlogPosts()
-    return allPosts.filter(post => post.status === 'draft')
+    if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
+      const client = await this.getLocalClient()
+      if (client?.getDrafts) {
+        return await client.getDrafts()
+      } else {
+        const allPosts = await client?.getBlogPosts(true) || []
+        return allPosts.filter((post: BlogPost) => post.status === 'draft')
+      }
+    } else {
+      const client = this.getGitHubClient()
+      if (client.getDrafts) {
+        return await client.getDrafts()
+      } else {
+        let allPosts
+        if (client.getBlogPosts.length > 1) {
+          allPosts = await client.getBlogPosts(undefined, true)
+        } else {
+          allPosts = await client.getBlogPosts(true)
+        }
+        return allPosts.filter((post: BlogPost) => post.status === 'draft')
+      }
+    }
   }
 
   async getAllBlogPosts(): Promise<BlogPost[]> {
@@ -202,14 +222,18 @@ export class SmartClient {
       if (client?.getAllBlogPosts) {
         return await client.getAllBlogPosts()
       } else {
-        return await client?.getBlogPosts() || []
+        return await client?.getBlogPosts(true) || []
       }
     } else {
       const client = this.getGitHubClient()
       if (client.getAllBlogPosts) {
         return await client.getAllBlogPosts()
       } else {
-        return await client.getBlogPosts()
+        if (client.getBlogPosts.length > 1) {
+          return await client.getBlogPosts(undefined, true)
+        } else {
+          return await client.getBlogPosts(true)
+        }
       }
     }
   }

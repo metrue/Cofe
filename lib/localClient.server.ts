@@ -19,7 +19,7 @@ export class LocalFileSystemClient {
   /**
    * Get all blog posts from local data/blog directory
    */
-  async getBlogPosts(): Promise<BlogPost[]> {
+  async getBlogPosts(includeAuthenticatedDrafts = false): Promise<BlogPost[]> {
     try {
       if (!fs.existsSync(this.blogDir)) {
         console.log('Blog directory does not exist, returning empty array')
@@ -40,8 +40,14 @@ export class LocalFileSystemClient {
         }
       }
 
-      // Sort by date (newest first)
-      return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      const validPosts = posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      
+      // Filter based on authentication
+      if (includeAuthenticatedDrafts) {
+        return validPosts
+      } else {
+        return validPosts.filter(post => post.status === 'published')
+      }
     } catch (error) {
       console.error('Error reading local blog posts:', error)
       return []
@@ -184,6 +190,21 @@ export class LocalFileSystemClient {
       console.error('Error creating local memo:', error)
       throw new Error('Failed to create memo locally')
     }
+  }
+
+  /**
+   * Get all draft posts
+   */
+  async getDrafts(): Promise<BlogPost[]> {
+    const allPosts = await this.getBlogPosts(true)
+    return allPosts.filter(post => post.status === 'draft')
+  }
+
+  /**
+   * Get all blog posts (both published and drafts)
+   */
+  async getAllBlogPosts(): Promise<BlogPost[]> {
+    return this.getBlogPosts(true)
   }
 
   /**
