@@ -11,7 +11,6 @@ import { CgImage } from "react-icons/cg";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter";
@@ -487,7 +486,39 @@ export default function Editor({
       
       {/* Header - Clean and minimal */}
       <div className="mb-8">
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center">
+          {/* Draft/Published toggle on the left */}
+          {type === "blog" && (
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                type="button"
+                onClick={() => setIsPublished(false)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  !isPublished 
+                    ? "bg-white text-black shadow-sm" 
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+                disabled={isLoading || isImageUploading}
+              >
+                Draft
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPublished(true)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  isPublished 
+                    ? "bg-white text-black shadow-sm" 
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+                disabled={isLoading || isImageUploading}
+              >
+                Published
+              </button>
+            </div>
+          )}
+          {type === "memo" && <div />} {/* Empty div to maintain justify-between spacing */}
+          
+          {/* Memo/Blog selector on the right */}
           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
             <button
               type="button"
@@ -821,23 +852,6 @@ export default function Editor({
               >
                 Cancel
               </Button>
-              
-              {type === "blog" && (
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="publish-toggle" className="text-sm text-gray-600">
-                    Draft
-                  </Label>
-                  <Switch
-                    id="publish-toggle"
-                    checked={isPublished}
-                    onCheckedChange={setIsPublished}
-                    disabled={isLoading || isImageUploading}
-                  />
-                  <Label htmlFor="publish-toggle" className="text-sm text-gray-600">
-                    Published
-                  </Label>
-                </div>
-              )}
               
               <Button
                 type="submit"
