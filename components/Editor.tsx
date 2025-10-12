@@ -181,60 +181,32 @@ export default function Editor({
       let variables: Record<string, unknown>;
 
       if (type === "blog") {
-        if (editingMemoId) {
-          // Update existing blog post
-          query = `
-            mutation UpdateBlogPost($id: String!, $input: UpdateBlogPostInput!) {
-              updateBlogPost(id: $id, input: $input) {
-                id
-                title
-                content
-                status
-              }
+        // Use unified saveBlogPost mutation for both create and update
+        query = `
+          mutation SaveBlogPost($id: String, $input: SaveBlogPostInput!) {
+            saveBlogPost(id: $id, input: $input) {
+              id
+              title
+              content
+              status
             }
-          `;
-          variables = {
-            id: editingMemoId,
-            input: {
-              title,
-              content,
-              status: isPublished ? 'published' : 'draft',
-              discussions,
-              ...(isLocationAttached && postLocation && {
-                latitude: postLocation.latitude,
-                longitude: postLocation.longitude,
-                city: postLocation.city,
-                street: postLocation.street
-              })
-            },
-          };
-        } else {
-          // Create new blog post
-          query = `
-            mutation CreateBlogPost($input: CreateBlogPostInput!) {
-              createBlogPost(input: $input) {
-                id
-                title
-                content
-                status
-              }
-            }
-          `;
-          variables = {
-            input: {
-              title,
-              content,
-              status: isPublished ? 'published' : 'draft',
-              discussions,
-              ...(isLocationAttached && postLocation && {
-                latitude: postLocation.latitude,
-                longitude: postLocation.longitude,
-                city: postLocation.city,
-                street: postLocation.street
-              })
-            },
-          };
-        }
+          }
+        `;
+        variables = {
+          ...(editingMemoId && { id: editingMemoId }),
+          input: {
+            title,
+            content,
+            status: isPublished ? 'published' : 'draft',
+            discussions,
+            ...(isLocationAttached && postLocation && {
+              latitude: postLocation.latitude,
+              longitude: postLocation.longitude,
+              city: postLocation.city,
+              street: postLocation.street
+            })
+          },
+        };
       } else {
         if (editingMemoId) {
           // Update memo

@@ -57,14 +57,9 @@ type MutationResolvers = {
     args: { itemType: string; id: string },
     context: GraphQLContext
   ) => Promise<LikeResult>
-  createBlogPost: (
+  saveBlogPost: (
     parent: unknown,
-    args: { input: { title: string; content: string; status?: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
-    context: GraphQLContext
-  ) => Promise<BlogPost>
-  updateBlogPost: (
-    parent: unknown,
-    args: { id: string; input: { title: string; content: string; status?: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
+    args: { id?: string; input: { title: string; content: string; status?: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
     context: GraphQLContext
   ) => Promise<BlogPost>
   deleteBlogPost: (
@@ -72,26 +67,6 @@ type MutationResolvers = {
     args: { id: string },
     context: GraphQLContext
   ) => Promise<boolean>
-  saveDraft: (
-    parent: unknown,
-    args: { input: { title: string; content: string; status?: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
-    context: GraphQLContext
-  ) => Promise<BlogPost>
-  updateDraft: (
-    parent: unknown,
-    args: { id: string; input: { title: string; content: string; status?: string; discussions?: ExternalDiscussion[]; latitude?: number; longitude?: number; city?: string; street?: string } },
-    context: GraphQLContext
-  ) => Promise<BlogPost>
-  publishDraft: (
-    parent: unknown,
-    args: { id: string },
-    context: GraphQLContext
-  ) => Promise<BlogPost>
-  unpublishPost: (
-    parent: unknown,
-    args: { id: string },
-    context: GraphQLContext
-  ) => Promise<BlogPost>
 }
 
 type LikeInfo = {
@@ -162,21 +137,10 @@ const typeDefs = `
     image: String
   }
 
-  input CreateBlogPostInput {
+  input SaveBlogPostInput {
     title: String!
     content: String!
-    status: String
-    discussions: [DiscussionInput]
-    latitude: Float
-    longitude: Float
-    city: String
-    street: String
-  }
-
-  input UpdateBlogPostInput {
-    title: String!
-    content: String!
-    status: String
+    status: String = "published"
     discussions: [DiscussionInput]
     latitude: Float
     longitude: Float
@@ -216,13 +180,8 @@ const typeDefs = `
     updateMemo(id: String!, input: UpdateMemoInput!): Memo!
     deleteMemo(id: String!): Boolean!
     toggleLike(itemType: String!, id: String!): LikeResult!
-    createBlogPost(input: CreateBlogPostInput!): BlogPost!
-    updateBlogPost(id: String!, input: UpdateBlogPostInput!): BlogPost!
+    saveBlogPost(id: String, input: SaveBlogPostInput!): BlogPost!
     deleteBlogPost(id: String!): Boolean!
-    saveDraft(input: CreateBlogPostInput!): BlogPost!
-    updateDraft(id: String!, input: UpdateBlogPostInput!): BlogPost!
-    publishDraft(id: String!): BlogPost!
-    unpublishPost(id: String!): BlogPost!
   }
 `
 
@@ -430,7 +389,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
       }
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    createBlogPost: async (_parent, { input }, context) => {
+    saveBlogPost: async (_parent, { id, input }, context) => {
       if (!context.token?.accessToken) {
         throw new Error('Authentication required')
       }
@@ -442,44 +401,32 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           city: input.city,
           street: input.street
         }
-        await createBlogPost(input.title, input.content, context.token.accessToken, input.discussions, location, input.status)
-        // Return the created blog post
-        const client = createSmartClient(context.token.accessToken)
-        const posts = await client.getBlogPosts()
-        const createdPost = Array.isArray(posts) ? posts.find(p => p.title === input.title) : null
-        if (!createdPost) {
-          throw new Error('Blog post not found after creation')
+        
+        const status = input.status || 'published'
+        
+        if (id) {
+          // Update existing blog post
+          await updateBlogPost(id, input.title, input.content, context.token.accessToken, input.discussions, location, status)
+          const client = createSmartClient(context.token.accessToken)
+          const post = await client.getBlogPost(`${id}.md`)
+          if (!post) {
+            throw new Error('Blog post not found after update')
+          }
+          return post
+        } else {
+          // Create new blog post
+          await createBlogPost(input.title, input.content, context.token.accessToken, input.discussions, location, status)
+          const client = createSmartClient(context.token.accessToken)
+          const posts = await client.getBlogPosts()
+          const createdPost = Array.isArray(posts) ? posts.find(p => p.title === input.title) : null
+          if (!createdPost) {
+            throw new Error('Blog post not found after creation')
+          }
+          return createdPost
         }
-        return createdPost
       } catch (error) {
-        console.error('Error creating blog post:', error)
-        throw new Error('Failed to create blog post')
-      }
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    updateBlogPost: async (_parent, { id, input }, context) => {
-      if (!context.token?.accessToken) {
-        throw new Error('Authentication required')
-      }
-
-      try {
-        const location = {
-          latitude: input.latitude,
-          longitude: input.longitude,
-          city: input.city,
-          street: input.street
-        }
-        await updateBlogPost(id, input.title, input.content, context.token.accessToken, input.discussions, location, input.status)
-        // Return the updated blog post
-        const client = createSmartClient(context.token.accessToken)
-        const post = await client.getBlogPost(`${id}.md`)
-        if (!post) {
-          throw new Error('Blog post not found after update')
-        }
-        return post
-      } catch (error) {
-        console.error('Error updating blog post:', error)
-        throw new Error('Failed to update blog post')
+        console.error('Error saving blog post:', error)
+        throw new Error('Failed to save blog post')
       }
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -494,132 +441,6 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
       } catch (error) {
         console.error('Error deleting blog post:', error)
         throw new Error('Failed to delete blog post')
-      }
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    saveDraft: async (_parent, { input }, context) => {
-      if (!context.token?.accessToken) {
-        throw new Error('Authentication required')
-      }
-
-      try {
-        const now = new Date().toISOString()
-        const id = `${Date.now()}`
-        
-        const draftPost: BlogPost = {
-          id,
-          title: input.title,
-          content: input.content,
-          imageUrl: null,
-          date: now,
-          discussions: input.discussions || [],
-          latitude: input.latitude,
-          longitude: input.longitude,
-          city: input.city,
-          street: input.street,
-          status: 'draft',
-          lastModified: now
-        }
-
-        // Create draft using GitHub API (same as createBlogPost but marked as draft)
-        const location = {
-          latitude: input.latitude,
-          longitude: input.longitude,
-          city: input.city,
-          street: input.street
-        }
-        
-        // For now, use existing createBlogPost but we'll enhance it to support drafts
-        await createBlogPost(input.title, input.content, context.token.accessToken, input.discussions, location)
-        
-        return draftPost
-      } catch (error) {
-        console.error('Error saving draft:', error)
-        throw new Error('Failed to save draft')
-      }
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    updateDraft: async (_parent, { id, input }, context) => {
-      if (!context.token?.accessToken) {
-        throw new Error('Authentication required')
-      }
-
-      try {
-        const location = {
-          latitude: input.latitude,
-          longitude: input.longitude,
-          city: input.city,
-          street: input.street
-        }
-        
-        // Update the draft (similar to updateBlogPost)
-        await updateBlogPost(id, input.title, input.content, context.token.accessToken, input.discussions, location)
-        
-        // Return the updated draft
-        const client = createSmartClient(context.token.accessToken)
-        const post = await client.getBlogPost(`${id}.md`)
-        if (!post) {
-          throw new Error('Draft not found after update')
-        }
-        
-        return {
-          ...post,
-          status: 'draft',
-          lastModified: new Date().toISOString()
-        }
-      } catch (error) {
-        console.error('Error updating draft:', error)
-        throw new Error('Failed to update draft')
-      }
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    publishDraft: async (_parent, { id }, context) => {
-      if (!context.token?.accessToken) {
-        throw new Error('Authentication required')
-      }
-
-      try {
-        // Move from drafts to published in manifest
-        // This will need to be implemented in githubApi.ts
-        const client = createSmartClient(context.token.accessToken)
-        const post = await client.getBlogPost(`${id}.md`)
-        if (!post) {
-          throw new Error('Draft not found')
-        }
-
-        return {
-          ...post,
-          status: 'published',
-          publishedAt: new Date().toISOString(),
-          lastModified: new Date().toISOString()
-        }
-      } catch (error) {
-        console.error('Error publishing draft:', error)
-        throw new Error('Failed to publish draft')
-      }
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    unpublishPost: async (_parent, { id }, context) => {
-      if (!context.token?.accessToken) {
-        throw new Error('Authentication required')
-      }
-
-      try {
-        // Move from published to drafts in manifest
-        const client = createSmartClient(context.token.accessToken)
-        const post = await client.getBlogPost(`${id}.md`)
-        if (!post) {
-          throw new Error('Post not found')
-        }
-
-        return {
-          ...post,
-          status: 'draft',
-          lastModified: new Date().toISOString()
-        }
-      } catch (error) {
-        console.error('Error unpublishing post:', error)
-        throw new Error('Failed to unpublish post')
       }
     },
   },
