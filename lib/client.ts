@@ -24,15 +24,33 @@ class GitHubAPIClient {
     this.accessToken = token
   }
 
+  private async getSafeOwner(owner?: string): Promise<string> {
+    if (owner && owner !== 'true') {
+      return owner
+    }
+    
+    if (this.accessToken) {
+      try {
+        const octokit = new Octokit({ auth: this.accessToken })
+        const { data: user } = await octokit.users.getAuthenticated()
+        if (user.login && user.login !== 'true') {
+          return user.login
+        }
+      } catch (error) {
+        console.warn('Failed to get authenticated user:', error)
+      }
+    }
+    
+    // Fallback to environment variable or hardcoded default
+    return process.env.GITHUB_USERNAME || 'metrue'
+  }
+
   async getBlogPosts(owner?: string, includeAuthenticatedDrafts = false): Promise<BlogPost[]> {
     const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
-    if (!owner && this.accessToken) {
-      const { data: user } = await octokit.users.getAuthenticated()
-      owner = user.login
-    }
+    const safeOwner = await this.getSafeOwner(owner)
     try {
       const response = await octokit.repos.getContent({
-        owner: owner ?? '',
+        owner: safeOwner,
         repo: REPO,
         path: 'data/blog',
       })
@@ -49,7 +67,7 @@ class GitHubAPIClient {
               file.type === 'file' && file.name !== '.gitkeep' && file.name.endsWith('.md')
           )
           .map(async (file) => {
-            return this.getBlogPost(file.name, owner)
+            return this.getBlogPost(file.name, safeOwner)
           })
       )
 
@@ -76,13 +94,10 @@ class GitHubAPIClient {
 
   async getBlogPost(name: string, owner?: string): Promise<BlogPost | undefined> {
     const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
-    if (!owner) {
-      const { data: user } = await octokit.users.getAuthenticated()
-      owner = user.login
-    }
+    const safeOwner = await this.getSafeOwner(owner)
 
     const contentResponse = await octokit.repos.getContent({
-      owner,
+      owner: safeOwner,
       repo: REPO,
       path: `data/blog/${name}`,
     })
@@ -113,13 +128,10 @@ class GitHubAPIClient {
 
   async getMemos(owner?: string): Promise<Memo[]> {
     const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
-    if (!owner) {
-      const { data: user } = await octokit.users.getAuthenticated()
-      owner = user.login
-    }
+    const safeOwner = await this.getSafeOwner(owner)
     try {
       const response = await octokit.repos.getContent({
-        owner,
+        owner: safeOwner,
         repo: REPO,
         path: 'data/memos.json',
       })
@@ -138,13 +150,10 @@ class GitHubAPIClient {
 
   async getLinks(owner?: string): Promise<Record<string, string>> {
     const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
-    if (!owner) {
-      const { data: user } = await octokit.users.getAuthenticated()
-      owner = user.login
-    }
+    const safeOwner = await this.getSafeOwner(owner)
     try {
       const response = await octokit.repos.getContent({
-        owner,
+        owner: safeOwner,
         repo: REPO,
         path: 'data/site-config.json',
       })
@@ -162,13 +171,10 @@ class GitHubAPIClient {
 
   async getLikes(owner?: string): Promise<LikesDatabase> {
     const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
-    if (!owner) {
-      const { data: user } = await octokit.users.getAuthenticated()
-      owner = user.login
-    }
+    const safeOwner = await this.getSafeOwner(owner)
     try {
       const response = await octokit.repos.getContent({
-        owner,
+        owner: safeOwner,
         repo: REPO,
         path: 'data/likes.json',
       })
@@ -191,17 +197,14 @@ class GitHubAPIClient {
 
   async updateLikes(likesData: LikesDatabase, owner?: string): Promise<void> {
     const octokit = new Octokit({ auth: this.accessToken })
-    if (!owner) {
-      const { data: user } = await octokit.users.getAuthenticated()
-      owner = user.login
-    }
+    const safeOwner = await this.getSafeOwner(owner)
 
     try {
       // Get current file to get its SHA
       let sha: string | undefined
       try {
         const currentFile = await octokit.repos.getContent({
-          owner,
+          owner: safeOwner,
           repo: REPO,
           path: 'data/likes.json',
         })
@@ -215,7 +218,7 @@ class GitHubAPIClient {
 
       // Update or create the file
       await octokit.repos.createOrUpdateFileContents({
-        owner,
+        owner: safeOwner,
         repo: REPO,
         path: 'data/likes.json',
         message: `Update likes data - ${new Date().toISOString()}`,
