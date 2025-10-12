@@ -24,7 +24,7 @@ class GitHubAPIClient {
     this.accessToken = token
   }
 
-  async getBlogPosts(owner?: string): Promise<BlogPost[]> {
+  async getBlogPosts(owner?: string, includeAuthenticatedDrafts = false): Promise<BlogPost[]> {
     const octokit = this.accessToken ? new Octokit({ auth: this.accessToken }) : new Octokit()
     if (!owner && this.accessToken) {
       const { data: user } = await octokit.users.getAuthenticated()
@@ -53,7 +53,16 @@ class GitHubAPIClient {
           })
       )
 
-      return posts.filter((post): post is BlogPost => post !== undefined)
+      const validPosts = posts.filter((post): post is BlogPost => post !== undefined)
+      
+      // Filter based on authentication and status
+      if (includeAuthenticatedDrafts && this.accessToken) {
+        // If authenticated and requesting drafts, return all posts
+        return validPosts
+      } else {
+        // For public access, only return published posts
+        return validPosts.filter(post => post.status === 'published')
+      }
     } catch (error) {
       console.error('Error fetching blog posts:', error)
       // If the blog directory doesn't exist, return an empty array
@@ -94,7 +103,10 @@ class GitHubAPIClient {
         latitude: metadata.latitude,
         longitude: metadata.longitude,
         city: metadata.city,
-        street: metadata.street
+        street: metadata.street,
+        status: metadata.status || 'published', // Default to published for existing posts
+        publishedAt: metadata.publishedAt || metadata.date,
+        lastModified: metadata.lastModified || metadata.date || new Date().toISOString()
       }
     }
   }
@@ -214,6 +226,15 @@ class GitHubAPIClient {
       console.error('Error updating likes:', error)
       throw new Error('Failed to update likes data')
     }
+  }
+
+  async getDrafts(owner?: string): Promise<BlogPost[]> {
+    const allPosts = await this.getBlogPosts(owner, true)
+    return allPosts.filter(post => post.status === 'draft')
+  }
+
+  async getAllBlogPosts(owner?: string): Promise<BlogPost[]> {
+    return this.getBlogPosts(owner, true)
   }
 }
 

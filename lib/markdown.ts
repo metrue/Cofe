@@ -8,6 +8,9 @@ export interface BlogPostMetadata {
   longitude?: number
   city?: string
   street?: string
+  status?: 'draft' | 'published'
+  publishedAt?: string
+  lastModified?: string
 }
 
 /**
@@ -78,6 +81,9 @@ export function parseBlogPostMetadata(content: string): BlogPostMetadata {
   const longitudeMatch = frontmatter.match(/longitude:\s*(.+)/)
   const cityMatch = frontmatter.match(/city:\s*(.+)/)
   const streetMatch = frontmatter.match(/street:\s*(.+)/)
+  const statusMatch = frontmatter.match(/status:\s*(.+)/)
+  const publishedAtMatch = frontmatter.match(/publishedAt:\s*(.+)/)
+  const lastModifiedMatch = frontmatter.match(/lastModified:\s*(.+)/)
   
   return {
     title: titleMatch ? titleMatch[1].trim() : '',
@@ -86,7 +92,10 @@ export function parseBlogPostMetadata(content: string): BlogPostMetadata {
     ...(latitudeMatch && { latitude: parseFloat(latitudeMatch[1].trim()) }),
     ...(longitudeMatch && { longitude: parseFloat(longitudeMatch[1].trim()) }),
     ...(cityMatch && { city: cityMatch[1].trim() }),
-    ...(streetMatch && { street: streetMatch[1].trim() })
+    ...(streetMatch && { street: streetMatch[1].trim() }),
+    ...(statusMatch && { status: statusMatch[1].trim() as 'draft' | 'published' }),
+    ...(publishedAtMatch && { publishedAt: publishedAtMatch[1].trim() }),
+    ...(lastModifiedMatch && { lastModified: lastModifiedMatch[1].trim() })
   }
 }
 

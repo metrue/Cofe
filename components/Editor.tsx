@@ -62,6 +62,8 @@ export default function Editor({
     street?: string;
   } | null>(null);
   const [isLocationAttached, setIsLocationAttached] = useState(false);
+  const [isPublished, setIsPublished] = useState(true);
+  const [isMemoLocationIgnored, setIsMemoLocationIgnored] = useState(false);
 
   const fetchMemo = useCallback(
     async (id: string) => {
@@ -95,6 +97,7 @@ export default function Editor({
                   id
                   title
                   content
+                  status
                   latitude
                   longitude
                   city
@@ -123,6 +126,7 @@ export default function Editor({
           setContent(removeFrontmatter(blogPost.content));
           setDiscussions(blogPost.discussions || []);
           setEditingMemoId(id);
+          setIsPublished(blogPost.status === 'published');
           
           // Set existing location if available
           if (blogPost.latitude || blogPost.city) {
@@ -161,12 +165,20 @@ export default function Editor({
 
   const handleTypeChange = (value: "blog" | "memo") => {
     setType(value);
-    if (value === "blog") {
-      setEditingMemoId(null);
-    } else {
-      setDiscussions([]);
-    }
+    // Clear content and state when switching modes
+    setContent("");
+    setTitle("");
+    setEditingMemoId(null);
+    setDiscussions([]);
+    setPostLocation(null);
+    setIsLocationAttached(false);
+    setIsMemoLocationIgnored(false);
+    setIsPublished(true);
+    
+    // Navigate to clean URL without ID parameter
+    router.push(`/editor?type=${value}`);
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,56 +189,32 @@ export default function Editor({
       let variables: Record<string, unknown>;
 
       if (type === "blog") {
-        if (editingMemoId) {
-          // Update blog post
-          query = `
-            mutation UpdateBlogPost($id: String!, $input: UpdateBlogPostInput!) {
-              updateBlogPost(id: $id, input: $input) {
-                id
-                title
-                content
-              }
+        // Use unified saveBlogPost mutation for both create and update
+        query = `
+          mutation SaveBlogPost($id: String, $input: SaveBlogPostInput!) {
+            saveBlogPost(id: $id, input: $input) {
+              id
+              title
+              content
+              status
             }
-          `;
-          variables = {
-            id: editingMemoId,
-            input: {
-              title,
-              content,
-              discussions,
-              ...(isLocationAttached && postLocation && {
-                latitude: postLocation.latitude,
-                longitude: postLocation.longitude,
-                city: postLocation.city,
-                street: postLocation.street
-              })
-            },
-          };
-        } else {
-          // Create blog post
-          query = `
-            mutation CreateBlogPost($input: CreateBlogPostInput!) {
-              createBlogPost(input: $input) {
-                id
-                title
-                content
-              }
-            }
-          `;
-          variables = {
-            input: {
-              title,
-              content,
-              discussions,
-              ...(isLocationAttached && postLocation && {
-                latitude: postLocation.latitude,
-                longitude: postLocation.longitude,
-                city: postLocation.city,
-                street: postLocation.street
-              })
-            },
-          };
-        }
+          }
+        `;
+        variables = {
+          ...(editingMemoId && { id: editingMemoId }),
+          input: {
+            title,
+            content,
+            status: isPublished ? 'published' : 'draft',
+            discussions,
+            ...(isLocationAttached && postLocation && {
+              latitude: postLocation.latitude,
+              longitude: postLocation.longitude,
+              city: postLocation.city,
+              street: postLocation.street
+            })
+          },
+        };
       } else {
         if (editingMemoId) {
           // Update memo
@@ -295,7 +283,7 @@ export default function Editor({
         title: t("success"),
         description: editingMemoId
           ? `${type === "blog" ? t("blogPostUpdated") : t("memoUpdated")}`
-          : `${type === "blog" ? t("blogPostCreated") : t("memoCreated")}`,
+          : `${type === "blog" ? (isPublished ? t("blogPostCreated") : "Draft saved") : t("memoCreated")}`,
         duration: 3000,
       });
       setTimeout(() => {
@@ -478,7 +466,39 @@ export default function Editor({
       
       {/* Header - Clean and minimal */}
       <div className="mb-8">
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center">
+          {/* Draft/Published toggle on the left */}
+          {type === "blog" && (
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                type="button"
+                onClick={() => setIsPublished(false)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  !isPublished 
+                    ? "bg-white text-black shadow-sm" 
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+                disabled={isLoading || isImageUploading}
+              >
+                Draft
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPublished(true)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  isPublished 
+                    ? "bg-white text-black shadow-sm" 
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+                disabled={isLoading || isImageUploading}
+              >
+                Published
+              </button>
+            </div>
+          )}
+          {type === "memo" && <div />} {/* Empty div to maintain justify-between spacing */}
+          
+          {/* Memo/Blog selector on the right */}
           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
             <button
               type="button"
@@ -508,13 +528,15 @@ export default function Editor({
 
       <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* Title and Metadata Section */}
+          {/* Title Section - Clean and minimal */}
           {type === "blog" && (
-            <div className="space-y-4 bg-white rounded-lg border border-gray-200 p-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div>
-                <Label htmlFor="title" className="text-sm font-medium text-gray-700 mb-2">
-                  Title
-                </Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="title" className="text-sm font-medium text-gray-700">
+                    Title
+                  </Label>
+                </div>
                 <Input
                   id="title"
                   type="text"
@@ -526,106 +548,7 @@ export default function Editor({
                   disabled={isLoading || isImageUploading}
                 />
               </div>
-              
-              {/* Location for blog posts */}
-              <div className="flex items-center gap-3 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    await requestLocation();
-                    if (location) {
-                      setPostLocation(location);
-                      setIsLocationAttached(true);
-                      toast({
-                        title: "Location attached",
-                        description: `${location.city}${location.street ? ` · ${location.street}` : ''}`,
-                        duration: 3000,
-                      });
-                    }
-                  }}
-                  disabled={locationLoading}
-                  className="flex items-center gap-2 text-sm"
-                >
-                  {locationLoading ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <span className="text-base">📍</span>
-                  )}
-                  {isLocationAttached ? "Update Location" : "Add Location"}
-                </Button>
-                
-                {isLocationAttached && postLocation && (
-                  <>
-                    <span className="text-sm text-gray-600 flex-1">
-                      🖊 {postLocation.city}{postLocation.street ? ` · ${postLocation.street}` : ''}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setPostLocation(null);
-                        setIsLocationAttached(false);
-                        toast({
-                          title: "Location removed",
-                          duration: 2000,
-                        });
-                      }}
-                      className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      Remove
-                    </Button>
-                  </>
-                )}
-              </div>
             </div>
-          )}
-
-          {/* External Discussions - Collapsible */}
-          {type === "blog" && discussions.length > 0 && (
-            <details className="bg-white rounded-lg border border-gray-200">
-              <summary className="px-6 py-3 cursor-pointer hover:bg-gray-50">
-                <span className="text-sm font-medium text-gray-700">
-                  External Discussions ({discussions.length})
-                </span>
-              </summary>
-              <div className="px-6 pb-4 space-y-3">
-                {discussions.map((discussion, index) => (
-                  <div key={index} className="flex gap-2 items-center">
-                    <select
-                      value={discussion.platform}
-                      onChange={(e) => updateDiscussion(index, 'platform', e.target.value as ExternalDiscussion['platform'])}
-                      className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-blue-500 text-sm"
-                      disabled={isLoading || isImageUploading}
-                    >
-                      <option value="v2ex">V2EX</option>
-                      <option value="reddit">Reddit</option>
-                      <option value="hackernews">Hacker News</option>
-                    </select>
-                    <Input
-                      type="url"
-                      value={discussion.url}
-                      onChange={(e) => updateDiscussion(index, 'url', e.target.value)}
-                      placeholder="Paste discussion URL..."
-                      className="flex-1 border-gray-200 focus:border-blue-500 focus:ring-blue-500 text-sm"
-                      disabled={isLoading || isImageUploading}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeDiscussion(index)}
-                      disabled={isLoading || isImageUploading}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </details>
           )}
           
 
@@ -758,21 +681,152 @@ export default function Editor({
             )}
           </div>
 
-          {/* Location for Memos */}
-          {type === "memo" && (
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+          {/* Location Section - Only show when location is attached */}
+          {type === "blog" && isLocationAttached && postLocation && (
+            <div className="bg-gray-50 rounded-lg border border-gray-100 p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600">
-                    {location ? (
-                      <span className="flex items-center gap-2">
-                        <span>📍</span>
-                        <span>@ {location.city}{location.street ? ` · ${location.street}` : ''}</span>
-                      </span>
+                <span className="text-sm text-gray-700 flex items-center gap-2">
+                  <span>📍</span>
+                  <span>{postLocation.city}{postLocation.street ? ` · ${postLocation.street}` : ''}</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={async () => {
+                      await requestLocation();
+                      if (location) {
+                        setPostLocation(location);
+                        setIsLocationAttached(true);
+                        toast({
+                          title: "Location updated",
+                          description: `${location.city}${location.street ? ` · ${location.street}` : ''}`,
+                          duration: 3000,
+                        });
+                      }
+                    }}
+                    disabled={locationLoading}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    {locationLoading ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
-                      "Location will be captured when publishing"
+                      "Update"
                     )}
-                  </span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setPostLocation(null);
+                      setIsLocationAttached(false);
+                      toast({
+                        title: "Location removed",
+                        duration: 2000,
+                      });
+                    }}
+                    className="text-xs text-red-500 hover:text-red-700"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* External Discussions - Only show when discussions exist */}
+          {type === "blog" && discussions.length > 0 && (
+            <div className="bg-gray-50 rounded-lg border border-gray-100 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-gray-700">
+                  External Discussions ({discussions.length})
+                </span>
+              </div>
+              <div className="space-y-2">
+                {discussions.map((discussion, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <select
+                      value={discussion.platform}
+                      onChange={(e) => updateDiscussion(index, 'platform', e.target.value as ExternalDiscussion['platform'])}
+                      className="px-2 py-1.5 border border-gray-200 rounded text-xs bg-white"
+                      disabled={isLoading || isImageUploading}
+                    >
+                      <option value="v2ex">V2EX</option>
+                      <option value="reddit">Reddit</option>
+                      <option value="hackernews">Hacker News</option>
+                    </select>
+                    <Input
+                      type="url"
+                      value={discussion.url}
+                      onChange={(e) => updateDiscussion(index, 'url', e.target.value)}
+                      placeholder="Paste discussion URL..."
+                      className="flex-1 border-gray-200 text-xs h-8"
+                      disabled={isLoading || isImageUploading}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeDiscussion(index)}
+                      disabled={isLoading || isImageUploading}
+                      className="text-xs text-red-500 hover:text-red-700 h-8 px-2"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Location for Memos - Only show when location is available and not ignored */}
+          {type === "memo" && location && !isMemoLocationIgnored && (
+            <div className="bg-gray-50 rounded-lg border border-gray-100 p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700 flex items-center gap-2">
+                  <span>📍</span>
+                  <span>{location.city}{location.street ? ` · ${location.street}` : ''}</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={async () => {
+                      await requestLocation();
+                      toast({
+                        title: "Location updated",
+                        description: location ? `${location.city}${location.street ? ` · ${location.street}` : ''}` : "Location refreshed",
+                        duration: 3000,
+                      });
+                    }}
+                    disabled={locationLoading}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    {locationLoading ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      "Update"
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setIsMemoLocationIgnored(true);
+                      toast({
+                        title: "Location removed",
+                        description: "Location will not be included with this memo",
+                        duration: 2000,
+                      });
+                    }}
+                    className="text-xs text-red-500 hover:text-red-700"
+                  >
+                    Remove
+                  </Button>
                 </div>
               </div>
             </div>
@@ -780,7 +834,65 @@ export default function Editor({
 
           {/* Action Buttons */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              {/* Add Location button for Blog posts when no location attached */}
+              {type === "blog" && !isLocationAttached && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    await requestLocation();
+                    if (location) {
+                      setPostLocation(location);
+                      setIsLocationAttached(true);
+                      toast({
+                        title: "Location attached",
+                        description: `${location.city}${location.street ? ` · ${location.street}` : ''}`,
+                        duration: 3000,
+                      });
+                    }
+                  }}
+                  disabled={locationLoading}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  {locationLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <span className="text-base">📍</span>
+                  )}
+                  Add Location
+                </Button>
+              )}
+              {/* Add Location button for Memos when no location detected or location was ignored */}
+              {type === "memo" && (!location || isMemoLocationIgnored) && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    setIsMemoLocationIgnored(false); // Un-ignore location
+                    await requestLocation();
+                    if (location) {
+                      toast({
+                        title: "Location detected",
+                        description: `${location.city}${location.street ? ` · ${location.street}` : ''}`,
+                        duration: 3000,
+                      });
+                    }
+                  }}
+                  disabled={locationLoading}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  {locationLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <span className="text-base">📍</span>
+                  )}
+                  Add Location
+                </Button>
+              )}
+              {/* Add Discussion Link for Blog posts */}
               {type === "blog" && (
                 <Button
                   type="button"
@@ -800,7 +912,7 @@ export default function Editor({
                 </span>
               )}
             </div>
-            <div className="flex gap-3">
+            <div className="flex items-center gap-4">
               <Button
                 type="button"
                 variant="outline"
@@ -810,6 +922,7 @@ export default function Editor({
               >
                 Cancel
               </Button>
+              
               <Button
                 type="submit"
                 disabled={isLoading || isImageUploading || (!content || (type === "blog" && !title))}
@@ -818,11 +931,11 @@ export default function Editor({
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t("publishing")}
+                    {t("saving")}
                   </>
                 ) : (
                   <>
-                    {editingMemoId ? "Update" : "Publish"}
+                    {editingMemoId ? "Update" : "Save"}
                     {type === "blog" ? " Post" : " Memo"}
                   </>
                 )}

@@ -9,6 +9,7 @@
       "publish": "Publish",
       "redirecting": "Redirecting...",
       "publishing": "Publishing...",
+      "saving": "Saving...",
       "successPublished": "Successfully published! It may take up to 30 seconds to appear. Refresh if you don't see it immediately.",
       "failedPublish": "Failed to publish",
       "dataStoredIn": "Data stored in:",
