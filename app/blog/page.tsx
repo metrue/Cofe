@@ -3,7 +3,7 @@ import { createSmartClient } from '@/lib/smartClient'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 
-export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 60;
+export const revalidate = 0; // Force fresh data fetch to fix cached empty state
 
 export default async function BlogPage() {
   const session = await getServerSession(authOptions);
