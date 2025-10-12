@@ -2,10 +2,15 @@
 title: The Complete Cofe Guide
 date: 2025-10-06T10:30:00.000Z
 status: draft
+latitude: 37.78297388090404
+longitude: -122.41031261300729
+city: San Francisco
+street: Market Street
 external_discussions:
   - platform: hackernews
     url: https://news.ycombinator.com/item?id=example
 ---
+
 
 
 # The Complete Cofe Guide
