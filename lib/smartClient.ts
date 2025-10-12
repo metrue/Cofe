@@ -51,7 +51,7 @@ export class SmartClient {
             apiClient.getLinks(username),
           getLikes: () => 
             apiClient.getLikes(username),
-          updateLikes: (likesData: any) => 
+          updateLikes: (likesData: LikesDatabase) => 
             apiClient.updateLikes(likesData, username),
           getDrafts: () => 
             apiClient.getDrafts(username),
