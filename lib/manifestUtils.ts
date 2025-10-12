@@ -69,39 +69,3 @@ export async function updateBlogManifest(accessToken: string, owner: string, rep
   }
 }
 
-/**
- * Generate blog manifest for local development
- */
-export async function updateLocalBlogManifest(): Promise<void> {
-  if (typeof window !== 'undefined') {
-    console.warn('updateLocalBlogManifest should only be called on the server')
-    return
-  }
-  
-  try {
-    const fs = await import('fs/promises')
-    const path = await import('path')
-    
-    const blogDir = path.join(process.cwd(), 'data', 'blog')
-    const files = await fs.readdir(blogDir)
-    
-    const blogFiles = files
-      .filter(file => file.endsWith('.md') && file !== '.gitkeep')
-      .sort()
-    
-    const manifest = {
-      files: blogFiles
-    }
-    
-    const manifestPath = path.join(process.cwd(), 'data', 'blog-manifest.json')
-    await fs.writeFile(
-      manifestPath, 
-      JSON.stringify(manifest, null, 2),
-      'utf-8'
-    )
-    
-    console.log('Local blog manifest updated successfully with', blogFiles.length, 'files')
-  } catch (error) {
-    console.error('Failed to update local blog manifest:', error)
-  }
-}
