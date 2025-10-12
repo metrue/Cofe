@@ -11,6 +11,12 @@ external_discussions:
     url: https://news.ycombinator.com/item?id=example
 ---
 
+[**Cofe**](https://github.com/metrue/cofe) is blog and memo taking app, which fully powered by Github API, and your blog posts and memos are all stored in your own repo, and all the writings are in version control. 
+
+
+
+
+
 **Everything you need to know about setting up, customizing, and mastering Cofe.**
 
 Cofe is a beautifully simple blog and memo app that stores everything in your GitHub repository. No databases, no complex setups - just write and publish.
