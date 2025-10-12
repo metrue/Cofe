@@ -37,7 +37,27 @@ export class SmartClient {
       }
       
       if (this.accessToken) {
-        this.githubClient = createGitHubAPIClient(this.accessToken)
+        // Create API client and wrap it to always pass the correct owner
+        const apiClient = createGitHubAPIClient(this.accessToken)
+        this.githubClient = {
+          ...apiClient,
+          getBlogPosts: (includeAuthenticatedDrafts = false) => 
+            apiClient.getBlogPosts(username, includeAuthenticatedDrafts),
+          getBlogPost: (name: string) => 
+            apiClient.getBlogPost(name, username),
+          getMemos: () => 
+            apiClient.getMemos(username),
+          getLinks: () => 
+            apiClient.getLinks(username),
+          getLikes: () => 
+            apiClient.getLikes(username),
+          updateLikes: (likesData: LikesDatabase) => 
+            apiClient.updateLikes(likesData, username),
+          getDrafts: () => 
+            apiClient.getDrafts(username),
+          getAllBlogPosts: () => 
+            apiClient.getAllBlogPosts(username)
+        }
       } else {
         this.githubClient = createPublicGitHubClient(username)
       }
