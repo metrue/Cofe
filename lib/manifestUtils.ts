@@ -4,14 +4,14 @@ import { Octokit } from '@octokit/rest'
  * Generate and update the blog manifest file based on published blog posts
  * This manifest is used by PublicGitHubClient for unauthenticated access
  */
-export async function updateBlogManifest(accessToken: string, owner: string): Promise<void> {
+export async function updateBlogManifest(accessToken: string, owner: string, repo: string): Promise<void> {
   try {
     const octokit = new Octokit({ auth: accessToken })
     
     // Get all blog post files from the repository
     const { data: files } = await octokit.repos.getContent({
       owner,
-      repo: 'Cofe',
+      repo,
       path: 'data/blog',
     })
     
@@ -40,7 +40,7 @@ export async function updateBlogManifest(accessToken: string, owner: string): Pr
     try {
       const { data: currentManifest } = await octokit.repos.getContent({
         owner,
-        repo: 'Cofe',
+        repo,
         path: 'data/blog-manifest.json',
       })
       
@@ -55,7 +55,7 @@ export async function updateBlogManifest(accessToken: string, owner: string): Pr
     // Update or create the manifest file
     await octokit.repos.createOrUpdateFileContents({
       owner,
-      repo: 'Cofe',
+      repo,
       path: 'data/blog-manifest.json',
       message: 'Update blog manifest',
       content: Buffer.from(JSON.stringify(manifest, null, 2)).toString('base64'),

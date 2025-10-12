@@ -177,7 +177,7 @@ ${content}`
   })
 
   // Update blog manifest after creating the post
-  await updateBlogManifest(accessToken, owner)
+  await updateBlogManifest(accessToken, owner, repo)
 }
 
 export async function createMemo(
@@ -429,7 +429,7 @@ export async function deleteBlogPost(id: string, accessToken: string): Promise<v
     console.log('Blog post deleted successfully')
     
     // Update blog manifest after deleting the post
-    await updateBlogManifest(accessToken, owner)
+    await updateBlogManifest(accessToken, owner, repo)
 
   } catch (error) {
     console.error('Error deleting blog post:', error)
@@ -499,7 +499,7 @@ ${content}`
     console.log('Blog post updated successfully')
 
     // Update blog manifest after updating the post
-    await updateBlogManifest(accessToken, owner)
+    await updateBlogManifest(accessToken, owner, repo)
 
   } catch (error) {
     console.error('Error updating blog post:', error)
