@@ -11,10 +11,6 @@ external_discussions:
     url: https://news.ycombinator.com/item?id=example
 ---
 
-
-
-# The Complete Cofe Guide
-
 **Everything you need to know about setting up, customizing, and mastering Cofe.**
 
 Cofe is a beautifully simple blog and memo app that stores everything in your GitHub repository. No databases, no complex setups - just write and publish.
