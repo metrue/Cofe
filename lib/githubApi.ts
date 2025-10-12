@@ -1,5 +1,6 @@
 import { Memo, ExternalDiscussion } from './types';
 import { Octokit } from '@octokit/rest';
+import { updateBlogManifest } from './manifestUtils';
 import path from 'path';
 import {
   getOctokit,
@@ -174,6 +175,9 @@ ${content}`
     message: `Add blog post: ${title}`,
     content: Buffer.from(fullContent).toString('base64'),
   })
+
+  // Update blog manifest after creating the post
+  await updateBlogManifest(accessToken, owner)
 }
 
 export async function createMemo(
@@ -423,6 +427,9 @@ export async function deleteBlogPost(id: string, accessToken: string): Promise<v
     })
 
     console.log('Blog post deleted successfully')
+    
+    // Update blog manifest after deleting the post
+    await updateBlogManifest(accessToken, owner)
 
   } catch (error) {
     console.error('Error deleting blog post:', error)
@@ -490,6 +497,9 @@ ${content}`
     )
 
     console.log('Blog post updated successfully')
+
+    // Update blog manifest after updating the post
+    await updateBlogManifest(accessToken, owner)
 
   } catch (error) {
     console.error('Error updating blog post:', error)
