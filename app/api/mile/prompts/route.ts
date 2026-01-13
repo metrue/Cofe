@@ -96,8 +96,8 @@ Return ONLY valid JSON with this structure:
 - When nights are specified, ALWAYS calculate checkOut from checkIn:
   checkOut = checkIn + nights days
 - If no checkIn date is mentioned, use the transportation arrival date as checkIn
-- Example: Arrived {{LAST_TUESDAY}} + 2 nights → checkOut = {{LAST_THURSDAY}}
-- "for two nights" starting {{LAST_TUESDAY}} → checkIn: "{{LAST_TUESDAY}}", checkOut: "{{LAST_THURSDAY}}", nights: 2
+- Example: Arrived {{LAST_TUESDAY}} + 2 nights → checkOut = {{TUESDAY_PLUS_2}}
+- "for two nights" starting {{LAST_TUESDAY}} → checkIn: "{{LAST_TUESDAY}}", checkOut: "{{TUESDAY_PLUS_2}}", nights: 2
 
 **4. Places/Attractions:**
 - "visited the Eiffel Tower" → name: "Eiffel Tower"
@@ -123,7 +123,7 @@ Input: "Last Tuesday I flew from Singapore to Beijing and stay in Beijing season
 Output:
 {
   "segments": [{"mode": "flight", "from": "Singapore", "fromCountry": "SG", "to": "Beijing", "toCountry": "CN", "date": "{{LAST_TUESDAY}}"}],
-  "accommodations": [{"type": "hotel", "name": "Beijing Season Hotel", "city": "Beijing", "country": "CN", "checkIn": "{{LAST_TUESDAY}}", "checkOut": "{{LAST_THURSDAY}}", "nights": 2}],
+  "accommodations": [{"type": "hotel", "name": "Beijing Season Hotel", "city": "Beijing", "country": "CN", "checkIn": "{{LAST_TUESDAY}}", "checkOut": "{{TUESDAY_PLUS_2}}", "nights": 2}],
   "places": [],
   "companions": [],
   "confidence": 0.95
@@ -257,9 +257,9 @@ export async function GET() {
         'LAST_THURSDAY',
         'LAST_FRIDAY',
         'LAST_SATURDAY',
-        'LAST_THURSDAY', // For Tuesday + 2 days example
-        'SATURDAY_PLUS_2', // For Saturday + 2 days example
-        'YESTERDAY_PLUS_3', // For yesterday + 3 days example
+        'TUESDAY_PLUS_2', // Last Tuesday + 2 days (for checkOut example)
+        'SATURDAY_PLUS_2', // Last Saturday + 2 days example
+        'YESTERDAY_PLUS_3', // Yesterday + 3 days example
         'USER_INPUT', // User's input text (sanitized)
         'CALENDAR_EVENTS', // Calendar events data
       ],
