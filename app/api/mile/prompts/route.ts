@@ -10,7 +10,7 @@
 import { NextResponse } from 'next/server'
 
 // Prompt version - increment when making changes
-const PROMPT_VERSION = '1.0.0'
+const PROMPT_VERSION = '1.1.0'
 
 /**
  * Siri Trip Parser Prompt Template
@@ -20,8 +20,26 @@ const PROMPT_VERSION = '1.0.0'
  * - {{YESTERDAY}} - Yesterday's date
  * - {{LAST_SUNDAY}} through {{LAST_SATURDAY}} - Last occurrence of each weekday
  * - {{LAST_THURSDAY_FROM_TUESDAY}} - Thursday calculated from Tuesday + 2 days (for examples)
+ * - {{USER_LANGUAGE}} - User's language code (e.g., "en", "zh-Hans", "ja")
+ * - {{USER_REGION}} - User's region code (e.g., "US", "CN", "JP")
+ * - {{USER_CURRENCY}} - User's currency code (e.g., "USD", "CNY", "JPY")
+ * - {{USER_TIMEZONE}} - User's timezone (e.g., "Asia/Shanghai", "America/New_York")
+ * - {{DATE_FORMAT_ORDER}} - User's date format preference (e.g., "MM/DD/YYYY" or "DD/MM/YYYY")
  */
 const SIRI_TRIP_PROMPT = `You are a travel information extractor. Parse the user's natural language description and extract ALL trip details.
+
+**User Locale Context:**
+- Language: {{USER_LANGUAGE}}
+- Region: {{USER_REGION}}
+- Currency: {{USER_CURRENCY}}
+- Timezone: {{USER_TIMEZONE}}
+- Date format preference: {{DATE_FORMAT_ORDER}}
+
+Use this locale context to:
+1. Interpret dates correctly (e.g., "1/2" means January 2nd in MM/DD regions, February 1st in DD/MM regions)
+2. Understand city names in the user's language (e.g., "北京" = Beijing, "東京" = Tokyo)
+3. Handle currency mentions appropriately
+4. Interpret relative dates based on the user's timezone
 
 **Today's date: {{TODAY}}**
 **Yesterday: {{YESTERDAY}}**
@@ -180,7 +198,16 @@ IMPORTANT:
 /**
  * Calendar Event Parser Prompt Template
  */
-const CALENDAR_EVENT_PROMPT = `Extract transportation segments and accommodations from these calendar events grouped by trips. Return ONLY valid JSON with this exact structure:
+const CALENDAR_EVENT_PROMPT = `Extract transportation segments and accommodations from these calendar events grouped by trips.
+
+**User Locale Context:**
+- Language: {{USER_LANGUAGE}}
+- Region: {{USER_REGION}}
+- Timezone: {{USER_TIMEZONE}}
+
+Use this locale context to interpret city names and dates correctly.
+
+Return ONLY valid JSON with this exact structure:
 
 {
   "trips": [
@@ -262,6 +289,11 @@ export async function GET() {
         'YESTERDAY_PLUS_3', // Yesterday + 3 days example
         'USER_INPUT', // User's input text (sanitized)
         'CALENDAR_EVENTS', // Calendar events data
+        'USER_LANGUAGE', // User's language code (e.g., "en", "zh-Hans", "ja")
+        'USER_REGION', // User's region code (e.g., "US", "CN", "JP")
+        'USER_CURRENCY', // User's currency code (e.g., "USD", "CNY", "JPY")
+        'USER_TIMEZONE', // User's timezone (e.g., "Asia/Shanghai")
+        'DATE_FORMAT_ORDER', // User's date format preference (e.g., "MM/DD/YYYY")
       ],
     },
     {
