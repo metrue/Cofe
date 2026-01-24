@@ -1,11 +1,12 @@
 ---
 title: 我做了一款旅行记录应用：Mile
 date: 2026-01-21T21:30:38.089Z
-latitude: 
-longitude: 
-city: 
-street: 
+latitude: 52.330390529537716
+longitude: 4.940213073274852
+city: Duivendrecht
+street: Kastanjepad
 ---
+
 
 我很喜欢旅行，虽然去过的城市不多，但是每一次旅行都有着非常独特的记忆，我偶尔就会想想去看看我都去了哪儿，玩了什么, 遇到什么人，吃了什么好吃的， 碰到了什么奇怪的事情。
 
