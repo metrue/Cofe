@@ -75,24 +75,29 @@ export function parseExternalDiscussions(frontmatter: string): ExternalDiscussio
 export function parseBlogPostMetadata(content: string): BlogPostMetadata {
   const { frontmatter } = extractFrontmatter(content)
   
-  const titleMatch = frontmatter.match(/title:\s*(.+)/)
-  const dateMatch = frontmatter.match(/date:\s*(.+)/)
-  const latitudeMatch = frontmatter.match(/latitude:\s*(.+)/)
-  const longitudeMatch = frontmatter.match(/longitude:\s*(.+)/)
-  const cityMatch = frontmatter.match(/city:\s*(.+)/)
-  const streetMatch = frontmatter.match(/street:\s*(.+)/)
-  const statusMatch = frontmatter.match(/status:\s*(.+)/)
-  const publishedAtMatch = frontmatter.match(/publishedAt:\s*(.+)/)
-  const lastModifiedMatch = frontmatter.match(/lastModified:\s*(.+)/)
+  const titleMatch = frontmatter.match(/title:[ \t]*(.+)/)
+  const dateMatch = frontmatter.match(/date:[ \t]*(.+)/)
+  const latitudeMatch = frontmatter.match(/latitude:[ \t]*(.+)/)
+  const longitudeMatch = frontmatter.match(/longitude:[ \t]*(.+)/)
+  const cityMatch = frontmatter.match(/city:[ \t]*(.+)/)
+  const streetMatch = frontmatter.match(/street:[ \t]*(.+)/)
+  const statusMatch = frontmatter.match(/status:[ \t]*(.+)/)
+  const publishedAtMatch = frontmatter.match(/publishedAt:[ \t]*(.+)/)
+  const lastModifiedMatch = frontmatter.match(/lastModified:[ \t]*(.+)/)
   
+  const latitudeStr = latitudeMatch?.[1]?.trim()
+  const longitudeStr = longitudeMatch?.[1]?.trim()
+  const latitudeNum = latitudeStr ? parseFloat(latitudeStr) : NaN
+  const longitudeNum = longitudeStr ? parseFloat(longitudeStr) : NaN
+
   return {
     title: titleMatch ? titleMatch[1].trim() : '',
     date: dateMatch ? dateMatch[1].trim() : new Date().toISOString(),
     discussions: parseExternalDiscussions(frontmatter),
-    ...(latitudeMatch && { latitude: parseFloat(latitudeMatch[1].trim()) }),
-    ...(longitudeMatch && { longitude: parseFloat(longitudeMatch[1].trim()) }),
-    ...(cityMatch && { city: cityMatch[1].trim() }),
-    ...(streetMatch && { street: streetMatch[1].trim() }),
+    ...(latitudeStr && !isNaN(latitudeNum) && { latitude: latitudeNum }),
+    ...(longitudeStr && !isNaN(longitudeNum) && { longitude: longitudeNum }),
+    ...(cityMatch && cityMatch[1].trim() && { city: cityMatch[1].trim() }),
+    ...(streetMatch && streetMatch[1].trim() && { street: streetMatch[1].trim() }),
     ...(statusMatch && { status: statusMatch[1].trim() as 'draft' | 'published' }),
     ...(publishedAtMatch && { publishedAt: publishedAtMatch[1].trim() }),
     ...(lastModifiedMatch && { lastModified: lastModifiedMatch[1].trim() })
