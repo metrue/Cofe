@@ -8,6 +8,7 @@ street: Kastanjepad
 ---
 
 
+
 我很喜欢旅行，虽然去过的城市不多，但是每一次旅行都有着非常独特的记忆，我偶尔就会想想去看看我都去了哪儿，玩了什么, 遇到什么人，吃了什么好吃的， 碰到了什么奇怪的事情。
 
 所以我就开发 [Mile](https://milemile.app) 这款iOS旅行记录应用，她是我和家人在巴塞罗那旅行的时候，在路边等公交车，突然间想做的一个工具，在巴塞罗那的后面几天晚上，在家人熟睡了之后，我就开始开发 [Mile](https://milemile.app) 。
@@ -33,6 +34,6 @@ street: Kastanjepad
 ---
 
 "旅行似乎一本护照，和一张张的票据"，这是当时在巴塞罗那街头，突然闪现到我脑海里的一句话。它是我做这款应用的原始和朴素的想法，欢迎大家尝试 [Mile](https://milemile.app) ，希望它能帮你留住某些珍贵的回忆。
-[Mile](https://milemile.app)  是一款付费应用：3 元。但是我准备了 100 个 Promo Codes，欢迎感兴趣的朋友私信我获取。
+[Mile](https://milemile.app)  是一款付费应用：3 元。但是我准备了 100 个 Promo Codes，欢迎感兴趣的朋友[私信](mailto:h.minghe@gmail.com)我获取。
 
 到 [App Store](https://apps.apple.com/us/app/mile-track-your-trips/id6757205061) 直接下载使用 [Mile](https://milemile.app) 吧，期待你的反馈！
