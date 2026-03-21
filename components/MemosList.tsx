@@ -78,17 +78,29 @@ export default function PublicMemosList({
 
   return (
     <div className="space-y-4">
-      <div className="columns-1 md:columns-2 gap-4 space-y-4">
-        {formattedMemos.map((memo) => (
-          <div key={memo.id} className="break-inside-avoid mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-2">
+        <div className="flex flex-col gap-2">
+          {formattedMemos.filter((_, index) => index % 2 === 0).map((memo) => (
             <MemoCard
+              key={memo.id}
               memo={memo}
               onDelete={handleDelete}
               onEdit={() => {}}
               isDeleting={deletingMemoId === memo.id}
             />
-          </div>
-        ))}
+          ))}
+        </div>
+        <div className="flex flex-col gap-2">
+          {formattedMemos.filter((_, index) => index % 2 !== 0).map((memo) => (
+            <MemoCard
+              key={memo.id}
+              memo={memo}
+              onDelete={handleDelete}
+              onEdit={() => {}}
+              isDeleting={deletingMemoId === memo.id}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
