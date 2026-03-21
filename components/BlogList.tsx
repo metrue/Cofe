@@ -3,41 +3,58 @@
 import { BlogCard } from './BlogCard'
 import { BlogPost } from '@/lib/types'
 import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { Suspense } from 'react'
 
-export default function BlogList({ posts }: { posts: BlogPost[] }) {
+function BlogListInner({ posts }: { posts: BlogPost[] }) {
   const router = useRouter()
   const t = useTranslations('HomePage')
+  const searchParams = useSearchParams()
+  const query = searchParams.get('q') || ''
 
   if (posts.length === 0) {
     return (
-      <div className='max-w-3xl mx-auto px-4 py-8'>
-        <div className='flex flex-col items-center mt-16 space-y-6'>
-          <div className='text-center space-y-3'>
-            <h2 className='text-2xl font-semibold text-gray-900'>No blog posts yet</h2>
-            <p className='text-gray-500 max-w-md'>Share your thoughts and experiences by creating your first blog post.</p>
-          </div>
-          <Button
-            onClick={() => router.push('/editor?type=blog')}
-            className='bg-black hover:bg-gray-800 text-white px-6 py-3'
-          >
-            {t('createBlogPost')}
-          </Button>
-        </div>
+      <div className='flex flex-col items-center mt-8 space-y-4'>
+        <p className='text-gray-500'>{t('noBlogPostsYet')}</p>
+        <Button
+          onClick={() => router.push('/editor?type=blog')}
+          className='bg-black hover:bg-gray-800 text-white'
+        >
+          {t('createBlogPost')}
+        </Button>
       </div>
     )
   }
 
   const sorted = [...posts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
+  const filtered = query.trim()
+    ? sorted.filter(
+        (p) =>
+          p.title.toLowerCase().includes(query.toLowerCase()) ||
+          (p.content || '').toLowerCase().includes(query.toLowerCase())
+      )
+    : sorted
+
   return (
     <div className='max-w-3xl mx-auto px-4 py-8'>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-        {sorted.map((post) => (
+        {filtered.map((post) => (
           <BlogCard key={post.id} post={post} />
         ))}
       </div>
+      {filtered.length === 0 && query.trim() && (
+        <p className='text-center text-gray-400 mt-8'>No posts found for &quot;{query}&quot;</p>
+      )}
     </div>
+  )
+}
+
+export default function BlogList({ posts }: { posts: BlogPost[] }) {
+  return (
+    <Suspense fallback={null}>
+      <BlogListInner posts={posts} />
+    </Suspense>
   )
 }

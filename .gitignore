@@ -39,3 +39,22 @@ next-env.d.ts
 
 # Claude Code instructions
 CLAUDE.md
+
+# OpenClaw workspace files
+AGENTS.md
+SOUL.md
+USER.md
+TOOLS.md
+IDENTITY.md
+HEARTBEAT.md
+BOOTSTRAP.md
+.openclaw/
+.agents/
+.clawhub/
+.claude/
+skills/
+skills-lock.json
+cofe-*.sh
+cofe-*.txt
+diff-*.txt
+cleanup-branch.sh
