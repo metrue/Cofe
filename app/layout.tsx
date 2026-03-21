@@ -3,6 +3,7 @@ import './globals.css'
 import { getLocale, getMessages } from 'next-intl/server'
 
 import CreateButton from '@/components/CreateButton'
+import PageHeader from '@/components/PageHeader'
 import Head from 'next/head'
 import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
@@ -70,6 +71,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`${gowun_wodum.className} bg-[#f6f8fa]`}>
         <NextIntlClientProvider messages={messages}>
           <SessionProvider>
+            <PageHeader />
             <main className='pb-20 m-auto'>{children}</main>
             <CreateButton messages={messages} />
             <Toaster />

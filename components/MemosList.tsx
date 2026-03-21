@@ -2,23 +2,20 @@
 
 import "katex/dist/katex.min.css";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { Memo } from "@/lib/types";
-import { MemoCard } from "./MemoCard"; // Import MemoCard from MemosList
+import { MemoCard } from "./MemoCard";
 import { formatTimestamp } from "@/lib/utils";
 
 type FormattedMemo = Memo & { formattedTimestamp: string };
 
-export default function PublicMemosList({
-  memos,
-}: {
-  memos: Memo[];
-}) {
-  const [formattedMemos, setFormattedMemos] = useState<
-    FormattedMemo[]
-  >([]);
+function MemosListInner({ memos }: { memos: Memo[] }) {
+  const [formattedMemos, setFormattedMemos] = useState<FormattedMemo[]>([]);
   const [deletingMemoId, setDeletingMemoId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const query = searchParams.get('q') || '';
 
   useEffect(() => {
     const formatted = memos.map((memo) => ({
@@ -64,44 +61,37 @@ export default function PublicMemosList({
     }
   }
 
-
-  if (formattedMemos.length === 0) {
-    return (
-      <div className='flex flex-col items-center mt-16 space-y-6'>
-        <div className='text-center space-y-3'>
-          <h2 className='text-2xl font-semibold text-gray-900'>No memos yet</h2>
-          <p className='text-gray-500 max-w-md'>Capture quick thoughts and moments by creating your first memo.</p>
-        </div>
-      </div>
-    )
-  }
+  const filteredMemos = query.trim()
+    ? formattedMemos.filter(
+        (m) => m.content.toLowerCase().includes(query.toLowerCase())
+      )
+    : formattedMemos;
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 md:grid-cols-2 gap-2">
-        <div className="flex flex-col gap-2">
-          {formattedMemos.filter((_, index) => index % 2 === 0).map((memo) => (
+      <div className="columns-1 md:columns-2 gap-4">
+        {filteredMemos.map((memo) => (
+          <div key={memo.id} className="break-inside-avoid mb-4">
             <MemoCard
-              key={memo.id}
               memo={memo}
               onDelete={handleDelete}
               onEdit={() => {}}
               isDeleting={deletingMemoId === memo.id}
             />
-          ))}
-        </div>
-        <div className="flex flex-col gap-2">
-          {formattedMemos.filter((_, index) => index % 2 !== 0).map((memo) => (
-            <MemoCard
-              key={memo.id}
-              memo={memo}
-              onDelete={handleDelete}
-              onEdit={() => {}}
-              isDeleting={deletingMemoId === memo.id}
-            />
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
+      {filteredMemos.length === 0 && query.trim() && (
+        <p className="text-center text-gray-400 mt-8">No memos found for &quot;{query}&quot;</p>
+      )}
     </div>
+  );
+}
+
+export default function PublicMemosList({ memos }: { memos: Memo[] }) {
+  return (
+    <Suspense fallback={null}>
+      <MemosListInner memos={memos} />
+    </Suspense>
   );
 }
