@@ -1,5 +1,6 @@
 import { createSmartClient } from '@/lib/smartClient'
 import { getDynamicBaseUrl } from '@/lib/siteConfig'
+import type { BlogPost } from '@/lib/types'
 
 export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 3600
 
@@ -7,7 +8,7 @@ export async function GET() {
   const client = createSmartClient()
   const baseUrl = getDynamicBaseUrl()
 
-  let posts = []
+  let posts: BlogPost[] = []
   try {
     posts = await client.getBlogPosts()
   } catch (error) {
