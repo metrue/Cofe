@@ -5,10 +5,12 @@ import { BlogPost } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
 
 export default function BlogList({ posts }: { posts: BlogPost[] }) {
   const router = useRouter()
   const t = useTranslations('HomePage')
+  const [query, setQuery] = useState('')
 
   if (posts.length === 0) {
     return (
@@ -26,24 +28,44 @@ export default function BlogList({ posts }: { posts: BlogPost[] }) {
 
   const sorted = [...posts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
+  const filtered = query.trim()
+    ? sorted.filter(
+        (p) =>
+          p.title.toLowerCase().includes(query.toLowerCase()) ||
+          (p.content || '').toLowerCase().includes(query.toLowerCase())
+      )
+    : sorted
+
   return (
     <div className='max-w-2xl mx-auto p-4'>
+      <div className='mb-4'>
+        <input
+          type='text'
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder='Search posts...'
+          className='w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white'
+        />
+      </div>
       <div className='grid grid-cols-2 md:grid-cols-2 gap-4'>
         <div className='flex flex-col gap-4'>
-          {sorted
+          {filtered
             .filter((_, index) => index % 2 === 0)
             .map((post) => (
               <BlogCard key={post.id} post={post} />
             ))}
         </div>
         <div className='flex flex-col gap-2'>
-          {sorted
+          {filtered
             .filter((_, index) => index % 2 !== 0)
             .map((post) => (
               <BlogCard key={post.id} post={post} />
             ))}
         </div>
       </div>
+      {filtered.length === 0 && query.trim() && (
+        <p className='text-center text-gray-400 mt-8'>No posts found for &quot;{query}&quot;</p>
+      )}
     </div>
   )
 }

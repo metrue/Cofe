@@ -19,6 +19,7 @@ export default function PublicMemosList({
     FormattedMemo[]
   >([]);
   const [deletingMemoId, setDeletingMemoId] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     const formatted = memos.map((memo) => ({
@@ -65,11 +66,27 @@ export default function PublicMemosList({
   }
 
 
+  const filteredMemos = query.trim()
+    ? formattedMemos.filter(
+        (m) =>
+          m.content.toLowerCase().includes(query.toLowerCase())
+      )
+    : formattedMemos;
+
   return (
     <div className="max-w-2xl mx-auto p-4">
+      <div className="mb-4">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search memos..."
+          className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white"
+        />
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-2 gap-2">
         <div className="flex flex-col gap-2">
-          {formattedMemos.filter((_, index) => index % 2 !== 0).map((memo) => (
+          {filteredMemos.filter((_, index) => index % 2 === 0).map((memo) => (
             <MemoCard
               key={memo.id}
               memo={memo}
@@ -80,7 +97,7 @@ export default function PublicMemosList({
           ))}
         </div>
         <div className="flex flex-col gap-2">
-          {memos.filter((_, index) => index % 2 === 0).map((memo) => (
+          {filteredMemos.filter((_, index) => index % 2 !== 0).map((memo) => (
             <MemoCard
               key={memo.id}
               memo={memo}
@@ -91,6 +108,9 @@ export default function PublicMemosList({
           ))}
         </div>
       </div>
+      {filteredMemos.length === 0 && query.trim() && (
+        <p className="text-center text-gray-400 mt-8">No memos found for &quot;{query}&quot;</p>
+      )}
     </div>
   );
 }
