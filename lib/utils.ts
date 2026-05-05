@@ -52,6 +52,32 @@ export function getRelativeTimeString(timestamp: string): string {
 }
 
 /**
+ * Sentinel timestamp prefix used by the DailyMemo importer for memos that
+ * have no original creation date. Any memo whose timestamp starts with this
+ * value is treated as "date unknown" by the UI.
+ */
+export const MEMO_UNKNOWN_DATE_SENTINEL = '2000-01-01T00:00:00';
+
+/**
+ * Format a memo's timestamp for display.
+ * - Sentinel timestamps render as "date unknown".
+ * - Everything else renders as DD/MM/YYYY in the viewer's local time zone.
+ */
+export function formatMemoDate(timestamp: string): string {
+  if (timestamp.startsWith(MEMO_UNKNOWN_DATE_SENTINEL)) {
+    return 'date unknown';
+  }
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) {
+    return 'invalid date';
+  }
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+/**
  * Process memo content for preview in StatusCard
  * - Strips image markdown syntax
  * - Replaces images with [image] placeholder

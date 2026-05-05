@@ -4,7 +4,7 @@ import { FaGithub, FaLinkedin, FaPodcast, FaTwitter } from 'react-icons/fa'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Memo } from '@/lib/types'
-import { getRelativeTimeString, processMemoForPreview } from '@/lib/utils'
+import { formatMemoDate, processMemoForPreview } from '@/lib/utils'
 
 const SocialLink = ({ href, title, icon, label, textClassName = '' }: {
   href: string
@@ -113,7 +113,7 @@ export const StatusCard = ({
           <div className='flex-1 min-w-0 pt-4'>
             <div className='flex justify-between items-center mb-3'>
               <time className='text-xs text-gray-400' dateTime='2023-05-26T09:12:00Z'>
-                {`@${name}` + ' ' + (memo ? getRelativeTimeString(memo.timestamp) : '')}
+                {`@${name}` + ' ' + (memo ? formatMemoDate(memo.timestamp) : '')}
               </time>
               <Link href='/memos' className='text-xs text-gray-400 hover:text-gray-600 underline'>
                 more
