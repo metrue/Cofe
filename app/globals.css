@@ -69,3 +69,20 @@
     text-decoration-thickness: 0.5px;
   }
 }
+
+/* Masonry layout for the memos feed */
+.memos-masonry {
+  display: flex;
+  margin-left: -1rem; /* counter the column gutter */
+  width: auto;
+}
+
+.memos-masonry-col {
+  /* flex:1 with 0 basis forces every column to share the available width
+     equally — without this, columns size to their tallest card and the
+     left/right gutters end up uneven. */
+  flex: 1 1 0;
+  min-width: 0;
+  padding-left: 1rem;
+  background-clip: padding-box;
+}

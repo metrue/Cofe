@@ -3,21 +3,25 @@
 import "katex/dist/katex.min.css";
 
 import { useEffect, useState } from "react";
+import Masonry from "react-masonry-css";
 
 import { Memo } from "@/lib/types";
-import { MemoCard } from "./MemoCard"; // Import MemoCard from MemosList
+import { MemoCard } from "./MemoCard";
 import { formatTimestamp } from "@/lib/utils";
 
 type FormattedMemo = Memo & { formattedTimestamp: string };
+
+const breakpointColumns = {
+  default: 2,
+  768: 1, // single column under md breakpoint
+};
 
 export default function PublicMemosList({
   memos,
 }: {
   memos: Memo[];
 }) {
-  const [formattedMemos, setFormattedMemos] = useState<
-    FormattedMemo[]
-  >([]);
+  const [formattedMemos, setFormattedMemos] = useState<FormattedMemo[]>([]);
   const [deletingMemoId, setDeletingMemoId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -77,31 +81,21 @@ export default function PublicMemosList({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 md:grid-cols-2 gap-2">
-        <div className="flex flex-col gap-2">
-          {formattedMemos.filter((_, index) => index % 2 === 0).map((memo) => (
-            <MemoCard
-              key={memo.id}
-              memo={memo}
-              onDelete={handleDelete}
-              onEdit={() => {}}
-              isDeleting={deletingMemoId === memo.id}
-            />
-          ))}
+    <Masonry
+      breakpointCols={breakpointColumns}
+      className="memos-masonry"
+      columnClassName="memos-masonry-col"
+    >
+      {formattedMemos.map((memo) => (
+        <div key={memo.id} className="mb-4">
+          <MemoCard
+            memo={memo}
+            onDelete={handleDelete}
+            onEdit={() => { }}
+            isDeleting={deletingMemoId === memo.id}
+          />
         </div>
-        <div className="flex flex-col gap-2">
-          {formattedMemos.filter((_, index) => index % 2 !== 0).map((memo) => (
-            <MemoCard
-              key={memo.id}
-              memo={memo}
-              onDelete={handleDelete}
-              onEdit={() => {}}
-              isDeleting={deletingMemoId === memo.id}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
+      ))}
+    </Masonry>
   );
 }
