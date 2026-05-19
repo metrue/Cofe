@@ -1199,7 +1199,7 @@ footer.deck-chrome button:hover {
 </section>
 
 <!-- 5. COORDINATION COST -->
-<section class="slide" data-notes="Here's what those gaps actually cost us. Weeks just to onboard one new sensitive field. N+ audit trails — one per enforcement system, multiplied every time a regulator asked a question. Zero places where anyone could see all the enforcement applied to a single field. And constant drift — every team's changes just made things worse. Now, if we'd treated this as a security problem, we'd have written more security code. We treated it as a coordination problem. That's when we found the pattern.">
+<section class="slide" data-notes="Here's what those gaps actually cost us. Weeks just to onboard one new sensitive field. N+ audit trails — one per enforcement system, multiplied every time a regulator asked a question. Zero places where anyone could see all the enforcement applied to a single field. And constant drift — every team's changes just made things worse. Now, if we'd treated this as a security problem, we'd have written more security code. We treated it as a coordination problem. So we started asking a different question.">
   <div class="kicker">The Cost <span class="folio">¶ 05</span></div>
   <h2>The coordination cost, by the numbers.</h2>
   <div class="kpi-grid">
@@ -1212,15 +1212,14 @@ footer.deck-chrome button:hover {
 </section>
 
 <!-- 6. THE INSIGHT -->
-<section class="slide" data-notes="What if the schema is the contract — declaring which policies apply to which fields — and the router is the one place where every team's policies actually get evaluated? Schema becomes the coordination contract. The policy engine becomes where each team writes their own rules, independently. And the router? That's the unified enforcer. That's the whole pattern. Let me show you what it looks like in the schema itself.">
+<section class="slide" data-notes="Three things make this work. The schema becomes the coordination contract — where every team declares which policies apply to which fields. The policy engine is where each team authors their own rules, independently. And the router is the unified enforcer — one place, every policy, every request. That's the whole pattern. Let me show you what it looks like in the schema itself.">
   <div class="kicker">The Insight <span class="folio">¶ 06</span></div>
   <span class="insight-mark">¶</span>
   <div class="big-text">
-    What if the <span class="accent">schema</span> declares the contract,<br>
-    but the <span class="accent">router</span> evaluates<br>
-    every team's policies at one place?
+    <span class="accent">Schema</span> = the coordination contract.<br>
+    <span class="accent">Policy engine</span> = where teams author their concerns independently.<br>
+    <span class="accent">Router</span> = the unified enforcer.
   </div>
-  <p class="muted" style="max-width: 60ch;">Schema = the coordination contract.<br>Policy engine = where teams author their concerns independently.<br>Router = the unified enforcer.</p>
 </section>
 
 <!-- 7. @POLICY -->
