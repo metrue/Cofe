@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coordinated Access Control with @policy — Minghe Huang · Field Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  /* Day Edition */
+  --paper:        #f5efe4;
+  --paper-2:      #ebe3d4;
+  --paper-shade:  #ddd3c0;
+  --ink:          #1a1816;
+  --ink-2:        #5c554a;
+  --rule:         #1a1816;
+  --rule-soft:    #c5b9a0;
+  --accent:       #a4243b;
+  --accent-deep:  #6b1726;
+  --signal:       #c69a30;
+  --good:         #4a6f3d;
+  --warn:         #a4243b;
+  --code-bg:      #ebe3d4;
+  --noise-opacity: 0.045;
+}
+[data-theme="dark"] {
+  /* Night Edition */
+  --paper:        #161310;
+  --paper-2:      #1f1b16;
+  --paper-shade:  #25201a;
+  --ink:          #f0e8d8;
+  --ink-2:        #8a8074;
+  --rule:         #f0e8d8;
+  --rule-soft:    #3a342a;
+  --accent:       #d96978;
+  --accent-deep:  #b04a5b;
+  --signal:       #e8c547;
+  --good:         #93b67c;
+  --warn:         #d96978;
+  --code-bg:      #1f1b16;
+  --noise-opacity: 0.03;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow-x: hidden; }
+body {
+  font-family: 'Newsreader', 'Iowan Old Style', 'Charter', Georgia, serif;
+  font-feature-settings: 'tnum' 1, 'kern' 1, 'liga' 1, 'onum' 1;
+  font-variation-settings: 'opsz' 22;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1.55;
+  overflow: hidden;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* ---------- Type / spacing tokens (viewport-relative) ---------- */
+:root {
+  --slide-pad-x: clamp(1.6rem, 5.6vw, 5rem);
+  --slide-pad-top: clamp(1rem, 3vh, 2.4rem);
+  --slide-pad-bottom: clamp(2.4rem, 4vh, 3.4rem);
+  --content-gap: clamp(0.4rem, 1.4vh, 1rem);
+}
+
+/* ---------- Newsprint texture ---------- */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: var(--noise-opacity);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  mix-blend-mode: multiply;
+}
+[data-theme="dark"] body::before { mix-blend-mode: screen; }
+
+/* ---------- Masthead removed ---------- */
+
+/* ---------- Deck container ---------- */
+#deck { position: relative; height: 100vh; height: 100dvh; width: 100vw; }
+
+.slide {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  padding: var(--slide-pad-top) var(--slide-pad-x) var(--slide-pad-bottom);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.42s ease;
+  overflow: hidden;
+  z-index: 1;
+}
+.slide.active { opacity: 1; pointer-events: auto; z-index: 2; }
+
+/* ---------- Stagger reveal ---------- */
+@keyframes paperFade {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ruleSweep {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.slide.active > * { animation: paperFade 0.55s ease-out backwards; }
+.slide.active > *:nth-child(1) { animation-delay: 0.05s; }
+.slide.active > *:nth-child(2) { animation-delay: 0.13s; }
+.slide.active > *:nth-child(3) { animation-delay: 0.21s; }
+.slide.active > *:nth-child(4) { animation-delay: 0.29s; }
+.slide.active > *:nth-child(5) { animation-delay: 0.37s; }
+.slide.active > *:nth-child(n+6) { animation-delay: 0.45s; }
+
+/* ---------- Kicker (eyebrow) ---------- */
+.kicker {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+  font-family: 'Fraunces', Georgia, serif;
+  font-variation-settings: 'opsz' 9, 'wght' 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.kicker::before {
+  content: "";
+  width: 1.6rem;
+  height: 2px;
+  background: var(--accent);
+  display: inline-block;
+  transform-origin: left;
+  animation: ruleSweep 0.7s 0.1s ease-out backwards;
+}
+.kicker .folio {
+  margin-left: auto;
+  color: var(--ink-2);
+  font-variation-settings: 'opsz' 9, 'wght' 500;
+  letter-spacing: 0.28em;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* ---------- Headlines ---------- */
+.slide h1 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-variation-settings: 'opsz' 144, 'wght' 700;
+  font-size: clamp(2.2rem, 4.6vw, 4rem);
+  line-height: 0.96;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin-bottom: 1.2rem;
+}
+.slide h2 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-variation-settings: 'opsz' 96, 'wght' 600;
+  font-size: clamp(1.5rem, 2.7vw, 2.4rem);
+  line-height: 1.05;
+  letter-spacing: -0.022em;
+  color: var(--ink);
+  margin-bottom: 0.9rem;
+  max-width: 22ch;
+}
+.slide h2 em {
+  color: var(--accent);
+  font-style: italic;
+  font-variation-settings: 'opsz' 96, 'wght' 600;
+}
+.slide h3 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-variation-settings: 'opsz' 36, 'wght' 600;
+  font-size: clamp(1.1rem, 1.7vw, 1.4rem);
+  margin-top: 1.4rem;
+  margin-bottom: 0.55rem;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Body text ---------- */
+.slide p, .slide li {
+  font-family: 'Newsreader', Georgia, serif;
+  font-variation-settings: 'opsz' 22;
+  font-size: clamp(1.02rem, 1.4vw, 1.22rem);
+  line-height: 1.55;
+  color: var(--ink);
+}
+.slide p { margin-bottom: 0.95rem; max-width: 72ch; }
+.slide ul { margin-left: 1.4em; margin-bottom: 0.95rem; max-width: 72ch; list-style: none; }
+.slide ul li {
+  position: relative;
+  margin-bottom: 0.5rem;
+  padding-left: 0.4em;
+}
+.slide ul li::before {
+  content: "¶";
+  position: absolute;
+  left: -1.2em;
+  color: var(--accent);
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'wght' 500;
+  font-size: 0.95em;
+}
+.slide .muted { color: var(--ink-2); font-style: italic; }
+.slide .accent { color: var(--accent); font-weight: 600; font-style: normal; }
+.slide .warn { color: var(--accent); font-weight: 600; }
+.slide .good { color: var(--good); font-weight: 600; }
+.slide strong { color: var(--ink); font-weight: 700; }
+
+/* ---------- Inline code ---------- */
+.slide code:not(pre code) {
+  font-family: 'JetBrains Mono', SFMono-Regular, Menlo, monospace;
+  font-size: 0.88em;
+  background: var(--paper-2);
+  padding: 0.08em 0.42em;
+  border: 1px solid var(--rule-soft);
+  border-radius: 2px;
+  color: var(--ink);
+}
+
+/* Inline code inside headlines: drop the box, keep the monospace font, GraphQL pink */
+.slide h1 code:not(pre code), .slide h2 code:not(pre code) {
+  background: transparent;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: 0.82em;
+  color: #E10098;
+}
+
+/* ---------- Code block as "Exhibit" ---------- */
+.slide pre {
+  position: relative;
+  background: var(--paper-2);
+  color: var(--ink);
+  padding: 1.2rem 1.4rem 1rem;
+  font-family: 'JetBrains Mono', SFMono-Regular, Menlo, monospace;
+  font-size: clamp(0.78rem, 1vw, 0.96rem);
+  line-height: 1.55;
+  overflow-x: auto;
+  border-top: 2px solid var(--rule);
+  border-bottom: 2px solid var(--rule);
+  border-radius: 0;
+  margin: 0.7rem 0;
+  box-shadow: none;
+}
+.slide pre::before {
+  content: "Exhibit · Verbatim";
+  position: absolute;
+  top: -0.62rem;
+  left: 1.4rem;
+  background: var(--paper);
+  padding: 0 0.6rem;
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 700;
+  font-size: 0.6rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* ---------- Blockquote ---------- */
+.slide blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 0.4rem 0 0.4rem 1.2rem;
+  margin: 1rem 0;
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-variation-settings: 'opsz' 36;
+  color: var(--ink);
+  font-size: clamp(1.1rem, 1.7vw, 1.4rem);
+  max-width: 70ch;
+}
+
+/* ---------- TITLE slide (front page) ---------- */
+.title-slide {
+  align-items: stretch;
+  justify-content: flex-start;
+  padding-top: clamp(3vh, 6vh, 8vh);
+  padding-bottom: clamp(3.5rem, 6vh, 5rem);
+}
+.title-slide .frontpage-rule {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 4px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 0.5rem 0.2rem;
+  margin-bottom: 2.6rem;
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.title-slide .frontpage-rule .vol { color: var(--ink-2); }
+.title-slide .frontpage-rule .price { color: var(--accent); }
+.title-slide h1 {
+  font-size: clamp(3.4rem, 9vw, 7rem);
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  margin-bottom: 1.2rem;
+  max-width: 14ch;
+  font-variation-settings: 'opsz' 144, 'wght' 800;
+}
+.title-slide h1 .ampersand {
+  font-style: italic;
+  color: var(--accent);
+  font-variation-settings: 'opsz' 144, 'wght' 400;
+}
+.title-slide .deck {
+  font-family: 'Newsreader', serif;
+  font-variation-settings: 'opsz' 36, 'wght' 400;
+  font-style: italic;
+  font-size: clamp(1.3rem, 2.2vw, 1.85rem);
+  color: var(--ink-2);
+  margin-bottom: 2.4rem;
+  max-width: 38ch;
+  line-height: 1.32;
+}
+.title-slide .byline {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 1rem;
+  margin-top: auto;
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 36, 'wght' 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+.title-slide .byline .name {
+  color: var(--ink);
+  font-variation-settings: 'opsz' 36, 'wght' 700;
+  font-size: 1.05rem;
+}
+.title-slide .byline .meta {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-variation-settings: 'opsz' 22, 'wght' 400;
+  color: var(--ink-2);
+  letter-spacing: 0;
+}
+.title-slide .byline .reading-time {
+  margin-left: auto;
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 600;
+  font-size: 0.66rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* ---------- Two-column layout ---------- */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.6rem;
+  align-items: start;
+  margin-top: 1rem;
+  position: relative;
+}
+.two-col::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 50%;
+  width: 1px;
+  background: var(--rule-soft);
+  transform: translateX(-50%);
+}
+.col h3 { margin-top: 0; }
+.col-head {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid currentColor;
+  display: inline-block;
+}
+.col-head.before { color: var(--accent); }
+.col-head.after { color: var(--good); }
+
+/* ---------- Callout ---------- */
+.callout {
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 0.7rem 0;
+  margin: 0.9rem 0 0.4rem;
+  font-family: 'Newsreader', serif;
+  font-variation-settings: 'opsz' 36;
+  font-style: italic;
+  font-size: clamp(0.95rem, 1.35vw, 1.18rem);
+  line-height: 1.4;
+  max-width: 76ch;
+  color: var(--ink);
+  position: relative;
+}
+.callout::before {
+  content: "❝";
+  position: absolute;
+  left: -1.4rem;
+  top: 0.2rem;
+  font-family: 'Fraunces', serif;
+  font-size: 1.7rem;
+  color: var(--accent);
+  font-style: normal;
+}
+.callout strong { color: var(--accent); font-weight: 700; }
+
+/* ---------- KPI grid (ledger) ---------- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0;
+  margin: 0.9rem 0;
+  border-top: 2px solid var(--rule);
+  border-bottom: 2px solid var(--rule);
+}
+.kpi {
+  padding: 1rem 1.2rem 0.9rem;
+  border-right: 1px solid var(--rule-soft);
+  background: transparent;
+  border-radius: 0;
+}
+.kpi:last-child { border-right: none; }
+.kpi .num {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 144, 'wght' 700;
+  font-size: clamp(1.6rem, 2.8vw, 2.6rem);
+  color: var(--accent);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  margin-bottom: 0.4rem;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+.kpi .label {
+  font-family: 'Newsreader', serif;
+  font-variation-settings: 'opsz' 14;
+  font-style: italic;
+  font-size: clamp(0.78rem, 0.95vw, 0.92rem);
+  color: var(--ink-2);
+  line-height: 1.3;
+  max-width: 26ch;
+}
+
+/* ---------- Six stakeholder briefs ---------- */
+.stakeholders {
+  counter-reset: stake;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  margin: 0.5rem 0 0;
+  border-top: 2px solid var(--rule);
+}
+.stake {
+  counter-increment: stake;
+  position: relative;
+  padding: 0.7rem 1.2rem 0.75rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  border-right: 1px solid var(--rule-soft);
+  background: transparent;
+}
+.stake:nth-child(2n) { padding-right: 0; padding-left: 1.2rem; border-right: none; }
+.stake:nth-last-child(-n+2) { border-bottom: none; }
+.stake::before {
+  content: counter(stake, decimal-leading-zero);
+  position: absolute;
+  top: 0.7rem;
+  right: 0;
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 144, 'wght' 300;
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--accent);
+  font-feature-settings: 'lnum' 1;
+}
+.stake:nth-child(2n)::before { right: auto; left: 0; top: 0.7rem; }
+.stake:nth-child(2n) .who, .stake:nth-child(2n) .claim { padding-left: 1.9rem; }
+.stake:nth-child(odd) .who, .stake:nth-child(odd) .claim { padding-right: 1.9rem; }
+.stake .who {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 36, 'wght' 700;
+  font-size: clamp(0.92rem, 1.2vw, 1.08rem);
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+}
+.stake .claim {
+  color: var(--ink-2);
+  font-family: 'Newsreader', serif;
+  font-size: clamp(0.82rem, 1vw, 0.94rem);
+  line-height: 1.4;
+}
+.stake .claim strong { color: var(--accent); font-weight: 600; }
+.stake .claim em {
+  font-style: italic;
+  color: var(--ink);
+}
+.stake-head {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 0.7rem 1.2rem 0.55rem 0;
+  border-bottom: 2px solid var(--rule);
+  border-right: 1px solid var(--rule-soft);
+  background: transparent;
+}
+.stake-head.right-col {
+  padding: 0.7rem 0 0.55rem 1.2rem;
+  border-right: none;
+  color: var(--ink-2);
+}
+
+/* ---------- Architecture flow (typewriter) ---------- */
+.arch-flow {
+  font-family: 'JetBrains Mono', SFMono-Regular, Menlo, monospace;
+  background: var(--paper-2);
+  padding: 1.1rem 1.4rem 1rem;
+  margin: 0.7rem 0 0.7rem;
+  font-size: clamp(0.7rem, 0.95vw, 0.92rem);
+  line-height: 1.5;
+  border-top: 2px solid var(--rule);
+  border-bottom: 2px solid var(--rule);
+  border-radius: 0;
+  position: relative;
+  white-space: pre;
+  overflow-x: auto;
+}
+.arch-flow::before {
+  content: "Trace · Verbatim";
+  position: absolute;
+  top: -0.62rem;
+  left: 1.4rem;
+  background: var(--paper);
+  padding: 0 0.6rem;
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 700;
+  font-size: 0.6rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.arch-flow .hop { color: var(--ink-2); }
+.arch-flow .step { color: var(--ink); font-weight: 500; }
+.arch-flow .pol { color: var(--accent); font-weight: 600; }
+.arch-flow .ok { color: var(--good); font-weight: 700; }
+.arch-flow .bad { color: var(--accent); font-weight: 700; }
+.arch-flow .label { color: var(--ink-2); font-style: italic; }
+
+/* ---------- Coordination layers (ledger table) ---------- */
+.layers {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr 1fr;
+  gap: 0;
+  margin: 0.9rem 0;
+  border-top: 2px solid var(--rule);
+  border-bottom: 2px solid var(--rule);
+}
+.layers .h, .layers .c {
+  padding: 0.75rem 1.1rem;
+  border-bottom: 1px solid var(--rule-soft);
+  font-size: clamp(0.88rem, 1.15vw, 1.05rem);
+  border-right: 1px solid var(--rule-soft);
+}
+.layers .c:nth-child(3n), .layers .h:nth-child(3n) { border-right: none; }
+.layers > div:nth-last-child(-n+3) { border-bottom: none; }
+.layers .h {
+  background: transparent;
+  color: var(--accent);
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--rule);
+  padding-bottom: 0.6rem;
+}
+.layers .c.l-name {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 36, 'wght' 700;
+  color: var(--ink);
+  font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+}
+.layers .c.l-owner {
+  color: var(--accent);
+  font-weight: 500;
+  font-family: 'Newsreader', serif;
+}
+.layers .c.l-cadence {
+  color: var(--ink-2);
+  font-style: italic;
+  font-family: 'Newsreader', serif;
+}
+
+/* ---------- Chaos grid (slide 4: classified-ad style) ---------- */
+.chaos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  margin: 0.7rem 0;
+  border-top: 2px solid var(--rule);
+  border-bottom: 2px solid var(--rule);
+}
+.chaos-grid .box {
+  padding: 0.85rem 1rem 0.85rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(0.78rem, 1vw, 0.95rem);
+  text-align: left;
+  background: transparent;
+  border-right: 1px solid var(--rule-soft);
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+  color: var(--ink);
+}
+.chaos-grid .box:nth-child(3n) { border-right: none; }
+.chaos-grid .box:nth-last-child(-n+3) { border-bottom: none; }
+.chaos-grid .box::after {
+  content: "✕";
+  position: absolute;
+  top: 0.55rem;
+  right: 0.7rem;
+  color: var(--accent);
+  font-size: 0.65rem;
+  font-family: 'Fraunces', serif;
+}
+.chaos-grid .box .who {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 700;
+  color: var(--accent);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+/* ---------- Timeline (numbered stages) ---------- */
+.timeline {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem 1.4rem;
+  margin: 0.8rem 0;
+  align-items: baseline;
+  border-top: 2px solid var(--rule);
+  padding-top: 0.9rem;
+}
+.timeline .stage {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 144, 'wght' 700;
+  font-style: italic;
+  font-size: clamp(1.2rem, 1.9vw, 1.7rem);
+  color: var(--accent);
+  text-align: right;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
+  font-feature-settings: 'lnum' 1;
+  min-width: 4.5rem;
+}
+.timeline > div:nth-child(2n) {
+  font-family: 'Newsreader', serif;
+  font-variation-settings: 'opsz' 22;
+  color: var(--ink);
+  font-size: clamp(0.92rem, 1.2vw, 1.1rem);
+  line-height: 1.45;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.timeline > div:nth-last-child(1) { border-bottom: none; padding-bottom: 0; }
+
+/* ---------- Lessons (editorial column) ---------- */
+.lessons {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-top: 0.7rem;
+  border-top: 2px solid var(--rule);
+}
+.lesson {
+  padding: 0.85rem 0 0.95rem;
+  border-bottom: 1px solid var(--rule-soft);
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+.lesson:last-child { border-bottom: none; }
+.lesson .num {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding-top: 0.25rem;
+}
+.lesson .num::after {
+  content: "";
+  display: block;
+  width: 1.4rem;
+  height: 2px;
+  background: var(--accent);
+  margin-top: 0.4rem;
+}
+.lesson .head {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 96, 'wght' 600;
+  font-size: clamp(1.05rem, 1.65vw, 1.4rem);
+  line-height: 1.18;
+  margin-bottom: 0.3rem;
+  color: var(--ink);
+  letter-spacing: -0.015em;
+}
+.lesson .body {
+  font-family: 'Newsreader', serif;
+  font-variation-settings: 'opsz' 22;
+  font-size: clamp(0.88rem, 1.1vw, 1.02rem);
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+
+/* ---------- Verdict cards (slide 15) ---------- */
+.attempts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin: 0.7rem 0 0.4rem;
+  border-top: 2px solid var(--rule);
+}
+.attempt {
+  padding: 0.85rem 0 0.95rem;
+  display: grid;
+  grid-template-columns: 4.5rem 1fr 7rem;
+  gap: 1.4rem;
+  align-items: center;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.attempt:last-child { border-bottom: none; }
+.attempt .ver {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 144, 'wght' 700;
+  font-style: italic;
+  font-size: clamp(1.7rem, 2.8vw, 2.4rem);
+  color: var(--accent);
+  letter-spacing: -0.04em;
+  font-feature-settings: 'lnum' 1;
+}
+.attempt .desc {
+  font-family: 'Newsreader', serif;
+  font-variation-settings: 'opsz' 22;
+  font-size: clamp(0.92rem, 1.2vw, 1.08rem);
+  line-height: 1.45;
+  color: var(--ink);
+}
+.attempt .verdict {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  padding: 0.55rem 0.8rem;
+  text-align: center;
+  border: 2px solid currentColor;
+  white-space: nowrap;
+}
+.attempt.fail .verdict { color: var(--accent); }
+.attempt.win .verdict { color: var(--good); background: var(--good); color: var(--paper); border-color: var(--good); }
+.attempt.fail .ver { color: var(--accent); }
+.attempt.win .ver { color: var(--good); }
+
+/* ---------- Big-text editorial pullquote ---------- */
+.big-text {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 144, 'wght' 400;
+  font-style: italic;
+  font-size: clamp(1.8rem, 3.6vw, 3.1rem);
+  line-height: 1.18;
+  letter-spacing: -0.022em;
+  max-width: 22ch;
+  margin-bottom: 1.6rem;
+  color: var(--ink);
+}
+.big-text .accent {
+  color: var(--accent);
+  font-style: normal;
+  font-variation-settings: 'opsz' 144, 'wght' 700;
+}
+.big-text .warn {
+  color: var(--ink-2);
+  font-style: normal;
+  text-decoration: line-through;
+  text-decoration-thickness: 3px;
+  text-decoration-color: var(--accent);
+  text-decoration-skip-ink: none;
+}
+.big-text em {
+  font-style: italic;
+  color: var(--ink);
+  font-variation-settings: 'opsz' 144, 'wght' 500;
+}
+
+/* Slide 6 / 12 specific */
+.insight-mark {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: clamp(3rem, 5vw, 4.5rem);
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* ---------- Closing slide ---------- */
+.closing-page {
+  justify-content: space-between;
+}
+.closing-page .lede { margin-top: 1rem; }
+.closing-page .signoff {
+  margin-top: auto;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.closing-page .signoff .right { color: var(--accent); }
+
+/* ---------- Footer chrome ---------- */
+footer.deck-chrome {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.55rem 1.4rem;
+  pointer-events: none;
+  z-index: 25;
+  background: transparent;
+}
+footer.deck-chrome .right { display: flex; gap: 0.45rem; pointer-events: auto; }
+footer.deck-chrome button {
+  background: transparent;
+  border: 1px solid var(--rule-soft);
+  color: var(--ink-2);
+  padding: 0.32rem 0.7rem;
+  border-radius: 0;
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 600;
+  font-size: 0.62rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+footer.deck-chrome button:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ---------- Help overlay ---------- */
+.help-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26,24,22,0.78);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(2px);
+}
+[data-theme="dark"] .help-overlay { background: rgba(0,0,0,0.85); }
+.help-overlay.show { display: flex; }
+.help-overlay .panel {
+  background: var(--paper);
+  border: 2px solid var(--rule);
+  border-radius: 0;
+  padding: 2.2rem 2.6rem;
+  max-width: 520px;
+  width: 90vw;
+  position: relative;
+}
+.help-overlay .panel::before {
+  content: "Manual";
+  position: absolute;
+  top: -0.7rem;
+  left: 1.5rem;
+  background: var(--paper);
+  padding: 0 0.6rem;
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 700;
+  font-size: 0.62rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.help-overlay h3 {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 96, 'wght' 700;
+  font-size: 1.4rem;
+  margin-bottom: 1.1rem;
+  color: var(--ink);
+  letter-spacing: -0.015em;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.7rem;
+}
+.help-overlay table { width: 100%; }
+.help-overlay td {
+  padding: 0.45rem 0.5rem;
+  font-family: 'Newsreader', serif;
+  font-size: 0.95rem;
+  color: var(--ink);
+  border-bottom: 1px dotted var(--rule-soft);
+}
+.help-overlay tr:last-child td { border-bottom: none; }
+.help-overlay td:first-child {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent);
+  white-space: nowrap;
+  font-weight: 500;
+  width: 35%;
+}
+
+/* ---------- Notes panel ---------- */
+.notes-panel {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--paper);
+  border-top: 3px double var(--rule);
+  padding: 1.3rem 2rem 1.6rem;
+  max-height: 38vh;
+  overflow-y: auto;
+  display: none;
+  font-family: 'Newsreader', serif;
+  font-variation-settings: 'opsz' 22;
+  font-size: 0.95rem;
+  color: var(--ink);
+  z-index: 50;
+  box-shadow: 0 -3px 0 var(--paper);
+}
+.notes-panel.show { display: block; }
+.notes-panel h4 {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 9, 'wght' 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.7rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+.notes-panel p {
+  font-family: 'Newsreader', serif;
+  line-height: 1.55;
+  max-width: 90ch;
+}
+.notes-panel p::first-letter {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 144, 'wght' 700;
+  font-size: 2.4rem;
+  float: left;
+  line-height: 0.85;
+  margin: 0.18rem 0.5rem 0 0;
+  color: var(--accent);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.2s !important;
+  }
+  .slide.active > *,
+  .kicker::before { animation: none !important; }
+  body { transition: none !important; }
+}
+
+/* ---------- Height-based responsive scaling ---------- */
+@media (max-height: 800px) {
+  :root {
+    --slide-pad-top: clamp(0.7rem, 2vh, 1.4rem);
+    --slide-pad-bottom: clamp(2.2rem, 3vh, 3rem);
+  }
+  .slide h1 { font-size: clamp(2rem, 4.2vw, 3.4rem); margin-bottom: 0.9rem; }
+  .slide h2 { font-size: clamp(1.35rem, 2.4vw, 2rem); margin-bottom: 0.7rem; }
+  .kicker { margin-bottom: 0.8rem; font-size: 0.66rem; }
+  .arch-flow { font-size: clamp(0.66rem, 0.85vw, 0.85rem); padding: 0.85rem 1.2rem; line-height: 1.45; }
+  .slide pre { font-size: clamp(0.72rem, 0.9vw, 0.88rem); line-height: 1.5; padding: 0.95rem 1.2rem 0.85rem; }
+  .kpi .num { font-size: clamp(1.4rem, 2.4vw, 2.2rem); }
+  .big-text { font-size: clamp(1.55rem, 3vw, 2.7rem); }
+  .stake { padding-top: 0.55rem; padding-bottom: 0.6rem; }
+  .lesson { padding: 0.7rem 0 0.8rem; }
+  .attempt { padding: 0.7rem 0 0.8rem; }
+  .timeline { gap: 0.5rem 1.2rem; }
+}
+@media (max-height: 700px) {
+  :root {
+    --slide-pad-top: 0.7rem;
+    --slide-pad-bottom: 2.6rem;
+    --slide-pad-x: clamp(1.2rem, 4vw, 3rem);
+  }
+  .slide h1 { font-size: clamp(1.7rem, 3.6vw, 2.8rem); margin-bottom: 0.6rem; }
+  .slide h2 { font-size: clamp(1.15rem, 2vw, 1.7rem); margin-bottom: 0.55rem; }
+  .arch-flow { font-size: clamp(0.6rem, 0.78vw, 0.78rem); padding: 0.65rem 1rem; line-height: 1.4; }
+  .slide pre { font-size: clamp(0.66rem, 0.82vw, 0.8rem); line-height: 1.45; padding: 0.7rem 1rem 0.65rem; }
+  .kpi { padding: 0.7rem 1rem 0.6rem; }
+  .kpi .num { font-size: clamp(1.2rem, 2vw, 1.85rem); margin-bottom: 0.25rem; }
+  .kpi .label { font-size: 0.74rem; }
+  .big-text { font-size: clamp(1.3rem, 2.5vw, 2.1rem); }
+  .lesson .head { font-size: clamp(0.95rem, 1.4vw, 1.2rem); }
+  .lesson .body { font-size: clamp(0.82rem, 1vw, 0.94rem); }
+  .stakeholders { font-size: 0.94em; }
+  .stake .who { font-size: clamp(0.86rem, 1.1vw, 1rem); }
+  .stake .claim { font-size: clamp(0.76rem, 0.92vw, 0.88rem); line-height: 1.35; }
+  .timeline > div:nth-child(2n) { font-size: clamp(0.85rem, 1.1vw, 1rem); padding-bottom: 0.45rem; }
+  .timeline { gap: 0.45rem 1rem; padding-top: 0.7rem; }
+  .timeline .stage { font-size: clamp(1rem, 1.6vw, 1.4rem); min-width: 4rem; }
+  .callout { font-size: clamp(0.85rem, 1.15vw, 1rem); margin: 0.6rem 0 0.3rem; padding: 0.5rem 0; }
+  .callout::before { font-size: 1.4rem; left: -1.2rem; }
+  .layers .h { font-size: 0.6rem; padding: 0.55rem 0.85rem; }
+  .layers .c { padding: 0.55rem 0.85rem; font-size: clamp(0.82rem, 1.05vw, 0.96rem); }
+  .layers .c.l-name { font-size: clamp(0.88rem, 1.15vw, 1.05rem); }
+  .chaos-grid .box { padding: 0.6rem 0.85rem; font-size: clamp(0.7rem, 0.92vw, 0.85rem); }
+  .attempt { grid-template-columns: 4rem 1fr 6rem; gap: 1rem; }
+  .attempt .ver { font-size: clamp(1.4rem, 2.2vw, 1.9rem); }
+  .attempt .desc { font-size: clamp(0.84rem, 1.1vw, 1rem); }
+  .attempt .verdict { font-size: 0.6rem; padding: 0.4rem 0.6rem; }
+  .lesson { grid-template-columns: 6rem 1fr; gap: 1rem; }
+  .lesson .num { font-size: 0.6rem; padding-top: 0.15rem; }
+  .lesson .num::after { width: 1.1rem; margin-top: 0.3rem; }
+  .title-slide h1 { font-size: clamp(2.4rem, 6vw, 4.4rem); }
+  .title-slide .deck { font-size: clamp(1rem, 1.7vw, 1.4rem); margin-bottom: 1.4rem; }
+  .title-slide .frontpage-rule { margin-bottom: 1.6rem; padding: 0.35rem 0.2rem; font-size: 0.62rem; }
+}
+@media (max-height: 600px) {
+  :root {
+    --slide-pad-top: 0.5rem;
+    --slide-pad-bottom: 2.2rem;
+  }
+  .slide h1 { font-size: clamp(1.5rem, 3.2vw, 2.4rem); }
+  .slide h2 { font-size: clamp(1rem, 1.7vw, 1.4rem); }
+  .arch-flow { font-size: clamp(0.55rem, 0.7vw, 0.7rem); line-height: 1.35; padding: 0.5rem 0.85rem; }
+  .slide pre { font-size: clamp(0.6rem, 0.74vw, 0.74rem); line-height: 1.4; padding: 0.55rem 0.85rem; }
+  .stakeholders { font-size: 0.86em; }
+  .stake { padding: 0.45rem 1rem 0.45rem 0; }
+  .stake:nth-child(2n) { padding: 0.45rem 0 0.45rem 1rem; }
+  .stake .claim { font-size: 0.78rem; line-height: 1.3; }
+  .big-text { font-size: clamp(1.15rem, 2.2vw, 1.8rem); }
+  .timeline { padding-top: 0.5rem; }
+  .timeline > div:nth-child(2n) { font-size: clamp(0.78rem, 0.95vw, 0.9rem); padding-bottom: 0.35rem; }
+  .lesson { padding: 0.55rem 0 0.65rem; }
+  .lesson .head { font-size: clamp(0.88rem, 1.2vw, 1.05rem); margin-bottom: 0.2rem; }
+  .lesson .body { font-size: clamp(0.78rem, 0.95vw, 0.88rem); line-height: 1.35; }
+  .closing-page .signoff { font-size: 0.6rem; }
+  footer.deck-chrome button { font-size: 0.58rem; padding: 0.25rem 0.55rem; }
+}
+@media (max-width: 720px) {
+  :root { --slide-pad-x: 1.2rem; }
+  .stakeholders, .chaos-grid, .two-col, .layers { grid-template-columns: 1fr; }
+  .stake:nth-child(2n) { padding-left: 0 !important; }
+  .stake:nth-child(2n) .who, .stake:nth-child(2n) .claim,
+  .stake:nth-child(odd) .who, .stake:nth-child(odd) .claim { padding-left: 0 !important; padding-right: 1.5rem !important; }
+  .stake::before { right: 0 !important; left: auto !important; }
+  .lesson { grid-template-columns: 1fr; gap: 0.4rem; }
+  .attempt { grid-template-columns: 4rem 1fr; }
+  .attempt .verdict { grid-column: 1 / -1; justify-self: start; margin-top: 0.4rem; }
+  .two-col::before { display: none; }
+}
+
+/* ---------- Print mode (PDF export) ---------- */
+@media print {
+  body {
+    overflow: visible;
+    height: auto;
+    font-size: 13px;
+    background: white;
+    color: black;
+  }
+  body::before { display: none; }
+  .masthead, footer.deck-chrome, .help-overlay, .notes-panel { display: none !important; }
+  #deck { height: auto; position: static; padding-top: 0; }
+  .slide {
+    position: relative;
+    page-break-after: always;
+    height: auto;
+    min-height: 96vh;
+    top: 0;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    padding: 5vh 7vw;
+    animation: none !important;
+  }
+  .slide.active > * { animation: none !important; }
+  .slide pre, .arch-flow { background: #f5f1e8; }
+}
+
+/* ---------- Responsive guard ---------- */
+
+</style>
+</head>
+<body data-theme="light">
+
+<main id="deck">
+
+<!-- 1. TITLE -->
+<section class="slide title-slide active" data-notes="Good morning, everyone! I'm so glad to be here talking about data access control in GraphQL. My name's Minghe — I work on the GraphQL Federation platform at Booking.com. Today I'll show you how we used a single Federation directive — @policy — to solve a pretty complex data access governance problem across our org. The punchline is the architecture: decentralized authorship, centralized enforcement. Every team writes their own rules; enforcement happens in one place. But honestly, the directive itself wasn't the hard part. The hard part was the coordination. Let me show you what I mean — starting with one field.">
+  <h1>Coordinated<br>Access Control<br>with <code>@policy</code></h1>
+  <div class="deck">Decentralized authorship, centralized enforcement &mdash; a coordination pattern for access control at scale.</div>
+  <div class="byline">
+    <span class="name">Minghe Huang</span>
+    <span class="meta">GraphQL Federation Platform &middot; Booking.com</span>
+  </div>
+</section>
+
+<!-- 2. THE FIELD -->
+<section class="slide" data-notes="Here's a field. User.email. Looks innocent enough. Now ask yourself: who in the company has a claim on what happens when someone reads this? If you've worked in a regulated industry — travel, fintech, health — you already know the answer's more than one team. Many. And every one of them has a legitimate claim, backed by policy, regulation, or just production reality. Let me walk you through who they are.">
+  <div class="kicker">The Field <span class="folio">¶ 02</span></div>
+  <h2>One field.<br>Innocent-looking.</h2>
+<pre><code>type User {
+  id: ID!
+  email: String
+}</code></pre>
+  <p style="margin-top: 1.4rem; font-family: 'Newsreader', serif; font-style: italic; font-size: clamp(1.2rem, 1.9vw, 1.55rem); color: var(--ink); max-width: 60ch; font-variation-settings: 'opsz' 36;">Who in the company has a claim on what happens when this field is read?</p>
+</section>
+
+<!-- 3. SIX STAKEHOLDERS -->
+<section class="slide" data-notes="Six different teams, six different concerns. Every one of them has a real claim on this field. Some you'd probably expect in a regulated industry. Legal and Privacy — they're the team behind every data protection document at the company, for customer data and partner data, under GDPR, HIPAA, HITECH, DMA, and whatever the equivalent is in every market we operate in. And they're not just lawyers — they've got engineering teams too, building and running the consent platform. That's the single source of truth for what every user has agreed to. Security, Identity, and Session — they're the source of truth for every access token in the company. IAM for users, service-to-service for backends. Every token they issue tells you who the caller is: user ID, authentication assurance level, OAuth scopes. And the Domain Data Teams — there are hundreds of them, behind every subgraph: user, partner, payment, reservation, content. They serve the actual data. Some are less obvious. The Traffic Gateway sits right in front of our federation platform — it's the ingress layer for every external request. Its whole job is enrichment: making sure every request hits our internal services with a consistent structure, with locale, device, session, and bot signals already attached. Data Governance — they maintain the knowledge graph of every dataset in the company. Classification, lineage, business purpose. Their core principle: every data consumption needs a declared purpose, and that purpose has to be traceable. And the GraphQL Federation Platform — that's my team — we run the single GraphQL endpoint over hundreds of subgraphs. Six lanes. Every claim real. The trouble isn't that any of them is wrong — it's that they all have to coexist on the same field. And that's where things get messy.">
+  <div class="kicker">The Stakeholders <span class="folio">¶ 03</span></div>
+  <h2>Many departments have a claim. Every claim is real.</h2>
+  <div class="stakeholders">
+    <div class="stake-head">Obvious</div>
+    <div class="stake-head right-col">Less obvious</div>
+    <div class="stake">
+      <div class="who">Legal &amp; Privacy</div>
+      <div class="claim">Defines lawful basis under GDPR, PIPL, DMA, and similar regulations; runs the consent platform &mdash; the single record of every user choice. Concern: <strong>data must honor consent.</strong></div>
+    </div>
+    <div class="stake">
+      <div class="who">Traffic Gateway</div>
+      <div class="claim">First hop for every external request. Mints IAM context, enriches with session and device signals, runs bot detection and throttling. Concern: <strong>block abuse before the field is read.</strong></div>
+    </div>
+    <div class="stake">
+      <div class="who">Security &middot; Identity &middot; Session</div>
+      <div class="claim">Defines what "authorized" means (least privilege, ABAC). Issues every access token that proves it &mdash; IAM, service-to-service &mdash; with caller identity, scopes, and assurance level. Concern: <strong>the right caller, the right data.</strong></div>
+    </div>
+    <div class="stake">
+      <div class="who">Data Governance</div>
+      <div class="claim">Maintains the metadata graph for every dataset &mdash; classification, lineage, business purpose. Knows how data is born, transformed, and consumed. Concern: <strong>every flow has a documented purpose.</strong></div>
+    </div>
+    <div class="stake">
+      <div class="who">Domain Data Teams &times; hundreds</div>
+      <div class="claim">The teams behind every subgraph &mdash; user, partner, payment, reservation, content. They serve the actual data. Concern: <strong>just let me serve my domain data.</strong></div>
+    </div>
+    <div class="stake">
+      <div class="who">GraphQL Federation Platform</div>
+      <div class="claim">The single GraphQL endpoint over hundreds of domain subgraphs. Owns the supergraph router, the schema pipeline, the policy plugin. Concern: <strong>make every team's rules enforceable in one place.</strong></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. THE OLD WAY -->
+<section class="slide" data-notes="Before this all came together, every one of these teams was doing real work — just at different layers, on different schedules, and none of it at the GraphQL field. The obvious ones: Legal and Privacy were publishing documents and standards. Security and Identity were issuing tokens, getting validated coarsely at the service mesh — but never per-field. The Domain Teams were writing ad-hoc defensive code in their own resolvers, totally inconsistent across hundreds of subgraphs. The less obvious ones: the Traffic Gateway was enriching requests at the edge. Data Governance was classifying data at rest, in catalogs. And the Federation Platform — my team — we had the access-control primitives available: @authenticated, @requiresScopes, even @policy itself. But we hadn't designed the pattern that fit how our organization actually worked. Every claim was real. Every team was doing something useful. But field-level access control? That was nobody's runtime job. And the cost of all that — let me show you the numbers.">
+  <div class="kicker">The Old Way <span class="folio">¶ 04</span></div>
+  <h2>Every claim was real. No single place to enforce them.</h2>
+  <div class="chaos-grid">
+    <div class="box"><div class="who">Legal &amp; Privacy</div>policy docs, standards, lawful-basis guidance</div>
+    <div class="box"><div class="who">Security &middot; Identity</div>tokens at the mesh; coarse, not field-level</div>
+    <div class="box"><div class="who">Domain Data Teams</div>"whatever I remembered" in each resolver</div>
+    <div class="box"><div class="who">Traffic Gateway</div>edge enrichment, prechecks, routing</div>
+    <div class="box"><div class="who">Data Governance</div>offline classification of data-at-rest</div>
+    <div class="box"><div class="who">GraphQL Federation</div>directives available; pattern not yet designed</div>
+  </div>
+  <div class="callout">
+    <strong>Different layers. Different cadences. Nothing at the GraphQL field.</strong> Field-level access control was nobody's runtime job.
+  </div>
+</section>
+
+<!-- 5. COORDINATION COST -->
+<section class="slide" data-notes="Here's what those gaps actually cost us. Weeks just to onboard one new sensitive field. N+ audit trails — one per enforcement system, multiplied every time a regulator asked a question. Zero places where anyone could see all the enforcement applied to a single field. And constant drift — every team's changes just made things worse. Now, if we'd treated this as a security problem, we'd have written more security code. We treated it as a coordination problem. That's when we found the pattern.">
+  <div class="kicker">The Cost <span class="folio">¶ 05</span></div>
+  <h2>The coordination cost, by the numbers.</h2>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="num">Weeks</div><div class="label">to onboard a new sensitive field</div></div>
+    <div class="kpi"><div class="num">N+</div><div class="label">audit trails per regulator question</div></div>
+    <div class="kpi"><div class="num">0</div><div class="label">places to see all enforcement on one field</div></div>
+    <div class="kpi"><div class="num">N+</div><div class="label">drift &mdash; every change made it worse</div></div>
+  </div>
+  <p class="muted">If we'd treated this as a security problem, we'd have written more security code. We treated it as a <strong>coordination</strong> problem. That changed everything.</p>
+</section>
+
+<!-- 6. THE INSIGHT -->
+<section class="slide" data-notes="What if the schema is the contract — declaring which policies apply to which fields — and the router is the one place where every team's policies actually get evaluated? Schema becomes the coordination contract. The policy engine becomes where each team writes their own rules, independently. And the router? That's the unified enforcer. That's the whole pattern. Let me show you what it looks like in the schema itself.">
+  <div class="kicker">The Insight <span class="folio">¶ 06</span></div>
+  <span class="insight-mark">¶</span>
+  <div class="big-text">
+    What if the <span class="accent">schema</span> declares the contract,<br>
+    but the <span class="accent">router</span> evaluates<br>
+    every team's policies at one place?
+  </div>
+  <p class="muted" style="max-width: 60ch;">Schema = the coordination contract.<br>Policy engine = where teams author their concerns independently.<br>Router = the unified enforcer.</p>
+</section>
+
+<!-- 7. @POLICY -->
+<section class="slide" data-notes="On the screen, five real production patterns. They fall into three groups. First, domain teams designing feature-specific rules. User.totalNights — only the Loyalty service can read it, that's a service allowlist. Hotel.geniusBenefit — only Genius Level 3 users see it, a user-tier gate. Both come straight from the domain team, driven by their product requirements. Then Privacy and Legal contribute cross-cutting rules. Look at User.email — there are actually two policies attached. Privacy requires marketing consent, OR the caller is the owner or an authorized CS agent. Either one passing is enough; that's how a cross-cutting rule and a domain rule combine. And Property.euOnlyDetails is geo-restricted to users in specific regions. Both come from Legal and Privacy, applying across many fields and many domains. And then there's cross-domain reuse. Insurance.details — the Insurance team doesn't write its own access rule. They just reuse the Order team's access-check, because access to insurance fundamentally depends on access to the underlying order. That same rule applies to dozens of order-dependent fields across the federation. Five patterns, three groups. Domain teams author. Privacy and Legal contribute. Other domains reuse. Now let me show you how it actually runs at the router.">
+  <div class="kicker">The Directive <span class="folio">¶ 07</span></div>
+  <h2><code>@policy</code> &mdash; your domain rules, plus what crosses them.</h2>
+<pre><code>type User {
+  totalNights: Int
+    @policy(policies: [["user/loyalty-service-only"]])     <span style="color: var(--accent);"># service allowlist</span>
+
+  email: String
+    @policy(policies: [
+      ["privacy/marketing-consent"],     <span style="color: var(--accent);"># consent (cross-cutting)</span>
+      ["user/owner-or-cs-agent"]         <span style="color: var(--accent);"># OR &mdash; caller is owner / CS agent</span>
+    ])
+}
+
+type Hotel {
+  geniusBenefit: Money
+    @policy(policies: [["user/genius-level-3"]])           <span style="color: var(--accent);"># user-tier gate</span>
+}
+
+type Property {
+  euOnlyDetails: String
+    @policy(policies: [["privacy/eu-residents-only"]])     <span style="color: var(--accent);"># geo restriction</span>
+}
+
+type Insurance {
+  details: String
+    @policy(policies: [["order/access-check"]])            <span style="color: var(--accent);"># reused from Order team</span>
+}</code></pre>
+  <div class="callout">
+    <strong>Domain teams author the rules for their own data. Privacy and Legal layer in cross-cutting concerns. Other domains reuse</strong> &mdash; Insurance access depends on order access, so it reuses <code>order/access-check</code>. The Federation Platform plumbs the runtime.
+  </div>
+</section>
+
+<!-- 8. ARCHITECTURE -->
+<section class="slide" data-notes="OK so here's what actually happens when a query hits the federation router. Step one — extract context. The router grabs everything the policies might need: caller identity from the IAM token, service-to-service token, OAuth scopes, declared purpose, plus whatever the Traffic Gateway already attached — session, locale, bot signals. Step two — and this is the part that matters most — during query planning, for every field that has a @policy directive, the router calls out to the central policy engine with all that context. The policies themselves are authored by the teams who own the data — User team, Order team, Property team — plus the cross-cutting rules from Privacy and Identity. Each one comes back with allow or deny. The router combines them using the OR or AND semantics declared on the schema. Step three — the verdict shapes the plan. Allowed fields stay in the query plan; the subgraph gets hit as normal. Denied fields get stripped from the plan — the subgraph never even sees the request. The client gets null for that field, plus an unauthorized error in the GraphQL extensions. And every decision — every check, every authority, every allow-or-deny — lands in a single audit log under the same trace ID. One trace for the regulator. Denied data never leaves the router. That's the architecture. Now let me walk you through a real request, end to end.">
+  <div class="kicker">Architecture <span class="folio">¶ 08</span></div>
+  <h2>One request. One context. One policy engine.</h2>
+<div class="arch-flow">
+<span class="hop">client &rarr;</span> <span class="step">federation router</span>
+&nbsp;&nbsp;<span class="hop">&#9474;</span>
+&nbsp;&nbsp;<span class="hop">&#9500;&#9472;</span> <span class="label">extract context</span>  (IAM token, S2S, scopes, purpose, traffic-gw headers)
+&nbsp;&nbsp;<span class="hop">&#9474;</span>
+&nbsp;&nbsp;<span class="hop">&#9500;&#9472;</span> <span class="label">during query planning, for each @policy field:</span>
+&nbsp;&nbsp;<span class="hop">&#9474;</span>      <span class="step">call central policy engine</span>  (rules authored by domain teams + cross-cutting)
+&nbsp;&nbsp;<span class="hop">&#9474;</span>      <span class="hop">&darr;</span>
+&nbsp;&nbsp;<span class="hop">&#9474;</span>    <span class="pol">privacy/marketing-consent</span>          <span class="ok">&check;</span>  <span class="label">cross-cutting</span>
+&nbsp;&nbsp;<span class="hop">&#9474;</span>    <span class="pol">user/owner-or-cs-agent</span>             <span class="ok">&check;</span>  <span class="label">domain rule (User team)</span>
+&nbsp;&nbsp;<span class="hop">&#9474;</span>
+&nbsp;&nbsp;<span class="hop">&#9500;&#9472;</span> <span class="step">combine (OR / AND per schema)</span> &rarr; <span class="step">single audit log</span>
+&nbsp;&nbsp;<span class="hop">&#9474;</span>
+&nbsp;&nbsp;<span class="hop">&#9500;&#9472;</span> <span class="ok">&check; allowed</span> &rarr; field stays in plan &rarr; subgraph queried
+&nbsp;&nbsp;<span class="hop">&#9492;&#9472;</span> <span class="bad">&times; denied</span>  &rarr; field stripped from plan &rarr; null + <code>"unauthorized"</code>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">(subgraph never sees the request for that field)</span>
+</div>
+  <p class="muted">Domain rules + cross-cutting rules. <strong>Denied fields never reach a subgraph.</strong> One audit trail. That's how the regulators stay happy.</p>
+</section>
+
+<!-- 9. ONE FULL FLOW -->
+<section class="slide" data-notes="Let me walk through one real request. A support tool queries User.email. The request comes in with everything it needs: a declared purpose of customer-support, an IAM token with the right scope, and Traffic Gateway context already attached — bot classification, locale, device. The router pulls all of that out and calls the policy engine on both rules attached to the field — in parallel. Privacy's marketing-consent comes back as fail — the user opted out of marketing. The User team's owner-or-cs-agent comes back as pass — the caller is a verified CS agent. The schema says OR, so either one passing is enough. The field comes back, single trace ID logged. Now look at what just happened. Three teams contributed to this one decision. Privacy and Legal wrote the marketing-consent rule. The User team wrote owner-or-cs-agent. And my team — the Federation Platform — built the bridge that calls the policy engine and enforces the verdict in the router. None of them had to coordinate for this query to work. Each one owns their own lane. The schema is the contract that ties them together. That's the coordination pattern at one field. Let me zoom out and show you how it generalizes.">
+  <div class="kicker">A Full Trace <span class="folio">¶ 09</span></div>
+  <h2>One request, walked through.</h2>
+<div class="arch-flow">
+<span class="label">Request:</span> <span class="step">query { user(id: "...") { email } }</span>
+&nbsp;&nbsp;&nbsp;<span class="label">purpose-declared:</span> customer-support
+&nbsp;&nbsp;&nbsp;<span class="label">caller:</span>           support-tools (S2S)
+&nbsp;&nbsp;&nbsp;<span class="label">IAM:</span>              user_id=12345 &middot; AAL2 &middot; scope=user.read
+
+<span class="label">Evaluate against policy engine (in parallel):</span>
+&nbsp;&nbsp;<span class="pol">privacy/marketing-consent</span>          <span class="bad">&times;</span>  user opted out of marketing
+&nbsp;&nbsp;<span class="pol">user/owner-or-cs-agent</span>             <span class="ok">&check;</span>  caller is verified CS agent
+
+<span class="step">DECISION</span>  <span class="ok">ALLOW</span>  &mdash; OR satisfied via domain rule
+<span class="step">AUDIT</span>     2 checks logged &middot; single trace ID
+</div>
+  <p class="muted">Three teams contributed: Privacy's cross-cutting rule, the User team's domain rule, and the Federation Platform's runtime. <strong>None coordinated. The schema held them together.</strong></p>
+</section>
+
+<!-- 10. COORDINATION PATTERN -->
+<section class="slide" data-notes="Three layers. Three owners. Three cadences. First — schema annotation. The subgraph team picks which policies apply to each field. Then — policy logic. Authored on a centralized policy platform. Domain teams write rules for their own data; Privacy and Identity contribute the cross-cutting ones. Each in their own language, on their own cadence — Privacy can change consent rules without telling Identity. And finally — enforcement runtime. That's my team, the Federation Platform. We don't own the policy engine; we own the bridge. The @policy directive, request context collection in the router, the translation into what the engine expects, and evaluation at request time. No cross-team coordination needed after the schema annotation lands. And without all those meetings, the time to onboard a sensitive field collapses.">
+  <div class="kicker">The Pattern <span class="folio">¶ 10</span></div>
+  <h2>Three layers. Three cadences. No cross-team meetings.</h2>
+  <div class="layers">
+    <div class="h">Layer</div>
+    <div class="h">Owner</div>
+    <div class="h">Cadence</div>
+
+    <div class="c l-name">Schema annotation</div>
+    <div class="c l-owner">Subgraph team</div>
+    <div class="c l-cadence">When fields are designed</div>
+
+    <div class="c l-name">Policy logic</div>
+    <div class="c l-owner">Authoring teams (Domain &middot; Privacy &middot; Identity &middot; &hellip;)</div>
+    <div class="c l-cadence">When their rules change</div>
+
+    <div class="c l-name">Enforcement runtime</div>
+    <div class="c l-owner">Platform team</div>
+    <div class="c l-cadence">When the platform evolves</div>
+  </div>
+  <p>Three layers. Three cadences. <strong>No mandatory cross-team coordination after the schema annotation lands.</strong></p>
+</section>
+
+<!-- 11. ONBOARDING BEFORE/AFTER -->
+<section class="slide" data-notes="Here's what actually changed when we shipped it. Before: onboarding one new sensitive field took weeks. Tickets to every stakeholder team. Cross-team meetings. Enforcement code duplicated across systems. Arguments about audit trails. After: the subgraph team adds the @policy directive with the right policy IDs. The policies already exist — each team wrote them once. The audit trail comes free. Single trace ID across every decision. Hours instead of weeks. Now — that's one team, one field. The real question is: what happens when you do this across hundreds of teams?">
+  <div class="kicker">Before / After <span class="folio">¶ 11</span></div>
+  <h2>Onboarding a new sensitive field.</h2>
+  <div class="two-col">
+    <div class="col">
+      <div class="col-head before">Before</div>
+      <ul>
+        <li>File tickets with every stakeholder team</li>
+        <li>Schedule cross-team meetings</li>
+        <li>Write enforcement code that duplicates logic from other systems</li>
+        <li>Argue about audit trails, then consolidate per regulator question</li>
+      </ul>
+      <div class="kpi" style="margin-top: 1rem; padding: 1rem 0; border-top: 2px solid var(--accent); border-right: none;">
+        <div class="num" style="color: var(--accent);">Weeks</div>
+        <div class="label">typical</div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="col-head after">After</div>
+      <ul>
+        <li>Add <code>@policy</code> with the relevant policy IDs</li>
+        <li>Policies already exist (each team authored once)</li>
+        <li>Audit trail comes for free</li>
+        <li>Single trace ID across all decisions</li>
+        <li>No duplicated logic across systems.</li>
+      </ul>
+      <div class="kpi" style="margin-top: 1rem; padding: 1rem 0; border-top: 2px solid var(--good); border-right: none;">
+        <div class="num" style="color: var(--good);">Hours</div>
+        <div class="label">in practice</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12. ADOPTION STORY -->
+<section class="slide" data-notes="Honestly, building the directive was the easy part. Shipped it, tested it, pushed it to prod. Then we did all the usual outreach — Slack posts, internal docs, brown-bags, the works. A few months in? About 10% of teams had picked it up. Two hundred-plus data provider teams across the federation. Ten percent means twenty onboarded, almost two hundred still exposing fields without coordinated access control. The traditional platform playbook — file tickets, schedule meetings, walk each team through migration — was just not going to work at this scale. The truth is, organic adoption doesn't scale to hundreds of teams. You can't ask hundreds of people to remember, prioritize, and act on their own. So we stopped asking. We built something that didn't need them to remember.">
+  <div class="kicker">The Adoption Gap <span class="folio">¶ 12</span></div>
+  <div class="big-text" style="font-size: clamp(1.5rem, 2.8vw, 2.2rem); margin-bottom: 1.4rem;">
+    Build it, announce it.<br>
+    <span class="accent">10%</span> will come.
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="num">~10%</div><div class="label">organic adoption after several months</div></div>
+    <div class="kpi"><div class="num">200+</div><div class="label">data provider teams across the federation</div></div>
+    <div class="kpi"><div class="num">~9 mos</div><div class="label">to manually onboard the rest at 5 teams/week</div></div>
+  </div>
+  <div class="callout">
+    <strong>Organic adoption doesn't scale to hundreds of teams.</strong> File tickets, walk each team through migration, repeat &mdash; the math doesn't work. We needed an approach that didn't depend on every team remembering.
+  </div>
+</section>
+
+<!-- 13. LLM DETECTION -->
+<section class="slide" data-notes="So we built a long-running agent. Five steps. It detects — scans every subgraph schema and the resolver code behind each field, looking for gaps against access-control rules from the authority teams. It proposes — when it finds a gap, it opens a merge request straight to the subgraph repo, with the recommended @policy already filled in. It pings — asks the right team for review. Not a ticket, not a meeting. A real PR, ready to merge. It monitors — watches every MR through to resolution, and escalates the ones that go stale. It refreshes — updates a central gap-tracking dashboard so leadership and Security can actually watch adoption move in real time. The numbers today: more than a thousand sensitive fields surfaced. About a hundred teams have acted on agent-proposed MRs. None of that would've happened through manual outreach. The agent does the part that just doesn't scale. Now — we didn't get this right on the first try.">
+  <div class="kicker">Closing the Loop <span class="folio">¶ 13</span></div>
+  <h2>An agent finds the gaps. And proposes the fix.</h2>
+  <p>A long-running agent that drives adoption directly &mdash; no tickets, no meetings.</p>
+  <ul>
+    <li><strong>Detect.</strong> Scan every subgraph schema and the resolver code behind it, against access-control requirements from authority teams.</li>
+    <li><strong>Propose.</strong> Open a merge request with the recommended <code>@policy</code> already filled in.</li>
+    <li><strong>Ping.</strong> Request review from the right team. A real PR, ready to merge.</li>
+    <li><strong>Monitor.</strong> Watch every MR through to resolution. Escalate the stale ones.</li>
+    <li><strong>Refresh.</strong> Update a centralized gap-tracking dashboard so leadership and Security can see adoption move.</li>
+  </ul>
+  <div class="kpi-grid" style="margin-top: 0.9rem;">
+    <div class="kpi"><div class="num">1,000+</div><div class="label">sensitive fields surfaced across the federation</div></div>
+    <div class="kpi"><div class="num">~100</div><div class="label">teams acted on agent-proposed MRs</div></div>
+  </div>
+</section>
+
+<!-- 14. WHAT DIDN'T WORK -->
+<section class="slide" data-notes="OK, honest part. We tried two things before we got to what works. Version one — per-team enforcement, each team owning their own runtime. Drift was immediate. Privacy's rule said one thing, the order domain's rule said the opposite, and the order they ran in was undefined. Stakeholders started blocking each other's deploys. Version two — the one I just described. One shared registry, one shared enforcement point at the router, bounded authorship, cross-domain reuse. Each team writes only what they own. Nobody can block anyone. Nothing can drift. Now, here are four lessons that stick — and they generalize way beyond GraphQL.">
+  <div class="kicker">Erratum <span class="folio">¶ 14</span></div>
+  <h2>What didn't work &mdash; and why.</h2>
+  <div class="attempts">
+    <div class="attempt fail">
+      <div class="ver">v1</div>
+      <div class="desc">Per-team enforcement with separate runtimes. Drift, ordering ambiguity, conflicting rules at runtime. Stakeholders blocked each other's deploys.</div>
+      <div class="verdict">Drift</div>
+    </div>
+    <div class="attempt win">
+      <div class="ver">v2</div>
+      <div class="desc">Shared registry, single enforcement point, bounded authorship, cross-domain reuse. Each team writes only their own rules; everyone composes.</div>
+      <div class="verdict">Worked</div>
+    </div>
+  </div>
+  <p class="muted">Centralized execution. Bounded authorship. Cross-domain reuse. <strong>That's the pattern.</strong></p>
+</section>
+
+<!-- 15. THREE LESSONS -->
+<section class="slide" data-notes="Four lessons. None of them specific to federation. One. When more than two teams have legitimate claims on a piece of data, you don't have a security problem — you have a coordination problem. Solving it as security just makes it worse. Two. The schema is the natural coordination contract. Whatever your platform's interface is — GraphQL, gRPC, OpenAPI, event schema — that's where the contract lives. Don't bury it in code only one team can read. Three. Single enforcement plus bounded authorship plus free reuse equals scale. One place decisions happen. Each team writes only the rules for their own data. Anyone can reuse anyone else's. Four. Adoption at scale doesn't come from outreach. You can't file a hundred tickets and expect a hundred teams to act. Build the agent that proposes the fix as a merge request — and the team just has to review. So — here's where it landed for us.">
+  <div class="kicker">The Argument <span class="folio">¶ 15</span></div>
+  <h2>Four lessons that generalize beyond GraphQL.</h2>
+  <div class="lessons">
+    <div class="lesson">
+      <div class="num">Lesson i.</div>
+      <div>
+        <div class="head">Multi-stakeholder access control is a coordination problem &mdash; not a security one.</div>
+        <div class="body">Solving it as security &mdash; more checks in more places &mdash; makes it worse. Treat it as coordination.</div>
+      </div>
+    </div>
+    <div class="lesson">
+      <div class="num">Lesson ii.</div>
+      <div>
+        <div class="head">The schema is the natural coordination contract.</div>
+        <div class="body">Whatever your platform's interface is &mdash; GraphQL schema, gRPC proto, OpenAPI, event schema &mdash; that's where the contract lives.</div>
+      </div>
+    </div>
+    <div class="lesson">
+      <div class="num">Lesson iii.</div>
+      <div>
+        <div class="head">Single enforcement + bounded authorship + free reuse = scale.</div>
+        <div class="body">One place decisions <em>happen</em>. Each team authors only their <em>own</em> data's rules. Anyone can reuse anyone else's rules.</div>
+      </div>
+    </div>
+    <div class="lesson">
+      <div class="num">Lesson iv.</div>
+      <div>
+        <div class="head">Adoption at scale needs automation &mdash; not outreach.</div>
+        <div class="body">You can't ask hundreds of teams to remember. Build the agent that proposes the fix <em>as a merge request</em> &mdash; teams only have to review.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 16. WHERE WE LANDED -->
+<section class="slide" data-notes="The numbers, briefly. More than a thousand access-control gaps surfaced and proposed as merge requests. About a hundred teams already adopted, more MRs in flight. Per-field onboarding 5× faster — what used to be weeks of cross-team coordination is now an annotation review on a pre-filled MR. And the regulator's favourite number — N+ audit trails consolidated down to one. One trace ID per query. Every decision logged together. We're not done. But the architecture and the agent together are doing what manual outreach never could. So — here's the one thing I want you to take with you.">
+  <div class="kicker">The Ledger <span class="folio">¶ 16</span></div>
+  <h2>Where we landed.</h2>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="num">1,000+</div><div class="label">access-control gaps detected and proposed for fix</div></div>
+    <div class="kpi"><div class="num">~100</div><div class="label">teams adopted (more MRs in flight)</div></div>
+    <div class="kpi"><div class="num">5&times;</div><div class="label">faster to serve sensitive data</div></div>
+    <div class="kpi"><div class="num">N+ &rarr; 1</div><div class="label">audit trails consolidated</div></div>
+  </div>
+</section>
+
+<!-- 17. CLOSING -->
+<section class="slide closing-page" data-notes="One takeaway. Access control at scale isn't a security problem — it's a coordination problem. And the schema is the contract. That's the talk. Thanks for listening. Find me after — I want to hear how your team's handling this.">
+  <div class="kicker">Editorial <span class="folio">¶ 17</span></div>
+  <div class="lede">
+    <div class="big-text" style="margin-bottom: 1.6rem;">
+      Access control at scale isn't a <span class="warn">security problem</span>.
+    </div>
+    <div class="big-text" style="margin-bottom: 1.6rem;">
+      It's a <span class="accent">coordination problem</span>.
+    </div>
+    <div class="big-text">
+      The schema is the contract.
+    </div>
+    <p class="muted" style="margin-top: 1.8rem; max-width: 60ch;">Q&amp;A &middot; find me after.</p>
+  </div>
+  <div class="signoff">
+    <span>&mdash; M.H., Amsterdam, 2026</span>
+  </div>
+</section>
+
+</main>
+
+<footer class="deck-chrome">
+  <div class="right">
+    <button onclick="toggleTheme()" title="Toggle theme (L)">L · Edition</button>
+    <button onclick="toggleNotes()" title="Toggle speaker notes (N)">N · Notes</button>
+    <button onclick="toggleHelp()" title="Help (?)">?</button>
+    <button onclick="document.documentElement.requestFullscreen()" title="Fullscreen (F)">F · Full</button>
+  </div>
+</footer>
+
+<div class="notes-panel" id="notes-panel">
+  <h4>Speaker notes</h4>
+  <p id="notes-content"></p>
+</div>
+
+<div class="help-overlay" id="help-overlay" onclick="toggleHelp()">
+  <div class="panel" onclick="event.stopPropagation()">
+    <h3>Keyboard shortcuts</h3>
+    <table>
+      <tr><td>← / →</td><td>Previous / next slide</td></tr>
+      <tr><td>Space / PgDn</td><td>Next slide</td></tr>
+      <tr><td>Home / End</td><td>First / last slide</td></tr>
+      <tr><td>F</td><td>Toggle fullscreen</td></tr>
+      <tr><td>L</td><td>Toggle Day / Night edition</td></tr>
+      <tr><td>N</td><td>Toggle speaker notes</td></tr>
+      <tr><td>?</td><td>Show / hide this help</td></tr>
+      <tr><td>P / Ctrl-P</td><td>Print mode (one slide per page)</td></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+let cur = 0;
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function show(i) {
+  cur = Math.max(0, Math.min(slides.length - 1, i));
+  slides.forEach((s, idx) => s.classList.toggle('active', idx === cur));
+  const notes = slides[cur].dataset.notes || '(no speaker notes)';
+  document.getElementById('notes-content').textContent = notes;
+  history.replaceState(null, '', '#' + (cur + 1));
+}
+
+function next() { show(cur + 1); }
+function prev() { show(cur - 1); }
+
+function toggleTheme() {
+  const t = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.body.dataset.theme = t;
+  localStorage.setItem('deck-theme', t);
+}
+
+function toggleNotes() {
+  document.getElementById('notes-panel').classList.toggle('show');
+}
+
+function toggleHelp() {
+  document.getElementById('help-overlay').classList.toggle('show');
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  switch (e.key) {
+    case 'ArrowRight':
+    case ' ':
+    case 'PageDown':
+      next(); e.preventDefault(); break;
+    case 'ArrowLeft':
+    case 'PageUp':
+      prev(); e.preventDefault(); break;
+    case 'Home': show(0); break;
+    case 'End': show(slides.length - 1); break;
+    case 'f': case 'F':
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+      break;
+    case 'l': case 'L': toggleTheme(); break;
+    case 'n': case 'N': toggleNotes(); break;
+    case '?': toggleHelp(); break;
+    case 'Escape':
+      document.getElementById('help-overlay').classList.remove('show');
+      document.getElementById('notes-panel').classList.remove('show');
+      break;
+  }
+});
+
+const saved = localStorage.getItem('deck-theme');
+if (saved) {
+  document.body.dataset.theme = saved;
+}
+const startIdx = parseInt(location.hash.slice(1)) - 1;
+if (!isNaN(startIdx) && startIdx >= 0 && startIdx < slides.length) show(startIdx);
+else show(0);
+</script>
+</body>
+</html>
