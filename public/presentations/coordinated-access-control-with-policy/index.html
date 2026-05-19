@@ -1571,6 +1571,32 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// Touch swipe navigation (mobile)
+let tStartX = 0, tStartY = 0, tStartTarget = null;
+document.addEventListener('touchstart', (e) => {
+  const t = e.changedTouches[0];
+  tStartX = t.screenX;
+  tStartY = t.screenY;
+  tStartTarget = e.target;
+}, { passive: true });
+document.addEventListener('touchend', (e) => {
+  const t = e.changedTouches[0];
+  const dx = t.screenX - tStartX;
+  const dy = t.screenY - tStartY;
+  if (Math.abs(dx) < 60) return;
+  if (Math.abs(dy) > Math.abs(dx) * 0.7) return;
+  // skip if swipe started inside a horizontally scrollable element
+  let el = tStartTarget;
+  while (el && el !== document.body) {
+    if (el.scrollWidth > el.clientWidth) {
+      const cs = getComputedStyle(el);
+      if (cs.overflowX === 'auto' || cs.overflowX === 'scroll') return;
+    }
+    el = el.parentElement;
+  }
+  if (dx < 0) next(); else prev();
+}, { passive: true });
+
 const saved = localStorage.getItem('deck-theme');
 if (saved) {
   document.body.dataset.theme = saved;
