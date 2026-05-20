@@ -565,6 +565,25 @@ body::before {
 .arch-flow .bad { color: var(--accent); font-weight: 700; }
 .arch-flow .label { color: var(--ink-2); font-style: italic; }
 
+/* ---------- Architecture diagram (slide 6, no border/label) ---------- */
+.arch-diagram {
+  font-family: 'JetBrains Mono', SFMono-Regular, Menlo, monospace;
+  background: transparent;
+  padding: 0.6rem 0;
+  margin: 0.8rem 0 0;
+  font-size: clamp(0.65rem, 0.85vw, 0.82rem);
+  line-height: 1.45;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--ink);
+}
+.arch-diagram .step { color: var(--ink); font-weight: 600; }
+.arch-diagram .label { color: var(--ink-2); font-style: italic; }
+.arch-diagram .accent { color: var(--accent); font-weight: 600; }
+.arch-diagram .hop { color: var(--ink-2); }
+.arch-diagram .ok { color: var(--good); font-weight: 700; }
+.arch-diagram .bad { color: var(--accent); font-weight: 700; }
+
 /* ---------- Coordination layers (ledger table) ---------- */
 .layers {
   display: grid;
@@ -1181,26 +1200,9 @@ footer.deck-chrome button:hover {
   </div>
 </section>
 
-<!-- 4. THE OLD WAY -->
-<section class="slide" data-notes="Before this all came together, every one of these teams was doing real work — just at different layers, on different schedules, and none of it at the GraphQL field. The obvious ones: Legal and Privacy were publishing documents and standards. Security and Identity were issuing tokens, getting validated coarsely at the service mesh — but never per-field. The Domain Teams were writing ad-hoc defensive code in their own resolvers, totally inconsistent across hundreds of subgraphs. The less obvious ones: the Traffic Gateway was enriching requests at the edge. Data Governance was classifying data at rest, in catalogs. And the Federation Platform — my team — we had the access-control primitives available: @authenticated, @requiresScopes, even @policy itself. But we hadn't designed the pattern that fit how our organization actually worked. Every claim was real. Every team was doing something useful. But field-level access control? That was nobody's runtime job. And the cost of all that — let me show you the numbers.">
-  <div class="kicker">The Old Way <span class="folio">¶ 04</span></div>
-  <h2>Every claim was real. No single place to enforce them.</h2>
-  <div class="chaos-grid">
-    <div class="box"><div class="who">Legal &amp; Privacy</div>policy docs, standards, lawful-basis guidance</div>
-    <div class="box"><div class="who">Security &middot; Identity</div>tokens at the mesh; coarse, not field-level</div>
-    <div class="box"><div class="who">Domain Data Teams</div>"whatever I remembered" in each resolver</div>
-    <div class="box"><div class="who">Traffic Gateway</div>edge enrichment, prechecks, routing</div>
-    <div class="box"><div class="who">Data Governance</div>offline classification of data-at-rest</div>
-    <div class="box"><div class="who">GraphQL Federation</div>directives available; pattern not yet designed</div>
-  </div>
-  <div class="callout">
-    <strong>Different layers. Different cadences. Nothing at the GraphQL field.</strong> Field-level access control was nobody's runtime job.
-  </div>
-</section>
-
-<!-- 5. COORDINATION COST -->
-<section class="slide" data-notes="Here's what those gaps actually cost us. Weeks just to onboard one new sensitive field. N+ audit trails — one per enforcement system, multiplied every time a regulator asked a question. Zero places where anyone could see all the enforcement applied to a single field. And constant drift — every team's changes just made things worse. Now, if we'd treated this as a security problem, we'd have written more security code. We treated it as a coordination problem. So we started asking a different question.">
-  <div class="kicker">The Cost <span class="folio">¶ 05</span></div>
+<!-- 4. COORDINATION COST -->
+<section class="slide" data-notes="Here's what that mess actually cost us. Weeks just to onboard one new sensitive field. N+ audit trails — one per enforcement system, multiplied every time a regulator asked a question. Zero places where anyone could see all the enforcement applied to a single field. And constant drift — every team's changes just made things worse. Now, if we'd treated this as a security problem, we'd have written more security code. We treated it as a coordination problem. So we started asking a different question.">
+  <div class="kicker">The Cost <span class="folio">¶ 04</span></div>
   <h2>The coordination cost, by the numbers.</h2>
   <div class="kpi-grid">
     <div class="kpi"><div class="num">Weeks</div><div class="label">to onboard a new sensitive field</div></div>
@@ -1211,20 +1213,38 @@ footer.deck-chrome button:hover {
   <p class="muted">If we'd treated this as a security problem, we'd have written more security code. We treated it as a <strong>coordination</strong> problem. That changed everything.</p>
 </section>
 
-<!-- 6. THE INSIGHT -->
+<!-- 5. THE INSIGHT -->
 <section class="slide" data-notes="Three things make this work. The schema becomes the coordination contract — where every team declares which policies apply to which fields. The policy engine is where each team authors their own rules, independently. And the router is the unified enforcer — one place, every policy, every request. That's the whole pattern. Let me show you what it looks like in the schema itself.">
-  <div class="kicker">The Insight <span class="folio">¶ 06</span></div>
+  <div class="kicker">The Insight <span class="folio">¶ 05</span></div>
   <span class="insight-mark">¶</span>
   <div class="big-text">
     <span class="accent">Schema</span> = the coordination contract.<br>
     <span class="accent">Policy engine</span> = where teams author their concerns independently.<br>
     <span class="accent">Router</span> = the unified enforcer.
   </div>
+<div class="arch-diagram">
+   <span class="label">teams</span>                                  <span class="label">teams</span>
+     <span class="hop">&#9474;</span>                                      <span class="hop">&#9474;</span>
+   writes                                annotates
+     <span class="hop">&darr;</span>                                      <span class="hop">&darr;</span>
+ <span class="step">POLICY ENGINE</span>                           <span class="step">SCHEMA</span>
+ <span class="label">decentralized</span>                       <span class="accent">@policy()</span> <span class="label">on fields</span>
+     <span class="hop">&#9474;</span>                                      <span class="hop">&#9474;</span>
+     <span class="hop">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</span> consulted by <span class="hop">&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span>
+                       <span class="hop">&#9474;</span>
+                       <span class="hop">&darr;</span>
+                    <span class="step">ROUTER</span>  <span class="hop">&larr;</span> <span class="label">client query</span>
+                <span class="label">centralized enforcement</span>
+                       <span class="hop">&#9474;</span>
+                       <span class="hop">&darr;</span>
+                  <span class="ok">allow</span> / <span class="bad">deny</span>
+                    <span class="label">per field</span>
+</div>
 </section>
 
-<!-- 7. @POLICY -->
+<!-- 6. @POLICY -->
 <section class="slide" data-notes="On the screen, five real production patterns. They fall into three groups. First, domain teams designing feature-specific rules. User.totalNights — only the Loyalty service can read it, that's a service allowlist. Hotel.geniusBenefit — only Genius Level 3 users see it, a user-tier gate. Both come straight from the domain team, driven by their product requirements. Then Privacy and Legal contribute cross-cutting rules. Look at User.email — there are actually two policies attached. Privacy requires marketing consent, OR the caller is the owner or an authorized CS agent. Either one passing is enough; that's how a cross-cutting rule and a domain rule combine. And Property.euOnlyDetails is geo-restricted to users in specific regions. Both come from Legal and Privacy, applying across many fields and many domains. And then there's cross-domain reuse. Insurance.details — the Insurance team doesn't write its own access rule. They just reuse the Order team's access-check, because access to insurance fundamentally depends on access to the underlying order. That same rule applies to dozens of order-dependent fields across the federation. Five patterns, three groups. Domain teams author. Privacy and Legal contribute. Other domains reuse. Now let me show you how it actually runs at the router.">
-  <div class="kicker">The Directive <span class="folio">¶ 07</span></div>
+  <div class="kicker">The Directive <span class="folio">¶ 06</span></div>
   <h2><code>@policy</code> &mdash; your domain rules, plus what crosses them.</h2>
 <pre><code>type User {
   totalNights: Int
@@ -1256,53 +1276,37 @@ type Insurance {
   </div>
 </section>
 
-<!-- 8. ARCHITECTURE -->
-<section class="slide" data-notes="OK so here's what actually happens when a query hits the federation router. Step one — extract context. The router grabs everything the policies might need: caller identity from the IAM token, service-to-service token, OAuth scopes, declared purpose, plus whatever the Traffic Gateway already attached — session, locale, bot signals. Step two — and this is the part that matters most — during query planning, for every field that has a @policy directive, the router calls out to the central policy engine with all that context. The policies themselves are authored by the teams who own the data — User team, Order team, Property team — plus the cross-cutting rules from Privacy and Identity. Each one comes back with allow or deny. The router combines them using the OR or AND semantics declared on the schema. Step three — the verdict shapes the plan. Allowed fields stay in the query plan; the subgraph gets hit as normal. Denied fields get stripped from the plan — the subgraph never even sees the request. The client gets null for that field, plus an unauthorized error in the GraphQL extensions. And every decision — every check, every authority, every allow-or-deny — lands in a single audit log under the same trace ID. One trace for the regulator. Denied data never leaves the router. That's the architecture. Now let me walk you through a real request, end to end.">
-  <div class="kicker">Architecture <span class="folio">¶ 08</span></div>
-  <h2>One request. One context. One policy engine.</h2>
+<!-- 7. ARCHITECTURE & TRACE -->
+<section class="slide" data-notes="OK so let me walk you through one real request, end to end. A support tool queries User.email. The request comes in with everything it needs — declared purpose customer-support, an IAM token with the right scope, plus Traffic Gateway context already attached: bot classification, locale, device. Step one: the router pulls all of that out. Step two — and this is the part that matters — during query planning, for every field with a @policy directive, the router calls out to the central policy engine in parallel, on every rule attached. So Privacy's marketing-consent rule comes back as fail — the user opted out of marketing. The User team's owner-or-cs-agent rule comes back as pass — the caller is a verified CS agent. The schema says OR, so either one passing is enough. Field comes back. Single trace ID logged for the regulator. Step three: the verdict shapes the plan. Allowed fields stay in the plan and get queried as normal. Denied fields get stripped — the subgraph never even sees the request. The client gets null plus an unauthorized error. Now look at what just happened. Three teams contributed to this one decision. Privacy authored the consent rule. The User team authored owner-or-cs-agent. And my team — the Federation Platform — built the bridge that calls the engine and enforces the verdict in the router. None of them had to coordinate. Each owns their own lane. The schema is the contract that ties them together. That's the coordination pattern at one field. Let me zoom out and show you how it generalizes.">
+  <div class="kicker">Architecture <span class="folio">¶ 07</span></div>
+  <h2>One request, end to end.</h2>
 <div class="arch-flow">
 <span class="hop">client &rarr;</span> <span class="step">federation router</span>
-&nbsp;&nbsp;<span class="hop">&#9474;</span>
-&nbsp;&nbsp;<span class="hop">&#9500;&#9472;</span> <span class="label">extract context</span>  (IAM token, S2S, scopes, purpose, traffic-gw headers)
+
+&nbsp;&nbsp;&nbsp;<span class="label">request:</span>  <span class="step">query { user(id: "...") { email } }</span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">purpose:</span> customer-support
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">caller:</span>  support-tools (S2S) &middot; AAL2 &middot; scope=user.read
+
+&nbsp;&nbsp;<span class="hop">&#9500;&#9472;</span> <span class="label">extract context</span>  (IAM, S2S, scopes, purpose, traffic-gw signals)
 &nbsp;&nbsp;<span class="hop">&#9474;</span>
 &nbsp;&nbsp;<span class="hop">&#9500;&#9472;</span> <span class="label">during query planning, for each @policy field:</span>
-&nbsp;&nbsp;<span class="hop">&#9474;</span>      <span class="step">call central policy engine</span>  (rules authored by domain teams + cross-cutting)
+&nbsp;&nbsp;<span class="hop">&#9474;</span>      <span class="step">call central policy engine</span>  in parallel
 &nbsp;&nbsp;<span class="hop">&#9474;</span>      <span class="hop">&darr;</span>
-&nbsp;&nbsp;<span class="hop">&#9474;</span>    <span class="pol">privacy/marketing-consent</span>          <span class="ok">&check;</span>  <span class="label">cross-cutting</span>
-&nbsp;&nbsp;<span class="hop">&#9474;</span>    <span class="pol">user/owner-or-cs-agent</span>             <span class="ok">&check;</span>  <span class="label">domain rule (User team)</span>
+&nbsp;&nbsp;<span class="hop">&#9474;</span>    <span class="pol">privacy/marketing-consent</span>          <span class="bad">&times;</span>  user opted out of marketing
+&nbsp;&nbsp;<span class="hop">&#9474;</span>    <span class="pol">user/owner-or-cs-agent</span>             <span class="ok">&check;</span>  caller is verified CS agent
 &nbsp;&nbsp;<span class="hop">&#9474;</span>
-&nbsp;&nbsp;<span class="hop">&#9500;&#9472;</span> <span class="step">combine (OR / AND per schema)</span> &rarr; <span class="step">single audit log</span>
+&nbsp;&nbsp;<span class="hop">&#9500;&#9472;</span> <span class="step">combine (OR / AND per schema)</span> &rarr; <span class="step">DECISION</span> <span class="ok">ALLOW</span> &rarr; <span class="step">single audit log</span>
 &nbsp;&nbsp;<span class="hop">&#9474;</span>
 &nbsp;&nbsp;<span class="hop">&#9500;&#9472;</span> <span class="ok">&check; allowed</span> &rarr; field stays in plan &rarr; subgraph queried
 &nbsp;&nbsp;<span class="hop">&#9492;&#9472;</span> <span class="bad">&times; denied</span>  &rarr; field stripped from plan &rarr; null + <code>"unauthorized"</code>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">(subgraph never sees the request for that field)</span>
 </div>
-  <p class="muted">Domain rules + cross-cutting rules. <strong>Denied fields never reach a subgraph.</strong> One audit trail. That's how the regulators stay happy.</p>
+  <p class="muted">Three teams contributed: Privacy's cross-cutting rule, the User team's domain rule, and the Federation Platform's runtime. <strong>None coordinated. The schema held them together.</strong> Denied data never leaves the router.</p>
 </section>
 
-<!-- 9. ONE FULL FLOW -->
-<section class="slide" data-notes="Let me walk through one real request. A support tool queries User.email. The request comes in with everything it needs: a declared purpose of customer-support, an IAM token with the right scope, and Traffic Gateway context already attached — bot classification, locale, device. The router pulls all of that out and calls the policy engine on both rules attached to the field — in parallel. Privacy's marketing-consent comes back as fail — the user opted out of marketing. The User team's owner-or-cs-agent comes back as pass — the caller is a verified CS agent. The schema says OR, so either one passing is enough. The field comes back, single trace ID logged. Now look at what just happened. Three teams contributed to this one decision. Privacy and Legal wrote the marketing-consent rule. The User team wrote owner-or-cs-agent. And my team — the Federation Platform — built the bridge that calls the policy engine and enforces the verdict in the router. None of them had to coordinate for this query to work. Each one owns their own lane. The schema is the contract that ties them together. That's the coordination pattern at one field. Let me zoom out and show you how it generalizes.">
-  <div class="kicker">A Full Trace <span class="folio">¶ 09</span></div>
-  <h2>One request, walked through.</h2>
-<div class="arch-flow">
-<span class="label">Request:</span> <span class="step">query { user(id: "...") { email } }</span>
-&nbsp;&nbsp;&nbsp;<span class="label">purpose-declared:</span> customer-support
-&nbsp;&nbsp;&nbsp;<span class="label">caller:</span>           support-tools (S2S)
-&nbsp;&nbsp;&nbsp;<span class="label">IAM:</span>              user_id=12345 &middot; AAL2 &middot; scope=user.read
-
-<span class="label">Evaluate against policy engine (in parallel):</span>
-&nbsp;&nbsp;<span class="pol">privacy/marketing-consent</span>          <span class="bad">&times;</span>  user opted out of marketing
-&nbsp;&nbsp;<span class="pol">user/owner-or-cs-agent</span>             <span class="ok">&check;</span>  caller is verified CS agent
-
-<span class="step">DECISION</span>  <span class="ok">ALLOW</span>  &mdash; OR satisfied via domain rule
-<span class="step">AUDIT</span>     2 checks logged &middot; single trace ID
-</div>
-  <p class="muted">Three teams contributed: Privacy's cross-cutting rule, the User team's domain rule, and the Federation Platform's runtime. <strong>None coordinated. The schema held them together.</strong></p>
-</section>
-
-<!-- 10. COORDINATION PATTERN -->
+<!-- 8. COORDINATION PATTERN -->
 <section class="slide" data-notes="Three layers. Three owners. Three cadences. First — schema annotation. The subgraph team picks which policies apply to each field. Then — policy logic. Authored on a centralized policy platform. Domain teams write rules for their own data; Privacy and Identity contribute the cross-cutting ones. Each in their own language, on their own cadence — Privacy can change consent rules without telling Identity. And finally — enforcement runtime. That's my team, the Federation Platform. We don't own the policy engine; we own the bridge. The @policy directive, request context collection in the router, the translation into what the engine expects, and evaluation at request time. No cross-team coordination needed after the schema annotation lands. And without all those meetings, the time to onboard a sensitive field collapses.">
-  <div class="kicker">The Pattern <span class="folio">¶ 10</span></div>
+  <div class="kicker">The Pattern <span class="folio">¶ 08</span></div>
   <h2>Three layers. Three cadences. No cross-team meetings.</h2>
   <div class="layers">
     <div class="h">Layer</div>
@@ -1324,9 +1328,9 @@ type Insurance {
   <p>Three layers. Three cadences. <strong>No mandatory cross-team coordination after the schema annotation lands.</strong></p>
 </section>
 
-<!-- 11. ONBOARDING BEFORE/AFTER -->
+<!-- 9. ONBOARDING BEFORE/AFTER -->
 <section class="slide" data-notes="Here's what actually changed when we shipped it. Before: onboarding one new sensitive field took weeks. Tickets to every stakeholder team. Cross-team meetings. Enforcement code duplicated across systems. Arguments about audit trails. After: the subgraph team adds the @policy directive with the right policy IDs. The policies already exist — each team wrote them once. The audit trail comes free. Single trace ID across every decision. Hours instead of weeks. Now — that's one team, one field. The real question is: what happens when you do this across hundreds of teams?">
-  <div class="kicker">Before / After <span class="folio">¶ 11</span></div>
+  <div class="kicker">Before / After <span class="folio">¶ 09</span></div>
   <h2>Onboarding a new sensitive field.</h2>
   <div class="two-col">
     <div class="col">
@@ -1359,9 +1363,9 @@ type Insurance {
   </div>
 </section>
 
-<!-- 12. ADOPTION STORY -->
+<!-- 10. ADOPTION STORY -->
 <section class="slide" data-notes="Honestly, building the directive was the easy part. Shipped it, tested it, pushed it to prod. Then we did all the usual outreach — Slack posts, internal docs, brown-bags, the works. A few months in? About 10% of teams had picked it up. Two hundred-plus data provider teams across the federation. Ten percent means twenty onboarded, almost two hundred still exposing fields without coordinated access control. The traditional platform playbook — file tickets, schedule meetings, walk each team through migration — was just not going to work at this scale. The truth is, organic adoption doesn't scale to hundreds of teams. You can't ask hundreds of people to remember, prioritize, and act on their own. So we stopped asking. We built something that didn't need them to remember.">
-  <div class="kicker">The Adoption Gap <span class="folio">¶ 12</span></div>
+  <div class="kicker">The Adoption Gap <span class="folio">¶ 10</span></div>
   <div class="big-text" style="font-size: clamp(1.5rem, 2.8vw, 2.2rem); margin-bottom: 1.4rem;">
     Build it, announce it.<br>
     <span class="accent">10%</span> will come.
@@ -1376,9 +1380,9 @@ type Insurance {
   </div>
 </section>
 
-<!-- 13. LLM DETECTION -->
-<section class="slide" data-notes="So we built a long-running agent. Five steps. It detects — scans every subgraph schema and the resolver code behind each field, looking for gaps against access-control rules from the authority teams. It proposes — when it finds a gap, it opens a merge request straight to the subgraph repo, with the recommended @policy already filled in. It pings — asks the right team for review. Not a ticket, not a meeting. A real PR, ready to merge. It monitors — watches every MR through to resolution, and escalates the ones that go stale. It refreshes — updates a central gap-tracking dashboard so leadership and Security can actually watch adoption move in real time. The numbers today: more than a thousand sensitive fields surfaced. About a hundred teams have acted on agent-proposed MRs. None of that would've happened through manual outreach. The agent does the part that just doesn't scale. Now — we didn't get this right on the first try.">
-  <div class="kicker">Closing the Loop <span class="folio">¶ 13</span></div>
+<!-- 11. LLM DETECTION -->
+<section class="slide" data-notes="So we built a long-running agent. Five steps. It detects — scans every subgraph schema and the resolver code behind each field, looking for gaps against access-control rules from the authority teams. It proposes — when it finds a gap, it opens a merge request straight to the subgraph repo, with the recommended @policy already filled in. It pings — asks the right team for review. Not a ticket, not a meeting. A real PR, ready to merge. It monitors — watches every MR through to resolution, and escalates the ones that go stale. It refreshes — updates a central gap-tracking dashboard so leadership and Security can actually watch adoption move in real time. The numbers today: more than a thousand sensitive fields surfaced. About a hundred teams have acted on agent-proposed MRs. None of that would've happened through manual outreach. The agent does the part that just doesn't scale. Now — here's what we learned from all of it.">
+  <div class="kicker">Closing the Loop <span class="folio">¶ 11</span></div>
   <h2>An agent finds the gaps. And proposes the fix.</h2>
   <p>A long-running agent that drives adoption directly &mdash; no tickets, no meetings.</p>
   <ul>
@@ -1394,28 +1398,9 @@ type Insurance {
   </div>
 </section>
 
-<!-- 14. WHAT DIDN'T WORK -->
-<section class="slide" data-notes="OK, honest part. We tried two things before we got to what works. Version one — per-team enforcement, each team owning their own runtime. Drift was immediate. Privacy's rule said one thing, the order domain's rule said the opposite, and the order they ran in was undefined. Stakeholders started blocking each other's deploys. Version two — the one I just described. One shared registry, one shared enforcement point at the router, bounded authorship, cross-domain reuse. Each team writes only what they own. Nobody can block anyone. Nothing can drift. Now, here are four lessons that stick — and they generalize way beyond GraphQL.">
-  <div class="kicker">Erratum <span class="folio">¶ 14</span></div>
-  <h2>What didn't work &mdash; and why.</h2>
-  <div class="attempts">
-    <div class="attempt fail">
-      <div class="ver">v1</div>
-      <div class="desc">Per-team enforcement with separate runtimes. Drift, ordering ambiguity, conflicting rules at runtime. Stakeholders blocked each other's deploys.</div>
-      <div class="verdict">Drift</div>
-    </div>
-    <div class="attempt win">
-      <div class="ver">v2</div>
-      <div class="desc">Shared registry, single enforcement point, bounded authorship, cross-domain reuse. Each team writes only their own rules; everyone composes.</div>
-      <div class="verdict">Worked</div>
-    </div>
-  </div>
-  <p class="muted">Centralized execution. Bounded authorship. Cross-domain reuse. <strong>That's the pattern.</strong></p>
-</section>
-
-<!-- 15. THREE LESSONS -->
+<!-- 12. THREE LESSONS -->
 <section class="slide" data-notes="Four lessons. None of them specific to federation. One. When more than two teams have legitimate claims on a piece of data, you don't have a security problem — you have a coordination problem. Solving it as security just makes it worse. Two. The schema is the natural coordination contract. Whatever your platform's interface is — GraphQL, gRPC, OpenAPI, event schema — that's where the contract lives. Don't bury it in code only one team can read. Three. Single enforcement plus bounded authorship plus free reuse equals scale. One place decisions happen. Each team writes only the rules for their own data. Anyone can reuse anyone else's. Four. Adoption at scale doesn't come from outreach. You can't file a hundred tickets and expect a hundred teams to act. Build the agent that proposes the fix as a merge request — and the team just has to review. So — here's where it landed for us.">
-  <div class="kicker">The Argument <span class="folio">¶ 15</span></div>
+  <div class="kicker">The Argument <span class="folio">¶ 12</span></div>
   <h2>Four lessons that generalize beyond GraphQL.</h2>
   <div class="lessons">
     <div class="lesson">
@@ -1449,9 +1434,9 @@ type Insurance {
   </div>
 </section>
 
-<!-- 16. WHERE WE LANDED -->
+<!-- 13. WHERE WE LANDED -->
 <section class="slide" data-notes="The numbers, briefly. More than a thousand access-control gaps surfaced and proposed as merge requests. About a hundred teams already adopted, more MRs in flight. Per-field onboarding 5× faster — what used to be weeks of cross-team coordination is now an annotation review on a pre-filled MR. And the regulator's favourite number — N+ audit trails consolidated down to one. One trace ID per query. Every decision logged together. We're not done. But the architecture and the agent together are doing what manual outreach never could. So — here's the one thing I want you to take with you.">
-  <div class="kicker">The Ledger <span class="folio">¶ 16</span></div>
+  <div class="kicker">The Ledger <span class="folio">¶ 13</span></div>
   <h2>Where we landed.</h2>
   <div class="kpi-grid">
     <div class="kpi"><div class="num">1,000+</div><div class="label">access-control gaps detected and proposed for fix</div></div>
@@ -1461,9 +1446,9 @@ type Insurance {
   </div>
 </section>
 
-<!-- 17. CLOSING -->
+<!-- 14. CLOSING -->
 <section class="slide closing-page" data-notes="One takeaway. Access control at scale isn't a security problem — it's a coordination problem. And the schema is the contract. That's the talk. Thanks for listening. Find me after — I want to hear how your team's handling this.">
-  <div class="kicker">Editorial <span class="folio">¶ 17</span></div>
+  <div class="kicker">Editorial <span class="folio">¶ 14</span></div>
   <div class="lede">
     <div class="big-text" style="margin-bottom: 1.6rem;">
       Access control at scale isn't a <span class="warn">security problem</span>.
