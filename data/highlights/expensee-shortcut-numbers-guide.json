@@ -19,7 +19,11 @@
           "fingerprint": "29fbaf7e2e23_US_web_c5758a17",
           "country": "US",
           "platform": "web",
-          "reactions": {},
+          "reactions": {
+            "❤️": [
+              "29fbaf7e2e23_US_web_c5758a17"
+            ]
+          },
           "resolved": false,
           "createdAt": "2026-05-28T19:29:46.953Z",
           "hidden": false
