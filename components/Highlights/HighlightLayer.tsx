@@ -25,12 +25,19 @@ interface HighlightLayerProps {
   children: React.ReactNode
 }
 
+interface OverlayRect {
+  top: number
+  left: number
+  width: number
+  height: number
+}
+
 /**
  * Top-level orchestrator for the inline-comments feature on a blog post.
  *
  * Wraps the post's article content with:
  *   - selection capture + floating "+" toolbar
- *   - overlay highlight marks
+ *   - overlay highlight marks (existing comments + the in-progress one)
  *   - right-rail of Google Docs-style comment cards (lg+)
  *   - composer for new highlights, vertically aligned to the selection
  *   - bottom-sheet composer + stacked cards on narrow viewports
@@ -42,9 +49,11 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
   const articleRef = useRef<HTMLDivElement>(null)
   const [highlights, setHighlights] = useState<Highlight[]>([])
   const [fingerprint, setFingerprint] = useState<string | null>(null)
+  const [displayName, setDisplayName] = useState<string | null>(null)
   const [isOwner, setIsOwner] = useState(false)
   const [pending, setPending] = useState<HighlightAnchor | null>(null)
   const [pendingTop, setPendingTop] = useState<number | null>(null)
+  const [pendingRects, setPendingRects] = useState<OverlayRect[]>([])
   const [recomputeKey, setRecomputeKey] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
@@ -56,6 +65,7 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
         if (cancelled) return
         setHighlights(data.highlights)
         setFingerprint(data.currentFingerprint)
+        setDisplayName(data.currentDisplayName)
         setIsOwner(data.isOwner)
       })
       .catch((err) => {
@@ -85,10 +95,14 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
     }
   }, [])
 
-  // Recompute pending composer top from the pending anchor
+  // Recompute pending composer top + overlay rects from the pending anchor.
+  // The overlay rects keep the "selected" visual state on the article even
+  // after focus moves to the textarea (browsers clear native selection on
+  // focus change).
   useEffect(() => {
     if (!pending) {
       setPendingTop(null)
+      setPendingRects([])
       return
     }
     const article = articleRef.current
@@ -96,11 +110,20 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
     const range = anchorToRange(pending, article)
     if (!range) {
       setPendingTop(0)
+      setPendingRects([])
       return
     }
     const articleRect = article.getBoundingClientRect()
     const rangeRect = range.getBoundingClientRect()
     setPendingTop(rangeRect.top - articleRect.top)
+    setPendingRects(
+      Array.from(range.getClientRects()).map((r) => ({
+        top: r.top - articleRect.top,
+        left: r.left - articleRect.left,
+        width: r.width,
+        height: r.height,
+      })),
+    )
   }, [pending, recomputeKey])
 
   // Handlers — keep optimistic UI: append/update local state, server is source on next reload
@@ -195,9 +218,10 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
   )
 
   const article = articleRef.current
-  const pendingPreview = pending
-    ? pending.exact.slice(0, 40) + (pending.exact.length > 40 ? '…' : '')
-    : ''
+  const cancelPending = useCallback(() => {
+    setPending(null)
+    setError(null)
+  }, [])
 
   return (
     <div className='relative mx-auto w-full max-w-7xl'>
@@ -209,6 +233,15 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
             highlight={h}
             articleEl={article}
             recomputeKey={recomputeKey}
+          />
+        ))}
+        {/* Pending highlight overlay: keeps the selected text visually highlighted
+            while the composer is open, after the native selection has been cleared. */}
+        {pendingRects.map((r, i) => (
+          <div
+            key={`pending-${i}`}
+            className='pointer-events-none absolute z-10 rounded-sm border-b-2 border-primary/60 bg-primary/15'
+            style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
           />
         ))}
         <SelectionToolbar
@@ -226,18 +259,13 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
               className='absolute left-4 right-0'
               style={{ top: pendingTop }}
             >
-              <div className='rounded-lg border border-primary/40 bg-card p-2 shadow-sm'>
-                <div className='mb-2 text-xs text-muted-foreground'>
-                  Commenting on “{pendingPreview}”
-                </div>
+              <div className='rounded-lg shadow-lg'>
                 <CommentComposer
                   placeholder='Add a comment…'
                   submitLabel='Comment'
+                  initialName={displayName ?? ''}
                   onSubmit={handleSubmitNew}
-                  onCancel={() => {
-                    setPending(null)
-                    setError(null)
-                  }}
+                  onCancel={cancelPending}
                 />
                 {error && (
                   <div className='mt-2 rounded border border-destructive/30 bg-destructive/10 p-2 text-xs text-destructive'>
@@ -264,18 +292,13 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
       {/* Mobile (< lg): composer as a centered bottom sheet matching post body width. */}
       {pending && (
         <div className='fixed inset-x-0 bottom-0 z-50 px-4 pb-4 pt-2 lg:hidden'>
-          <div className='mx-auto max-w-3xl rounded-lg border border-border bg-card p-3 shadow-lg'>
-            <div className='mb-2 text-xs text-muted-foreground'>
-              Commenting on “{pendingPreview}”
-            </div>
+          <div className='mx-auto max-w-3xl rounded-lg shadow-lg'>
             <CommentComposer
               placeholder='Add a comment…'
               submitLabel='Comment'
+              initialName={displayName ?? ''}
               onSubmit={handleSubmitNew}
-              onCancel={() => {
-                setPending(null)
-                setError(null)
-              }}
+              onCancel={cancelPending}
             />
             {error && (
               <div className='mt-2 rounded border border-destructive/30 bg-destructive/10 p-2 text-xs text-destructive'>
