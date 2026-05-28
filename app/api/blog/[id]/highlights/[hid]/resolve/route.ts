@@ -5,6 +5,7 @@ import { getHighlightsRepo } from '@/lib/highlights/highlightsRepo'
 import {
   ApiBodyError,
   apiError,
+  apiErrorFrom,
   apiOk,
   getOwnerToken,
   isOwner,
@@ -51,7 +52,6 @@ export async function POST(
     return apiOk({ highlight: next })
   } catch (err) {
     if (err instanceof ApiBodyError) return apiError(err.message, 400)
-    console.error('POST /resolve failed', err)
-    return apiError('Failed to update highlight', 500)
+    return apiErrorFrom(err, 'Failed to update highlight')
   }
 }

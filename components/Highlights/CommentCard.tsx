@@ -44,8 +44,8 @@ export function CommentCard(props: CommentCardProps) {
       onMouseEnter={() => setFocused(highlight.id)}
       onMouseLeave={() => setFocused(null)}
       className={[
-        'rounded-lg border bg-white p-3 shadow-sm transition-all',
-        focused ? 'border-amber-400 shadow-md' : 'border-gray-200',
+        'rounded-lg border bg-card p-3 shadow-sm transition-all',
+        focused ? 'border-primary/60 shadow-md' : 'border-border',
         highlight.resolved ? 'opacity-60' : '',
       ].join(' ')}
     >
@@ -55,7 +55,7 @@ export function CommentCard(props: CommentCardProps) {
       />
 
       {replies.length > 0 && (
-        <div className='mt-2 space-y-2 border-l-2 border-gray-100 pl-2'>
+        <div className='mt-2 space-y-2 border-l-2 border-border pl-2'>
           {replies.map((reply) => (
             <CommentBody
               key={reply.id}
@@ -75,7 +75,7 @@ export function CommentCard(props: CommentCardProps) {
           <button
             type='button'
             onClick={() => setReplyOpen(true)}
-            className='text-xs font-medium text-amber-600 hover:text-amber-700'
+            className='text-xs font-medium text-primary hover:underline'
           >
             Reply
           </button>
@@ -85,7 +85,7 @@ export function CommentCard(props: CommentCardProps) {
             <button
               type='button'
               onClick={() => onResolve(highlight.id, !highlight.resolved)}
-              className='inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-gray-500 hover:bg-gray-100'
+              className='inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted'
               aria-label={highlight.resolved ? 'Reopen' : 'Resolve'}
             >
               {highlight.resolved ? <RotateCcw className='h-3 w-3' /> : <CheckCircle className='h-3 w-3' />}
@@ -94,7 +94,7 @@ export function CommentCard(props: CommentCardProps) {
             <button
               type='button'
               onClick={() => onDelete(highlight.id)}
-              className='inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-red-500 hover:bg-red-50'
+              className='inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-destructive hover:bg-destructive/10'
               aria-label='Delete highlight'
             >
               <Trash2 className='h-3 w-3' />
@@ -136,7 +136,7 @@ function CommentBody({
   compact?: boolean
 }) {
   if (comment.hidden) {
-    return <div className='text-xs italic text-gray-400'>(removed)</div>
+    return <div className='text-xs italic text-muted-foreground'>(removed)</div>
   }
 
   const displayName = comment.authorName?.trim() || `Anonymous ${comment.fingerprint.slice(0, 4)}`
@@ -146,21 +146,21 @@ function CommentBody({
     <div className={compact ? 'text-xs' : 'text-sm'}>
       <div className='flex items-center justify-between gap-2'>
         <div className='flex items-center gap-1.5'>
-          <span className='font-medium text-gray-900'>{displayName}</span>
-          <span className='text-[11px] text-gray-400'>· {time}</span>
+          <span className='font-medium text-foreground'>{displayName}</span>
+          <span className='text-[11px] text-muted-foreground'>· {time}</span>
         </div>
         {isOwner && compact && (
           <button
             type='button'
             onClick={onDelete}
-            className='text-[11px] text-red-500 hover:underline'
+            className='text-[11px] text-destructive hover:underline'
             aria-label='Delete reply'
           >
             <Trash2 className='h-3 w-3' />
           </button>
         )}
       </div>
-      <div className={['mt-1 whitespace-pre-wrap text-gray-700', compact ? '' : ''].join(' ')}>
+      <div className='mt-1 whitespace-pre-wrap text-foreground/80'>
         {comment.body}
       </div>
       <div className='mt-1.5'>

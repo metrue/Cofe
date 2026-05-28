@@ -80,7 +80,7 @@ export function SelectionToolbar({ containerRef, onAddComment, suppressed }: Sel
       }}
       onClick={onAddComment}
       style={{ top: pos.top, left: pos.left }}
-      className='absolute z-30 flex h-8 w-8 items-center justify-center rounded-full bg-amber-400 text-white shadow-md transition-all hover:scale-110 hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-300'
+      className='absolute z-30 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition-all hover:scale-110 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring'
       aria-label='Add comment on selection'
     >
       <MessageSquarePlus className='h-4 w-4' />

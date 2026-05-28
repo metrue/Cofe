@@ -35,6 +35,24 @@ export function apiError(message: string, status = 400): NextResponse<ApiRespons
   return NextResponse.json<ApiResponse<never>>({ success: false, error: message }, { status })
 }
 
+/**
+ * Convert an unknown error from a route catch block into an `ApiResponse`.
+ * The actual error message is surfaced to the client — this is a personal
+ * blog where debuggability beats security-via-obscurity, and the only
+ * sensitive thing we care about (the GitHub token) never appears in error
+ * messages anyway. Always logs the full stack server-side.
+ */
+export function apiErrorFrom(
+  err: unknown,
+  fallback = 'Internal server error',
+  status = 500,
+): NextResponse<ApiResponse<never>> {
+  console.error('[highlights]', err)
+  const message =
+    err instanceof Error && err.message ? err.message : fallback
+  return apiError(message, status)
+}
+
 export interface RequestIdentity {
   fingerprint: string
   country: string

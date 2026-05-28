@@ -7,6 +7,7 @@ import { checkCommentRateLimit } from '@/lib/highlights/rateLimit'
 import {
   ApiBodyError,
   apiError,
+  apiErrorFrom,
   apiOk,
   extractIdentity,
   parseBody,
@@ -75,7 +76,6 @@ export async function POST(
     return apiOk({ comment: reply })
   } catch (err) {
     if (err instanceof ApiBodyError) return apiError(err.message, 400)
-    console.error('POST /highlights/[hid]/replies failed', err)
-    return apiError('Failed to add reply', 500)
+    return apiErrorFrom(err, 'Failed to add reply')
   }
 }

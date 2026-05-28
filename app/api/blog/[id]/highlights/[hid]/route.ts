@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 
 import { getHighlightsRepo } from '@/lib/highlights/highlightsRepo'
-import { apiError, apiOk, getOwnerToken, isOwner } from '@/lib/highlights/server'
+import { apiError, apiErrorFrom, apiOk, getOwnerToken, isOwner } from '@/lib/highlights/server'
 
 export async function DELETE(
   _req: NextRequest,
@@ -26,7 +26,6 @@ export async function DELETE(
     await repo.save(params.id, updated, sha, `Delete highlight ${params.hid}`)
     return apiOk({ ok: true })
   } catch (err) {
-    console.error('DELETE /highlights/[hid] failed', err)
-    return apiError('Failed to delete highlight', 500)
+    return apiErrorFrom(err, 'Failed to delete highlight')
   }
 }

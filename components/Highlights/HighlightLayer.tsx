@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { rangeToAnchor } from '@/lib/highlights/anchoring'
+import { anchorToRange, rangeToAnchor } from '@/lib/highlights/anchoring'
 import {
   createHighlight,
   createReply,
@@ -31,8 +31,9 @@ interface HighlightLayerProps {
  * Wraps the post's article content with:
  *   - selection capture + floating "+" toolbar
  *   - overlay highlight marks
- *   - right-rail of Google Docs-style comment cards
- *   - composer for new highlights and replies
+ *   - right-rail of Google Docs-style comment cards (lg+)
+ *   - composer for new highlights, vertically aligned to the selection
+ *   - bottom-sheet composer + stacked cards on narrow viewports
  *
  * Does not modify `BlogPostContent` — the article DOM stays untouched and
  * we render anchored marks/cards on top.
@@ -43,6 +44,7 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
   const [fingerprint, setFingerprint] = useState<string | null>(null)
   const [isOwner, setIsOwner] = useState(false)
   const [pending, setPending] = useState<HighlightAnchor | null>(null)
+  const [pendingTop, setPendingTop] = useState<number | null>(null)
   const [recomputeKey, setRecomputeKey] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
@@ -75,9 +77,31 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
     if (typeof document !== 'undefined' && document.fonts) {
       document.fonts.ready.then(() => setRecomputeKey((k) => k + 1)).catch(() => {})
     }
-    window.addEventListener('resize', () => setRecomputeKey((k) => k + 1))
-    return () => ro.disconnect()
+    const onResize = () => setRecomputeKey((k) => k + 1)
+    window.addEventListener('resize', onResize)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', onResize)
+    }
   }, [])
+
+  // Recompute pending composer top from the pending anchor
+  useEffect(() => {
+    if (!pending) {
+      setPendingTop(null)
+      return
+    }
+    const article = articleRef.current
+    if (!article) return
+    const range = anchorToRange(pending, article)
+    if (!range) {
+      setPendingTop(0)
+      return
+    }
+    const articleRect = article.getBoundingClientRect()
+    const rangeRect = range.getBoundingClientRect()
+    setPendingTop(rangeRect.top - articleRect.top)
+  }, [pending, recomputeKey])
 
   // Handlers — keep optimistic UI: append/update local state, server is source on next reload
   const handleAddComment = useCallback(() => {
@@ -171,6 +195,9 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
   )
 
   const article = articleRef.current
+  const pendingPreview = pending
+    ? pending.exact.slice(0, 40) + (pending.exact.length > 40 ? '…' : '')
+    : ''
 
   return (
     <div className='relative mx-auto w-full max-w-7xl'>
@@ -191,25 +218,33 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
         />
       </div>
 
-      {/* Composer — appears in the rail when a new highlight is being drafted. */}
-      <aside className='pointer-events-none absolute right-0 top-0 hidden w-72 lg:block'>
-        <div className='pointer-events-auto sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto pl-4'>
-          {pending && (
-            <div className='mb-3 rounded-lg border-2 border-amber-300 bg-amber-50/40 p-2'>
-              <div className='mb-2 text-xs text-amber-900'>
-                Commenting on “{pending.exact.slice(0, 40)}{pending.exact.length > 40 ? '…' : ''}”
+      {/* Right-rail (lg+): composer at the selection's vertical top, plus existing cards. */}
+      <aside className='absolute right-0 top-0 hidden w-72 lg:block'>
+        <div className='relative pl-4'>
+          {pending && pendingTop !== null && (
+            <div
+              className='absolute left-4 right-0'
+              style={{ top: pendingTop }}
+            >
+              <div className='rounded-lg border border-primary/40 bg-card p-2 shadow-sm'>
+                <div className='mb-2 text-xs text-muted-foreground'>
+                  Commenting on “{pendingPreview}”
+                </div>
+                <CommentComposer
+                  placeholder='Add a comment…'
+                  submitLabel='Comment'
+                  onSubmit={handleSubmitNew}
+                  onCancel={() => {
+                    setPending(null)
+                    setError(null)
+                  }}
+                />
+                {error && (
+                  <div className='mt-2 rounded border border-destructive/30 bg-destructive/10 p-2 text-xs text-destructive'>
+                    {error}
+                  </div>
+                )}
               </div>
-              <CommentComposer
-                placeholder='Add a comment…'
-                submitLabel='Comment'
-                onSubmit={handleSubmitNew}
-                onCancel={() => setPending(null)}
-              />
-            </div>
-          )}
-          {error && (
-            <div className='mb-2 rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700'>
-              {error}
             </div>
           )}
           <CommentRail
@@ -226,20 +261,27 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
         </div>
       </aside>
 
-      {/* Mobile fallback: bottom sheet for any active composer or thread.
-          Phase 8 will flesh out — for v1 we tap into the same components. */}
+      {/* Mobile (< lg): composer as a centered bottom sheet matching post body width. */}
       {pending && (
-        <div className='fixed inset-x-0 bottom-0 z-50 border-t border-amber-200 bg-white p-3 shadow-lg lg:hidden'>
-          <div className='mx-auto max-w-3xl'>
-            <div className='mb-2 text-xs text-amber-900'>
-              Commenting on “{pending.exact.slice(0, 40)}{pending.exact.length > 40 ? '…' : ''}”
+        <div className='fixed inset-x-0 bottom-0 z-50 px-4 pb-4 pt-2 lg:hidden'>
+          <div className='mx-auto max-w-3xl rounded-lg border border-border bg-card p-3 shadow-lg'>
+            <div className='mb-2 text-xs text-muted-foreground'>
+              Commenting on “{pendingPreview}”
             </div>
             <CommentComposer
               placeholder='Add a comment…'
               submitLabel='Comment'
               onSubmit={handleSubmitNew}
-              onCancel={() => setPending(null)}
+              onCancel={() => {
+                setPending(null)
+                setError(null)
+              }}
             />
+            {error && (
+              <div className='mt-2 rounded border border-destructive/30 bg-destructive/10 p-2 text-xs text-destructive'>
+                {error}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -247,7 +289,7 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
       {/* Mobile: existing highlights as a stacked list under the article. */}
       {highlights.length > 0 && (
         <div className='mt-6 space-y-3 px-4 lg:hidden'>
-          <h2 className='text-sm font-semibold text-gray-700'>Inline comments</h2>
+          <h2 className='text-sm font-semibold text-muted-foreground'>Inline comments</h2>
           {highlights.map((h) => (
             <CommentCard
               key={h.id}

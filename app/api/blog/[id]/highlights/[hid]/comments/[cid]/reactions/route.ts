@@ -6,6 +6,7 @@ import { checkReactionRateLimit } from '@/lib/highlights/rateLimit'
 import {
   ApiBodyError,
   apiError,
+  apiErrorFrom,
   apiOk,
   extractIdentity,
   parseBody,
@@ -75,7 +76,6 @@ export async function POST(
     return apiOk({ reactions })
   } catch (err) {
     if (err instanceof ApiBodyError) return apiError(err.message, 400)
-    console.error('POST /reactions failed', err)
-    return apiError('Failed to toggle reaction', 500)
+    return apiErrorFrom(err, 'Failed to toggle reaction')
   }
 }
