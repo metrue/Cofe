@@ -40,6 +40,19 @@
           "resolved": false,
           "createdAt": "2026-05-28T19:30:35.923Z",
           "hidden": false
+        },
+        {
+          "id": "cm_0712011b-acbf-4fd5-8655-2df232a62b2d",
+          "parentId": "cm_311a1850-e5b8-4c5d-b220-c70a2372be9e",
+          "body": "是的",
+          "authorName": "Minghe",
+          "fingerprint": "29fbaf7e2e23_US_web_c5758a17",
+          "country": "US",
+          "platform": "web",
+          "reactions": {},
+          "resolved": false,
+          "createdAt": "2026-05-28T20:02:50.299Z",
+          "hidden": false
         }
       ],
       "resolved": false,
