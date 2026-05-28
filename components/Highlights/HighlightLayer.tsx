@@ -224,8 +224,8 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
   }, [])
 
   return (
-    <div className='relative mx-auto w-full max-w-7xl'>
-      <div ref={articleRef} className='relative'>
+    <div className='relative mx-auto w-full lg:flex lg:max-w-6xl lg:items-start lg:gap-12 lg:px-6'>
+      <div ref={articleRef} className='relative w-full lg:max-w-3xl lg:flex-1'>
         {children}
         {highlights.map((h) => (
           <HighlightMark
@@ -251,12 +251,14 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
         />
       </div>
 
-      {/* Right-rail (lg+): composer at the selection's vertical top, plus existing cards. */}
-      <aside className='absolute right-0 top-0 hidden w-72 lg:block'>
-        <div className='relative pl-4'>
+      {/* Right-rail (lg+): composer at the selection's vertical top, plus existing cards.
+          Sibling of the article in flex flow — gap-12 on the parent gives the
+          breathing room. */}
+      <aside className='hidden w-72 shrink-0 lg:block'>
+        <div className='relative'>
           {pending && pendingTop !== null && (
             <div
-              className='absolute left-4 right-0'
+              className='absolute left-0 right-0'
               style={{ top: pendingTop }}
             >
               <div className='rounded-lg shadow-lg'>
