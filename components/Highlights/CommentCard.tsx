@@ -4,11 +4,10 @@ import { formatDistanceToNow } from 'date-fns'
 import { Trash2, CheckCircle, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 
-import { Highlight, InlineComment, Reactions as ReactionsT } from '@/lib/highlights/schema'
+import { Highlight, InlineComment } from '@/lib/highlights/schema'
 import { setFocused, useFocusedHighlight } from '@/lib/highlights/syncFocus'
 
 import { CommentComposer } from './CommentComposer'
-import { Reactions } from './Reactions'
 
 interface CommentCardProps {
   highlight: Highlight
@@ -29,11 +28,20 @@ interface CommentCardProps {
  * Renders one highlight's thread as a Google Docs-style card. The thread's
  * first comment is the root; the rest render indented as replies. A reply
  * composer lives at the bottom and reveals on click.
+ *
+ * NOTE: emoji reactions are intentionally hidden in the UI — the API and
+ * data model still support them, but the visible bar was clashing with
+ * the site's voice. Re-enable by importing/rendering `<Reactions>`.
  */
 export function CommentCard(props: CommentCardProps) {
   const { highlight, fingerprint, isOwner, onReply, onReact, onResolve, onDelete } = props
   const focused = useFocusedHighlight() === highlight.id
   const [replyOpen, setReplyOpen] = useState(false)
+
+  // `fingerprint` and `onReact` are still threaded through for when reactions
+  // are re-enabled. Suppress unused warnings cleanly.
+  void fingerprint
+  void onReact
 
   const root = highlight.thread[0]
   const replies = highlight.thread.slice(1)
@@ -49,8 +57,7 @@ export function CommentCard(props: CommentCardProps) {
         highlight.resolved ? 'opacity-60' : '',
       ].join(' ')}
     >
-      <CommentBody comment={root} fingerprint={fingerprint} isOwner={isOwner}
-        onReact={(emoji) => onReact(highlight.id, root.id, emoji)}
+      <CommentBody comment={root} isOwner={isOwner}
         onDelete={() => onDelete(highlight.id, root.id)}
       />
 
@@ -60,9 +67,7 @@ export function CommentCard(props: CommentCardProps) {
             <CommentBody
               key={reply.id}
               comment={reply}
-              fingerprint={fingerprint}
               isOwner={isOwner}
-              onReact={(emoji) => onReact(highlight.id, reply.id, emoji)}
               onDelete={() => onDelete(highlight.id, reply.id)}
               compact
             />
@@ -81,25 +86,15 @@ export function CommentCard(props: CommentCardProps) {
           </button>
         )}
         {isOwner && (
-          <div className='ml-auto flex items-center gap-1'>
-            <button
-              type='button'
-              onClick={() => onResolve(highlight.id, !highlight.resolved)}
-              className='inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted'
-              aria-label={highlight.resolved ? 'Reopen' : 'Resolve'}
-            >
-              {highlight.resolved ? <RotateCcw className='h-3 w-3' /> : <CheckCircle className='h-3 w-3' />}
-              {highlight.resolved ? 'Reopen' : 'Resolve'}
-            </button>
-            <button
-              type='button'
-              onClick={() => onDelete(highlight.id)}
-              className='inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-destructive hover:bg-destructive/10'
-              aria-label='Delete highlight'
-            >
-              <Trash2 className='h-3 w-3' />
-            </button>
-          </div>
+          <button
+            type='button'
+            onClick={() => onResolve(highlight.id, !highlight.resolved)}
+            className='ml-auto inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted'
+            aria-label={highlight.resolved ? 'Reopen' : 'Resolve'}
+          >
+            {highlight.resolved ? <RotateCcw className='h-3 w-3' /> : <CheckCircle className='h-3 w-3' />}
+            {highlight.resolved ? 'Reopen' : 'Resolve'}
+          </button>
         )}
       </div>
 
@@ -122,16 +117,12 @@ export function CommentCard(props: CommentCardProps) {
 
 function CommentBody({
   comment,
-  fingerprint,
   isOwner,
-  onReact,
   onDelete,
   compact,
 }: {
   comment: InlineComment
-  fingerprint: string | null
   isOwner: boolean
-  onReact: (emoji: string) => Promise<void>
   onDelete: () => Promise<void>
   compact?: boolean
 }) {
@@ -149,12 +140,12 @@ function CommentBody({
           <span className='font-medium text-foreground'>{displayName}</span>
           <span className='text-[11px] text-muted-foreground'>· {time}</span>
         </div>
-        {isOwner && compact && (
+        {isOwner && (
           <button
             type='button'
             onClick={onDelete}
-            className='text-[11px] text-destructive hover:underline'
-            aria-label='Delete reply'
+            className='rounded p-1 text-muted-foreground hover:bg-muted hover:text-destructive'
+            aria-label={compact ? 'Delete reply' : 'Delete comment'}
           >
             <Trash2 className='h-3 w-3' />
           </button>
@@ -162,15 +153,6 @@ function CommentBody({
       </div>
       <div className='mt-1 whitespace-pre-wrap text-foreground/80'>
         {comment.body}
-      </div>
-      <div className='mt-1.5'>
-        <Reactions
-          reactions={comment.reactions as ReactionsT}
-          fingerprint={fingerprint}
-          onToggle={(emoji) => {
-            void onReact(emoji)
-          }}
-        />
       </div>
     </div>
   )

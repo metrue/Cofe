@@ -37,12 +37,24 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, profile }) {
       if (account && account.access_token) {
         token.accessToken = account.access_token
       }
-      if (account) {
-        token.username = account.username
+      // GitHub OAuth puts the login (username) on the `profile` object, not
+      // on `account`. Capture it here so `session.user.username` is reliable
+      // for owner-check logic. Falls back to whatever was on `account`
+      // for compatibility with the previous behavior.
+      const profileLogin =
+        profile && typeof profile === 'object' && 'login' in profile
+          ? (profile as { login?: string }).login
+          : undefined
+      const accountUsername =
+        account && typeof account === 'object' && 'username' in account
+          ? (account as { username?: string }).username
+          : undefined
+      if (profileLogin || accountUsername) {
+        token.username = profileLogin ?? accountUsername
       }
       return token
     },
