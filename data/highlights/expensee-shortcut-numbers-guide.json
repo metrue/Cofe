@@ -1,0 +1,33 @@
+{
+  "postId": "expensee-shortcut-numbers-guide",
+  "highlights": [
+    {
+      "id": "hl_f7309b35-d8ea-4db6-aadf-6826f9914c82",
+      "anchor": {
+        "startOffset": 73,
+        "endOffset": 82,
+        "exact": "ExpenSee ",
+        "prefix": "026🖊 Duivendrecht · Kastanjepad",
+        "suffix": "上线之前，我用了很久一套土法记账：iOS 自带的快捷指令 + N"
+      },
+      "thread": [
+        {
+          "id": "cm_311a1850-e5b8-4c5d-b220-c70a2372be9e",
+          "parentId": null,
+          "body": "ExpenSee 是作者设计的一款特别的iOS应用.",
+          "authorName": null,
+          "fingerprint": "29fbaf7e2e23_US_web_c5758a17",
+          "country": "US",
+          "platform": "web",
+          "reactions": {},
+          "resolved": false,
+          "createdAt": "2026-05-28T19:29:46.953Z",
+          "hidden": false
+        }
+      ],
+      "resolved": false,
+      "createdAt": "2026-05-28T19:29:46.953Z"
+    }
+  ],
+  "schemaVersion": 1
+}
