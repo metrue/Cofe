@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { BlogPostContent } from '@/components/BlogPostContent'
+import { HighlightLayer } from '@/components/Highlights/HighlightLayer'
 import { useUmamiTracking } from '@/components/Analytics'
 import type { BlogPost } from '@/lib/types'
 import {
@@ -155,14 +156,16 @@ export const PostContainer = ({ post, discussionsComponent }: { post: BlogPost, 
   )
 
   return (
-    <BlogPostContent
-      title={decodedTitle}
-      date={post.date}
-      content={contentWithoutFrontmatter}
-      slug={post.id}
-      headerContent={status === 'authenticated' ? headerContent : null}
-      discussionsComponent={discussionsComponent}
-      location={post.city ? { city: post.city, street: post.street } : undefined}
-    />
+    <HighlightLayer postId={post.id}>
+      <BlogPostContent
+        title={decodedTitle}
+        date={post.date}
+        content={contentWithoutFrontmatter}
+        slug={post.id}
+        headerContent={status === 'authenticated' ? headerContent : null}
+        discussionsComponent={discussionsComponent}
+        location={post.city ? { city: post.city, street: post.street } : undefined}
+      />
+    </HighlightLayer>
   )
 }
