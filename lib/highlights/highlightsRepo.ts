@@ -33,7 +33,7 @@ const REPO = 'Cofe'
 const FILE_DIR = 'data/highlights'
 const CACHE_TTL_MS = 30_000
 const SAVE_RETRY_LIMIT = 3
-const SAFE_POST_ID = /^[a-zA-Z0-9._-]+$/
+const MAX_POST_ID_LENGTH = 200
 
 export interface LoadedHighlights {
   data: PostHighlights
@@ -73,7 +73,21 @@ function pathFor(postId: string): string {
 }
 
 function assertSafePostId(postId: string): void {
-  if (!SAFE_POST_ID.test(postId)) {
+  // Reject empty / oversized — and any character or pattern that could
+  // escape `data/highlights/<postId>.json` to write somewhere else on
+  // disk or in the GitHub repo. We DON'T enforce an ASCII allowlist —
+  // the blog has CJK-titled posts (e.g. `我做了一款旅行记录应用：mile`)
+  // and we want them to work.
+  if (!postId || postId.length === 0 || postId.length > MAX_POST_ID_LENGTH) {
+    throw new Error(`Invalid postId: ${postId}`)
+  }
+  if (
+    postId.includes('/') ||
+    postId.includes('\\') ||
+    postId.includes('\x00') ||
+    postId.includes('..') ||
+    postId.startsWith('.')
+  ) {
     throw new Error(`Invalid postId: ${postId}`)
   }
 }

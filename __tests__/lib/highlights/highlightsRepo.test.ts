@@ -88,6 +88,32 @@ describe('LocalFsHighlightsRepo', () => {
     ).rejects.toThrow(/Invalid postId/)
   })
 
+  it('rejects postIds containing slashes, null bytes, or leading dots', async () => {
+    await expect(repo.load('foo/bar')).rejects.toThrow(/Invalid postId/)
+    await expect(repo.load('foo\\bar')).rejects.toThrow(/Invalid postId/)
+    await expect(repo.load('foo\x00bar')).rejects.toThrow(/Invalid postId/)
+    await expect(repo.load('foo..bar')).rejects.toThrow(/Invalid postId/)
+    await expect(repo.load('.hidden')).rejects.toThrow(/Invalid postId/)
+    await expect(repo.load('')).rejects.toThrow(/Invalid postId/)
+  })
+
+  it('accepts CJK / full-width punctuation in postIds', async () => {
+    // Real post IDs from blog.minghe.me's data/blog/ folder
+    const okIds = [
+      '我做了一款旅行记录应用：mile', // Chinese + full-width colon
+      '四月的尾巴逛德国-柏林',
+      '华为鸿蒙-harmaryos-next-线下活动小记',
+      '逛逛济州岛',
+      '2017-summary',
+    ]
+    for (const id of okIds) {
+      // Should not throw — the file just doesn't exist yet
+      const result = await repo.load(id)
+      expect(result.data.postId).toBe(id)
+      expect(result.sha).toBeNull()
+    }
+  })
+
   it('rejects malformed PostHighlights on save', async () => {
     const bad = { postId: 'post-a', schemaVersion: 1, highlights: 'not an array' }
     await expect(
