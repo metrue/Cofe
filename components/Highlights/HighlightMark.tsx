@@ -67,11 +67,13 @@ export function HighlightMark({ highlight, articleEl, recomputeKey = 0 }: Highli
           style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
           className={[
             'absolute z-10 cursor-pointer rounded-sm border-b-2 transition-colors',
+            // Highlights stay yellow — that's the canonical highlighter convention,
+            // and the rest of the chrome (rail, buttons) is theme-tinted instead.
             isResolved
-              ? 'bg-gray-200/30 border-gray-300/60 hover:bg-gray-200/50'
-              : 'bg-amber-200/40 border-amber-300/70 hover:bg-amber-200/70',
-            isFocused && !isResolved ? 'bg-amber-300/60 border-amber-500' : '',
-            isFocused && isResolved ? 'bg-gray-300/60 border-gray-500' : '',
+              ? 'border-muted-foreground/40 bg-muted/40 hover:bg-muted/60'
+              : 'border-yellow-400/60 bg-yellow-200/40 hover:bg-yellow-200/70',
+            isFocused && !isResolved ? 'border-yellow-500 bg-yellow-300/60' : '',
+            isFocused && isResolved ? 'border-muted-foreground bg-muted/70' : '',
           ].join(' ')}
         />
       ))}

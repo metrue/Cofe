@@ -7,6 +7,7 @@ import { checkCommentRateLimit } from '@/lib/highlights/rateLimit'
 import {
   ApiBodyError,
   apiError,
+  apiErrorFrom,
   apiOk,
   extractIdentity,
   isOwner,
@@ -41,8 +42,7 @@ export async function GET(
       isOwner: owner,
     })
   } catch (err) {
-    console.error('GET /highlights failed', err)
-    return apiError('Failed to load highlights', 500)
+    return apiErrorFrom(err, 'Failed to load highlights')
   }
 }
 
@@ -100,7 +100,6 @@ export async function POST(
     return apiOk({ highlight: newHighlight })
   } catch (err) {
     if (err instanceof ApiBodyError) return apiError(err.message, 400)
-    console.error('POST /highlights failed', err)
-    return apiError('Failed to create highlight', 500)
+    return apiErrorFrom(err, 'Failed to create highlight')
   }
 }

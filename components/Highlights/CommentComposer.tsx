@@ -54,7 +54,7 @@ export function CommentComposer({
   }
 
   return (
-    <div className='flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-3'>
+    <div className='flex flex-col gap-2 rounded-lg border border-border bg-card p-3'>
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
@@ -62,7 +62,7 @@ export function CommentComposer({
         rows={3}
         maxLength={2000}
         disabled={submitting || disabled}
-        className='w-full resize-none rounded border border-gray-200 bg-white px-2 py-1.5 text-sm text-gray-900 placeholder-gray-400 focus:border-amber-400 focus:outline-none'
+        className='w-full resize-none rounded border border-border bg-background px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/40'
         onKeyDown={(e) => {
           if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
             e.preventDefault()
@@ -77,7 +77,7 @@ export function CommentComposer({
         placeholder='Your name (optional)'
         maxLength={40}
         disabled={submitting || disabled}
-        className='w-full rounded border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700 placeholder-gray-400 focus:border-amber-400 focus:outline-none'
+        className='w-full rounded border border-border bg-background px-2 py-1 text-xs text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/40'
       />
       {/* Honeypot — visually hidden, never tabbable. */}
       <input
@@ -89,14 +89,14 @@ export function CommentComposer({
         aria-hidden='true'
         className='absolute -left-[9999px] -top-[9999px] h-0 w-0 opacity-0'
       />
-      {error && <div className='text-xs text-red-600'>{error}</div>}
+      {error && <div className='text-xs text-destructive'>{error}</div>}
       <div className='flex items-center justify-end gap-2'>
         {onCancel && (
           <button
             type='button'
             onClick={onCancel}
             disabled={submitting}
-            className='inline-flex h-7 items-center gap-1 rounded px-2 text-xs text-gray-600 hover:bg-gray-100'
+            className='inline-flex h-7 items-center gap-1 rounded px-2 text-xs text-muted-foreground hover:bg-muted'
           >
             <X className='h-3 w-3' />
             Cancel
@@ -106,7 +106,7 @@ export function CommentComposer({
           type='button'
           onClick={handleSubmit}
           disabled={submitting || disabled || !body.trim()}
-          className='inline-flex h-7 items-center gap-1 rounded bg-amber-400 px-3 text-xs font-medium text-white shadow-sm hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50'
+          className='inline-flex h-7 items-center gap-1 rounded bg-primary px-3 text-xs font-medium text-primary-foreground shadow-sm hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
         >
           <Send className='h-3 w-3' />
           {submitting ? 'Sending…' : submitLabel}

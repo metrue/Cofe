@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 
 import { getHighlightsRepo } from '@/lib/highlights/highlightsRepo'
-import { apiError, apiOk, getOwnerToken, isOwner } from '@/lib/highlights/server'
+import { apiError, apiErrorFrom, apiOk, getOwnerToken, isOwner } from '@/lib/highlights/server'
 
 export async function DELETE(
   _req: NextRequest,
@@ -47,7 +47,6 @@ export async function DELETE(
     )
     return apiOk({ ok: true, removedHighlight: isRoot })
   } catch (err) {
-    console.error('DELETE /comments/[cid] failed', err)
-    return apiError('Failed to delete comment', 500)
+    return apiErrorFrom(err, 'Failed to delete comment')
   }
 }

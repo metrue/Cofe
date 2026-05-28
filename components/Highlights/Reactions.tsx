@@ -27,8 +27,8 @@ export function Reactions({ reactions, fingerprint, onToggle, disabled }: Reacti
             className={[
               'inline-flex h-6 items-center gap-1 rounded-full border px-1.5 text-[11px] transition-colors',
               reacted
-                ? 'border-amber-300 bg-amber-50 text-amber-900'
-                : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50',
+                ? 'border-primary/40 bg-primary/10 text-primary'
+                : 'border-border bg-card text-muted-foreground hover:bg-muted',
               disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
             ].join(' ')}
             aria-pressed={reacted}
