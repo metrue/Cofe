@@ -74,8 +74,23 @@ export function extractIdentity(request: NextRequest): RequestIdentity {
 export async function isOwner(): Promise<boolean> {
   const session = await getSession()
   const owner = process.env.GITHUB_USERNAME
-  if (!session?.user?.username || !owner) return false
-  return session.user.username === owner
+  if (!owner) return false
+
+  // Fast path: session has the username (set by lib/auth.ts JWT callback
+  // for fresh logins after the profile.login fix).
+  if (session?.user?.username) {
+    return session.user.username === owner
+  }
+
+  // Recovery path: legacy sessions issued before the JWT fix don't have
+  // username on the token, but they have an accessToken. Fetch the
+  // GitHub login once and compare. Avoids forcing a sign-out/in.
+  if (session?.accessToken) {
+    const login = await fetchGithubLogin(session.accessToken)
+    if (login) return login === owner
+  }
+
+  return false
 }
 
 export async function getOwnerToken(): Promise<string | undefined> {
@@ -90,7 +105,46 @@ export async function getOwnerToken(): Promise<string | undefined> {
  */
 export async function getSessionDisplayName(): Promise<string | null> {
   const session = await getSession()
-  return session?.user?.username ?? session?.user?.name ?? null
+  if (session?.user?.username) return session.user.username
+  // Recovery: legacy sessions — fetch GitHub login from access token.
+  if (session?.accessToken) {
+    const login = await fetchGithubLogin(session.accessToken)
+    if (login) return login
+  }
+  return session?.user?.name ?? null
+}
+
+/**
+ * Fetch the GitHub login (username) for an access token, with a small
+ * in-memory cache. Used as a recovery path for sessions whose JWT
+ * predates the `profile.login` capture in `lib/auth.ts`.
+ */
+const githubLoginCache = new Map<string, { login: string; expiresAt: number }>()
+const GITHUB_LOGIN_TTL_MS = 10 * 60 * 1000
+
+async function fetchGithubLogin(accessToken: string): Promise<string | null> {
+  const cached = githubLoginCache.get(accessToken)
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.login
+  }
+  try {
+    const res = await fetch('https://api.github.com/user', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/vnd.github+json',
+      },
+    })
+    if (!res.ok) return null
+    const user = (await res.json()) as { login?: string }
+    if (!user.login) return null
+    githubLoginCache.set(accessToken, {
+      login: user.login,
+      expiresAt: Date.now() + GITHUB_LOGIN_TTL_MS,
+    })
+    return user.login
+  } catch {
+    return null
+  }
 }
 
 /**

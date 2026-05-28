@@ -52,7 +52,6 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
   const [displayName, setDisplayName] = useState<string | null>(null)
   const [isOwner, setIsOwner] = useState(false)
   const [pending, setPending] = useState<HighlightAnchor | null>(null)
-  const [pendingTop, setPendingTop] = useState<number | null>(null)
   const [pendingRects, setPendingRects] = useState<OverlayRect[]>([])
   const [recomputeKey, setRecomputeKey] = useState(0)
   const [error, setError] = useState<string | null>(null)
@@ -95,13 +94,14 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
     }
   }, [])
 
-  // Recompute pending composer top + overlay rects from the pending anchor.
-  // The overlay rects keep the "selected" visual state on the article even
-  // after focus moves to the textarea (browsers clear native selection on
-  // focus change).
+  // Recompute the pending range overlay rects when the pending anchor or
+  // viewport changes. The rects keep the "selected" visual state on the
+  // article even after focus moves to the textarea (browsers clear native
+  // selection on focus change). The rail composer's vertical position is
+  // computed inside `CommentRail` so it can share the constraint solver
+  // with existing cards.
   useEffect(() => {
     if (!pending) {
-      setPendingTop(null)
       setPendingRects([])
       return
     }
@@ -109,13 +109,10 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
     if (!article) return
     const range = anchorToRange(pending, article)
     if (!range) {
-      setPendingTop(0)
       setPendingRects([])
       return
     }
     const articleRect = article.getBoundingClientRect()
-    const rangeRect = range.getBoundingClientRect()
-    setPendingTop(rangeRect.top - articleRect.top)
     setPendingRects(
       Array.from(range.getClientRects()).map((r) => ({
         top: r.top - articleRect.top,
@@ -223,9 +220,22 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
     setError(null)
   }, [])
 
+  // Show the rail column only when there's actually content for it, so the
+  // article can center properly on viewports when no comments exist.
+  const showRail = highlights.length > 0 || pending !== null
+
   return (
-    <div className='relative mx-auto w-full lg:flex lg:max-w-6xl lg:items-start lg:gap-12 lg:px-6'>
-      <div ref={articleRef} className='relative w-full lg:max-w-3xl lg:flex-1'>
+    <div
+      className={
+        showRail
+          ? 'relative mx-auto w-full lg:flex lg:max-w-6xl lg:items-start lg:gap-12 lg:px-6'
+          : 'relative w-full'
+      }
+    >
+      <div
+        ref={articleRef}
+        className={showRail ? 'relative w-full lg:max-w-3xl lg:flex-1' : 'relative w-full'}
+      >
         {children}
         {highlights.map((h) => (
           <HighlightMark
@@ -251,32 +261,14 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
         />
       </div>
 
-      {/* Right-rail (lg+): composer at the selection's vertical top, plus existing cards.
+      {/* Right-rail (lg+): only mounted when there's content for it.
           Sibling of the article in flex flow — gap-12 on the parent gives the
-          breathing room. */}
-      <aside className='hidden w-72 shrink-0 lg:block'>
-        <div className='relative'>
-          {pending && pendingTop !== null && (
-            <div
-              className='absolute left-0 right-0'
-              style={{ top: pendingTop }}
-            >
-              <div className='rounded-lg shadow-lg'>
-                <CommentComposer
-                  placeholder='Add a comment…'
-                  submitLabel='Comment'
-                  initialName={displayName ?? ''}
-                  onSubmit={handleSubmitNew}
-                  onCancel={cancelPending}
-                />
-                {error && (
-                  <div className='mt-2 rounded border border-destructive/30 bg-destructive/10 p-2 text-xs text-destructive'>
-                    {error}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          breathing room. When the rail is absent, BlogPostContent's own
+          `max-w-3xl mx-auto` centers the article in the viewport. The
+          pending composer is passed into CommentRail so it participates in
+          the same constraint solver as existing cards (no overlap). */}
+      {showRail && (
+        <aside className='hidden w-72 shrink-0 lg:block'>
           <CommentRail
             highlights={highlights}
             articleEl={article}
@@ -287,9 +279,32 @@ export function HighlightLayer({ postId, children }: HighlightLayerProps) {
             onReact={handleReact}
             onResolve={handleResolve}
             onDelete={handleDelete}
+            pending={
+              pending
+                ? {
+                    anchor: pending,
+                    composer: (
+                      <div className='rounded-lg shadow-lg'>
+                        <CommentComposer
+                          placeholder='Add a comment…'
+                          submitLabel='Comment'
+                          initialName={displayName ?? ''}
+                          onSubmit={handleSubmitNew}
+                          onCancel={cancelPending}
+                        />
+                        {error && (
+                          <div className='mt-2 rounded border border-destructive/30 bg-destructive/10 p-2 text-xs text-destructive'>
+                            {error}
+                          </div>
+                        )}
+                      </div>
+                    ),
+                  }
+                : undefined
+            }
           />
-        </div>
-      </aside>
+        </aside>
+      )}
 
       {/* Mobile (< lg): composer as a centered bottom sheet matching post body width. */}
       {pending && (
