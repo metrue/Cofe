@@ -84,6 +84,16 @@ export async function getOwnerToken(): Promise<string | undefined> {
 }
 
 /**
+ * GitHub username (or display name) of the currently logged-in user, if
+ * any. Used to attribute comments by name when the form's `authorName`
+ * field is empty but the user is signed in.
+ */
+export async function getSessionDisplayName(): Promise<string | null> {
+  const session = await getSession()
+  return session?.user?.username ?? session?.user?.name ?? null
+}
+
+/**
  * Parse + validate JSON body. Returns the parsed value, or throws an
  * `ApiBodyError` with a useful message that callers can convert to 400.
  */

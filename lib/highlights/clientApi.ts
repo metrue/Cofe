@@ -33,6 +33,8 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 
 export interface HighlightsLoadResponse extends PostHighlights {
   currentFingerprint: string
+  /** Logged-in user's display name (GitHub username) — null when anonymous. */
+  currentDisplayName: string | null
   isOwner: boolean
 }
 

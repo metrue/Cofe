@@ -10,6 +10,7 @@ import {
   apiErrorFrom,
   apiOk,
   extractIdentity,
+  getSessionDisplayName,
   isOwner,
   parseBody,
 } from '@/lib/highlights/server'
@@ -36,9 +37,11 @@ export async function GET(
     const { data } = await repo.load(params.id)
     const identity = extractIdentity(request)
     const owner = await isOwner()
+    const displayName = await getSessionDisplayName()
     return apiOk({
       ...data,
       currentFingerprint: identity.fingerprint,
+      currentDisplayName: displayName,
       isOwner: owner,
     })
   } catch (err) {
@@ -68,6 +71,12 @@ export async function POST(
     const repo = getHighlightsRepo()
     const { data, sha } = await repo.load(params.id)
 
+    // Anonymous fallback: if no name was filled in but the user is logged
+    // in, attribute to their GitHub username so they don't show as
+    // "Anonymous {fp}" against their own comment.
+    const sessionName = await getSessionDisplayName()
+    const resolvedAuthor = body.authorName?.trim() || sessionName || null
+
     const now = new Date().toISOString()
     const newHighlight: Highlight = {
       id: `hl_${randomUUID()}`,
@@ -77,7 +86,7 @@ export async function POST(
           id: `cm_${randomUUID()}`,
           parentId: null,
           body: body.body.trim(),
-          authorName: body.authorName ?? null,
+          authorName: resolvedAuthor,
           fingerprint: identity.fingerprint,
           country: identity.country,
           platform: identity.platform,

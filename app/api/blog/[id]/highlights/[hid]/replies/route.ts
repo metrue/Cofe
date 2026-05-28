@@ -10,6 +10,7 @@ import {
   apiErrorFrom,
   apiOk,
   extractIdentity,
+  getSessionDisplayName,
   parseBody,
 } from '@/lib/highlights/server'
 import { InlineComment } from '@/lib/highlights/schema'
@@ -51,11 +52,13 @@ export async function POST(
     }
 
     const now = new Date().toISOString()
+    const sessionName = await getSessionDisplayName()
+    const resolvedAuthor = body.authorName?.trim() || sessionName || null
     const reply: InlineComment = {
       id: `cm_${randomUUID()}`,
       parentId: body.parentId ?? null,
       body: body.body.trim(),
-      authorName: body.authorName ?? null,
+      authorName: resolvedAuthor,
       fingerprint: identity.fingerprint,
       country: identity.country,
       platform: identity.platform,
