@@ -29,19 +29,6 @@
           "hidden": false
         },
         {
-          "id": "cm_8501dffe-0011-4978-9f5d-e9107389dcc5",
-          "parentId": "cm_311a1850-e5b8-4c5d-b220-c70a2372be9e",
-          "body": "是的，一款（bushi）记账应用。",
-          "authorName": null,
-          "fingerprint": "29fbaf7e2e23_US_web_c5758a17",
-          "country": "US",
-          "platform": "web",
-          "reactions": {},
-          "resolved": false,
-          "createdAt": "2026-05-28T19:30:35.923Z",
-          "hidden": false
-        },
-        {
           "id": "cm_0712011b-acbf-4fd5-8655-2df232a62b2d",
           "parentId": "cm_311a1850-e5b8-4c5d-b220-c70a2372be9e",
           "body": "是的",
