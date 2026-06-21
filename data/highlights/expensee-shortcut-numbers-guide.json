@@ -29,19 +29,6 @@
           "hidden": false
         },
         {
-          "id": "cm_8501dffe-0011-4978-9f5d-e9107389dcc5",
-          "parentId": "cm_311a1850-e5b8-4c5d-b220-c70a2372be9e",
-          "body": "是的，一款（bushi）记账应用。",
-          "authorName": null,
-          "fingerprint": "29fbaf7e2e23_US_web_c5758a17",
-          "country": "US",
-          "platform": "web",
-          "reactions": {},
-          "resolved": false,
-          "createdAt": "2026-05-28T19:30:35.923Z",
-          "hidden": false
-        },
-        {
           "id": "cm_0712011b-acbf-4fd5-8655-2df232a62b2d",
           "parentId": "cm_311a1850-e5b8-4c5d-b220-c70a2372be9e",
           "body": "是的",
@@ -57,6 +44,33 @@
       ],
       "resolved": false,
       "createdAt": "2026-05-28T19:29:46.953Z"
+    },
+    {
+      "id": "hl_95ff3109-85e9-4156-9fce-2f238e1a52f5",
+      "anchor": {
+        "startOffset": 291,
+        "endOffset": 356,
+        "exact": "https://www.icloud.com/shortcuts/c78c745e753541beb6a92e4f311b5c6f",
+        "prefix": "己折腾 iOS 自动化的人作个参考。\n\niCloud 安装链接：",
+        "suffix": "\n模版下载（备用）：https://milemile.app/e"
+      },
+      "thread": [
+        {
+          "id": "cm_ae08b927-fb45-4436-8e0d-c4f89e4b92c5",
+          "parentId": null,
+          "body": "在苹果设备上点击这个 iCloud 链接就可以安装快捷方式了.",
+          "authorName": "Minghe",
+          "fingerprint": "6134218f78f6_US_web_c5758a17",
+          "country": "US",
+          "platform": "web",
+          "reactions": {},
+          "resolved": false,
+          "createdAt": "2026-05-29T21:05:29.080Z",
+          "hidden": false
+        }
+      ],
+      "resolved": false,
+      "createdAt": "2026-05-29T21:05:29.080Z"
     }
   ],
   "schemaVersion": 1
