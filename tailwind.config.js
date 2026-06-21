@@ -8,6 +8,9 @@ const config = {
  
     // Or if using `src` directory:
     './src/**/*.{js,ts,jsx,tsx,mdx}',
+
+    // Scan the `discussing` comment library so its Tailwind classes are generated.
+    './node_modules/discussing/dist/**/*.{js,mjs}',
   ],
   theme: {
   	extend: {
