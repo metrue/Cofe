@@ -18,76 +18,32 @@ import path from 'node:path'
 import crypto from 'node:crypto'
 import { normalizeLocale } from './translate.shared'
 
-// Re-export shared helpers for convenience on the server side.
 export { shouldTranslate, localeToLabel, getTranslatableLocales } from './translate.shared'
-
-// ---------------------------------------------------------------------------
-// DeepSeek API helpers
-// ---------------------------------------------------------------------------
 
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions'
 const DEEPSEEK_MODEL = 'deepseek-chat'
-
-/** Map a locale code to the language name DeepSeek understands. */
-function localeToLanguageName(locale: string): string {
-  const names: Record<string, string> = {
-    en: 'English',
-    ja: 'Japanese',
-    ko: 'Korean',
-    fr: 'French',
-    de: 'German',
-    es: 'Spanish',
-    pt: 'Portuguese',
-    ru: 'Russian',
-    ar: 'Arabic',
-    hi: 'Hindi',
-    it: 'Italian',
-    nl: 'Dutch',
-    tr: 'Turkish',
-    pl: 'Polish',
-    vi: 'Vietnamese',
-    th: 'Thai',
-    id: 'Indonesian',
-  }
-  // Normalise locale first
-  const normalised = normalizeLocale(locale)
-  return names[normalised] ?? 'English'
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** SHA-256 hex digest of a string – used as translation cache key. */
-function hash(text: string): string {
-  return crypto.createHash('sha256').update(text, 'utf-8').digest('hex')
-}
-
-// ---------------------------------------------------------------------------
-// Translation API
-// ---------------------------------------------------------------------------
 
 export interface TranslateResult {
   translatedText: string
   detectedSourceLanguage?: string
 }
 
-type TranslateFn = (text: string, targetLocale: string) => Promise<TranslateResult>
+function hash(text: string): string {
+  return crypto.createHash('sha256').update(text, 'utf-8').digest('hex')
+}
 
-/**
- * Translate text via DeepSeek Chat API.
- * Falls back to identity (no-op) if no API key is configured.
- */
-async function deepSeekTranslate(text: string, targetLocale: string): Promise<TranslateResult> {
-  const apiKey = process.env.DEEPSEEK_APIKEY
-  if (!apiKey) {
-    console.warn('[translate] No DEEPSEEK_APIKEY set — falling back to identity.')
-    return { translatedText: text }
+function localeToLanguageName(locale: string): string {
+  const names: Record<string, string> = {
+    en: 'English', ja: 'Japanese', ko: 'Korean', fr: 'French', de: 'German',
+    es: 'Spanish', pt: 'Portuguese', ru: 'Russian', ar: 'Arabic', hi: 'Hindi',
+    it: 'Italian', nl: 'Dutch', tr: 'Turkish', pl: 'Polish', vi: 'Vietnamese',
+    th: 'Thai', id: 'Indonesian',
   }
+  return names[normalizeLocale(locale)] ?? 'English'
+}
 
-  const targetLanguage = localeToLanguageName(targetLocale)
-
-  const systemPrompt = `You are a professional translator. Translate the following text from Chinese to ${targetLanguage}.
+function buildTranslationPrompt(targetLanguage: string): string {
+  return `You are a professional translator. Translate the following text from Chinese to ${targetLanguage}.
 
 Rules:
 1. Preserve ALL markdown formatting exactly as-is (headings, lists, tables, bold, italic, etc.)
@@ -97,6 +53,14 @@ Rules:
 5. Only translate the natural language text — do not modify or translate code, URLs, or syntax
 6. Keep the same line breaks and paragraph structure
 7. Do not add any explanations, notes, or commentary — output ONLY the translated text`
+}
+
+async function callDeepSeek(text: string, targetLanguage: string): Promise<TranslateResult> {
+  const apiKey = process.env.DEEPSEEK_APIKEY
+  if (!apiKey) {
+    console.warn('[translate] No DEEPSEEK_APIKEY set — falling back to identity.')
+    return { translatedText: text }
+  }
 
   const res = await fetch(DEEPSEEK_API_URL, {
     method: 'POST',
@@ -107,10 +71,10 @@ Rules:
     body: JSON.stringify({
       model: DEEPSEEK_MODEL,
       messages: [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: buildTranslationPrompt(targetLanguage) },
         { role: 'user', content: text },
       ],
-      temperature: 0.1, // low temperature for more deterministic translation
+      temperature: 0.1,
       max_tokens: 8192,
     }),
   })
@@ -129,35 +93,30 @@ Rules:
 
   return {
     translatedText: translatedText.trim(),
-    detectedSourceLanguage: 'zh', // we always translate from Chinese
+    detectedSourceLanguage: 'zh',
   }
 }
 
-// ---------------------------------------------------------------------------
-// Cache
-// ---------------------------------------------------------------------------
+let cacheDir: string | null = null
 
-let _cacheDir: string | null = null
-
-function getCacheDir(): string {
-  if (_cacheDir) return _cacheDir
-  _cacheDir = process.env.TRANSLATE_CACHE_DIR ?? path.join(process.cwd(), 'data', 'translations')
-  if (!fs.existsSync(_cacheDir)) {
-    fs.mkdirSync(_cacheDir, { recursive: true })
+function ensureCacheDir(): string {
+  if (cacheDir) return cacheDir
+  cacheDir = process.env.TRANSLATE_CACHE_DIR ?? path.join(process.cwd(), 'data', 'translations')
+  if (!fs.existsSync(cacheDir)) {
+    fs.mkdirSync(cacheDir, { recursive: true })
   }
-  return _cacheDir
+  return cacheDir
 }
 
 function cachePath(contentHash: string, targetLocale: string): string {
-  return path.join(getCacheDir(), `${contentHash}-${targetLocale}.json`)
+  return path.join(ensureCacheDir(), `${contentHash}-${targetLocale}.json`)
 }
 
 function readCache(contentHash: string, targetLocale: string): string | null {
   try {
     const p = cachePath(contentHash, targetLocale)
     if (!fs.existsSync(p)) return null
-    const raw = fs.readFileSync(p, 'utf-8')
-    const entry = JSON.parse(raw)
+    const entry = JSON.parse(fs.readFileSync(p, 'utf-8'))
     return entry.translatedText ?? null
   } catch {
     return null
@@ -173,19 +132,6 @@ function writeCache(contentHash: string, targetLocale: string, translatedText: s
   }
 }
 
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
-
-let _translateFn: TranslateFn = deepSeekTranslate
-
-/**
- * Override the translation implementation (useful for testing or custom providers).
- */
-export function setTranslateFn(fn: TranslateFn): void {
-  _translateFn = fn
-}
-
 /**
  * Translate a block of text.
  *
@@ -195,20 +141,16 @@ export function setTranslateFn(fn: TranslateFn): void {
 export async function translateText(text: string, targetLocale: string): Promise<TranslateResult> {
   if (!text.trim()) return { translatedText: text }
 
-  // Normalise locale for cache key
   const normalised = normalizeLocale(targetLocale)
-
-  // Check cache
   const contentHash = hash(text)
   const cached = readCache(contentHash, normalised)
+
   if (cached !== null) {
     return { translatedText: cached }
   }
 
-  // Call translation API
-  const result = await _translateFn(text, normalised)
+  const result = await callDeepSeek(text, localeToLanguageName(targetLocale))
 
-  // Write cache (only if we got a real translation back)
   if (result.translatedText !== text) {
     writeCache(contentHash, normalised, result.translatedText)
   }
@@ -216,12 +158,13 @@ export async function translateText(text: string, targetLocale: string): Promise
   return result
 }
 
+const MAX_SINGLE_REQUEST_CHARS = 8_000
+
 /**
  * Translate markdown content while preserving markdown syntax.
  *
- * For best quality with DeepSeek, we send the full markdown content in one
- * request and let the LLM handle syntax preservation via the system prompt.
- * Only fall back to line-by-line if the content exceeds token limits.
+ * Sends the full content in one request when short (better context for the LLM).
+ * Falls back to paragraph-by-paragraph for longer content.
  */
 export async function translateMarkdown(
   content: string,
@@ -229,13 +172,11 @@ export async function translateMarkdown(
 ): Promise<string> {
   if (!content.trim()) return content
 
-  // For short content, translate as a whole (preserves context best)
-  if (content.length < 8000) {
+  if (content.length < MAX_SINGLE_REQUEST_CHARS) {
     const result = await translateText(content, targetLocale)
     return result.translatedText
   }
 
-  // For longer content, break into paragraphs
   const blocks = content.split('\n\n')
   const translatedBlocks: string[] = []
 
