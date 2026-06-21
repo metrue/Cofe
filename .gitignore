@@ -37,5 +37,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Claude Code instructions
-CLAUDE.md
+# AGENTS.md is the canonical agent instructions file.
+# CLAUDE.md is a symlink → AGENTS.md (tracked by git, don't ignore).
