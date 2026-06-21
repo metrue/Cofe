@@ -4,11 +4,10 @@ This file provides guidance to AI coding agents (Claude Code, Pi, Codex, OpenCod
 
 ## Overview
 
-**Cofe** is a Next.js blog and memo app powering [blog.minghe.me](https://blog.minghe.me). Content is stored in the repo itself (`data/blog/`, `data/memos/`) and rendered as static pages. GitHub OAuth for auth, giscus for comments, i18n via `next-intl`.
+**Cofe** is a Next.js blog and memo app powering [blog.minghe.me](https://blog.minghe.me). Content is stored in the repo itself (`data/blog/`, `data/memos/`) and rendered as static pages. GitHub OAuth for auth, i18n via `next-intl`.
 
 - **Stack**: Next.js 14 (App Router), TypeScript, Tailwind CSS, Radix UI
 - **Auth**: GitHub OAuth (next-auth/Auth.js)
-- **Comments**: giscus (GitHub Discussions-backed)
 - **i18n**: next-intl (Chinese + English)
 - **Testing**: Jest
 - **Deploy**: Vercel (auto-deploy on push to main)
@@ -52,11 +51,9 @@ blog.minghe.me/
 - **Content is code**: Blog posts and memos live as `.md` files in `data/`. Editing content = editing files in the repo.
 - **GitHub API**: Posts use GitHub's REST API for storage (octokit). Memos use GraphQL for queries.
 - **No database**: Everything is file-based or GitHub-backed. No persistence layer beyond the repo.
-- **i18n**: All user-facing strings go through `next-intl`. Locale files in `i18n/`.
 
 ## Gotchas
 
 - **Editor auth**: The editor at `/editor` requires GitHub OAuth login. Test locally with `npm run dev` and visit `localhost:3000/editor`.
-- **giscus comments**: Tied to the production `metrue/Cofe` repo's GitHub Discussions. Won't work on localhost or PR previews.
 - **RSS/Atom feeds**: Generated at build time from `data/blog/`. New posts need a build to appear in feeds.
 - **Static content formatting**: Blog posts in `data/blog/` follow a specific frontmatter format — check existing posts before adding new ones.
