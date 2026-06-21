@@ -351,7 +351,7 @@ mutation {
 
 1. **Check Issues**: [GitHub Issues](https://github.com/metrue/Cofe/issues)
 2. **Discussions**: Use the external discussions feature
-3. **Contributing**: See [CLAUDE.md](./CLAUDE.md) for development guidelines
+3. **Contributing**: See [AGENTS.md](./AGENTS.md) for development guidelines
 
 ## Migration
 
