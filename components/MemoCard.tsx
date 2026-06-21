@@ -18,8 +18,10 @@ import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import LikeButton from './LikeButton'
+import { useTranslation } from '@/hooks/useTranslation'
+import { shouldTranslate, localeToLabel } from '@/lib/translate.shared'
 
 interface MemoCardProps {
   memo: Memo
@@ -43,7 +45,17 @@ function memoLocationLabel(memo: Memo): string | null {
 
 export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCardProps) => {
   const t = useTranslations('HomePage')
+  const locale = useLocale()
   const location = memoLocationLabel(memo)
+
+  const {
+    translatedText: translatedContent,
+    isTranslating,
+    toggleOriginal,
+    showOriginal,
+  } = useTranslation(memo.content, true, `memo:${memo.id}`)
+
+  const needsTranslation = shouldTranslate(locale)
 
   return (
     <article
@@ -156,8 +168,31 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
             ),
           }}
         >
-          {memo.content}
+          {translatedContent}
         </ReactMarkdown>
+
+        {/* Translation indicator */}
+        {needsTranslation && (
+          <div className='flex items-center gap-2 mt-2 text-xs'>
+            <button
+              onClick={toggleOriginal}
+              className='text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors'
+            >
+              {showOriginal
+                ? `Show in ${localeToLabel(locale)}`
+                : 'Show original'}
+            </button>
+            {!showOriginal && (
+              <span className='inline-flex items-center gap-1 text-green-400'>
+                <span className='w-1.5 h-1.5 rounded-full bg-green-400' />
+                Translated
+              </span>
+            )}
+            {isTranslating && (
+              <span className='text-gray-400 animate-pulse'>translating...</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Footer — date + location on the left, actions on the right */}

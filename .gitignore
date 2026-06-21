@@ -39,3 +39,6 @@ next-env.d.ts
 
 # Claude Code instructions
 CLAUDE.md
+
+# Translation cache (auto-generated)
+data/translations/
