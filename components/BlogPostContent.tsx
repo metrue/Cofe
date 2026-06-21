@@ -14,7 +14,7 @@ import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import Image from 'next/image'
 import LikeButton from './LikeButton'
 import { useTranslation } from '@/hooks/useTranslation'
-import { shouldTranslate, localeToLabel } from '@/lib/translate.shared'
+import { localeToLabel } from '@/lib/translate.shared'
 import { useLocale } from 'next-intl'
 interface BlogPostContentProps {
   title: string
@@ -38,6 +38,7 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
     isTranslating: contentTranslating,
     toggleOriginal: toggleContentOriginal,
     showOriginal: contentShowOriginal,
+    actuallyTranslated: contentActuallyTranslated,
   } = useTranslation(content, true, `blog-content:${slug}`)
 
   const {
@@ -45,7 +46,7 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
     isTranslating: titleTranslating,
   } = useTranslation(title, false, `blog-title:${slug}`)
 
-  const needsTranslation = shouldTranslate(locale)
+  const showTranslationUI = contentTranslating || contentActuallyTranslated
 
   return (
     <div className='max-w-3xl mx-auto px-4 py-8'>
@@ -70,18 +71,20 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
           </div>
         </header>
 
-        {/* Translation indicator */}
-        {needsTranslation && (
+        {/* Translation indicator — only shown while in-flight or when actual translation exists */}
+        {showTranslationUI && (
           <div className='flex items-center gap-3 mb-4 text-xs'>
-            <button
-              onClick={toggleContentOriginal}
-              className='text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors'
-            >
-              {contentShowOriginal
-                ? `Show ${localeToLabel(locale)}`
-                : 'Show original (Chinese)'}
-            </button>
-            {!contentShowOriginal && (
+            {contentActuallyTranslated && (
+              <button
+                onClick={toggleContentOriginal}
+                className='text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors'
+              >
+                {contentShowOriginal
+                  ? `Show ${localeToLabel(locale)}`
+                  : 'Show original (Chinese)'}
+              </button>
+            )}
+            {contentActuallyTranslated && !contentShowOriginal && (
               <span className='inline-flex items-center gap-1 text-green-500'>
                 <span className='w-1.5 h-1.5 rounded-full bg-green-400' />
                 Auto-translated to {localeToLabel(locale)}

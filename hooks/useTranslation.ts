@@ -17,6 +17,8 @@ interface UseTranslationResult {
   toggleOriginal: () => void
   /** Whether the original text is being shown. */
   showOriginal: boolean
+  /** True if a translation was actually applied (text differs from original). */
+  actuallyTranslated: boolean
 }
 
 function hashText(text: string): string {
@@ -133,13 +135,22 @@ export function useTranslation(
   }, [text, locale, isMarkdown, cacheKey, needsTranslation])
 
   useEffect(() => {
-    // Only trigger the actual API call on mount / text change
-    if (needsTranslation && text.trim() && !sessionStorage.getItem(cacheKey)) {
-      translate()
-    }
+    if (!shouldFetch()) return
+    translate()
   }, [translate, needsTranslation, text, cacheKey])
 
+  function shouldFetch(): boolean {
+    if (!needsTranslation || !text.trim()) return false
+    try {
+      return !sessionStorage.getItem(cacheKey)
+    } catch {
+      return true // sessionStorage unavailable; fetch fresh
+    }
+  }
+
   const displayedText = showOriginal ? text : translatedText
+
+  const actuallyTranslated = needsTranslation && translatedText !== text
 
   return {
     translatedText: displayedText,
@@ -148,5 +159,6 @@ export function useTranslation(
     retry: translate,
     toggleOriginal: () => setShowOriginal((prev) => !prev),
     showOriginal,
+    actuallyTranslated,
   }
 }

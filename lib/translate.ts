@@ -55,10 +55,14 @@ Rules:
 7. Do not add any explanations, notes, or commentary — output ONLY the translated text`
 }
 
+function deepSeekApiKey(): string | undefined {
+  return process.env.DEEPSEEK_APIKEY ?? process.env.DEEPSEEK_API_KEY
+}
+
 async function callDeepSeek(text: string, targetLanguage: string): Promise<TranslateResult> {
-  const apiKey = process.env.DEEPSEEK_APIKEY
+  const apiKey = deepSeekApiKey()
   if (!apiKey) {
-    console.warn('[translate] No DEEPSEEK_APIKEY set — falling back to identity.')
+    console.warn('[translate] No DEEPSEEK_APIKEY / DEEPSEEK_API_KEY set — falling back to identity.')
     return { translatedText: text }
   }
 

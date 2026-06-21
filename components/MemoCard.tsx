@@ -21,7 +21,7 @@ import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useTranslations, useLocale } from 'next-intl'
 import LikeButton from './LikeButton'
 import { useTranslation } from '@/hooks/useTranslation'
-import { shouldTranslate, localeToLabel } from '@/lib/translate.shared'
+import { localeToLabel } from '@/lib/translate.shared'
 
 interface MemoCardProps {
   memo: Memo
@@ -53,9 +53,10 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
     isTranslating,
     toggleOriginal,
     showOriginal,
+    actuallyTranslated,
   } = useTranslation(memo.content, true, `memo:${memo.id}`)
 
-  const needsTranslation = shouldTranslate(locale)
+  const showTranslationUI = isTranslating || actuallyTranslated
 
   return (
     <article
@@ -171,18 +172,20 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
           {translatedContent}
         </ReactMarkdown>
 
-        {/* Translation indicator */}
-        {needsTranslation && (
+        {/* Translation indicator — only shown while in-flight or when actual translation exists */}
+        {showTranslationUI && (
           <div className='flex items-center gap-2 mt-2 text-xs'>
-            <button
-              onClick={toggleOriginal}
-              className='text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors'
-            >
-              {showOriginal
-                ? `Show in ${localeToLabel(locale)}`
-                : 'Show original'}
-            </button>
-            {!showOriginal && (
+            {actuallyTranslated && (
+              <button
+                onClick={toggleOriginal}
+                className='text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors'
+              >
+                {showOriginal
+                  ? `Show in ${localeToLabel(locale)}`
+                  : 'Show original'}
+              </button>
+            )}
+            {actuallyTranslated && !showOriginal && (
               <span className='inline-flex items-center gap-1 text-green-400'>
                 <span className='w-1.5 h-1.5 rounded-full bg-green-400' />
                 Translated
