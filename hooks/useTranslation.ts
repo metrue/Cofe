@@ -31,6 +31,24 @@ function hashText(text: string): string {
   return Math.abs(hash).toString(36)
 }
 
+/** Read a cached translation. Returns null if absent or sessionStorage is unavailable (e.g. SSR). */
+function readSessionCache(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+/** Persist a translation. Silently no-ops if sessionStorage is unavailable or over quota. */
+function writeSessionCache(key: string, value: string): void {
+  try {
+    sessionStorage.setItem(key, value)
+  } catch {
+    /* unavailable or quota exceeded */
+  }
+}
+
 /**
  * Hook that auto-translates text content into the user's browser language.
  *
@@ -55,48 +73,14 @@ export function useTranslation(
   const mountedRef = useRef(true)
 
   const needsTranslation = shouldTranslate(locale)
-  const cacheKey = contentId
-    ? `translate:${contentId}:${locale}`
-    : `translate:${hashText(text)}:${locale}`
+  const cacheKey = `translate:${contentId ?? hashText(text)}:${locale}`
 
   useEffect(() => {
     mountedRef.current = true
     return () => { mountedRef.current = false }
   }, [])
 
-  // Reset when text or locale changes
-  useEffect(() => {
-    if (!needsTranslation || !text.trim()) {
-      setTranslatedText(text)
-      setError(null)
-      setIsTranslating(false)
-      setShowOriginal(false)
-      return
-    }
-
-    // Check sessionStorage cache
-    try {
-      const cached = sessionStorage.getItem(cacheKey)
-      if (cached) {
-        setTranslatedText(cached)
-        setError(null)
-        setIsTranslating(false)
-        return
-      }
-    } catch { /* sessionStorage unavailable */ }
-
-    // Initiate translation
-    setIsTranslating(true)
-    setError(null)
-    setTranslatedText(text) // show original while loading
-  }, [text, locale, needsTranslation, cacheKey])
-
   const translate = useCallback(async () => {
-    if (!needsTranslation || !text.trim()) {
-      setTranslatedText(text)
-      return
-    }
-
     setIsTranslating(true)
     setError(null)
     setShowOriginal(false)
@@ -113,43 +97,46 @@ export function useTranslation(
         throw new Error(errData.error ?? `Translation failed (${response.status})`)
       }
 
-      const data = await response.json()
-      if (mountedRef.current) {
-        setTranslatedText(data.translatedText)
-        // Cache in sessionStorage
-        try {
-          sessionStorage.setItem(cacheKey, data.translatedText)
-        } catch { /* quota exceeded */ }
-      }
+      const { translatedText } = await response.json()
+      if (!mountedRef.current) return
+
+      setTranslatedText(translatedText)
+      writeSessionCache(cacheKey, translatedText)
     } catch (err) {
-      if (mountedRef.current) {
-        console.error('[useTranslation] Error:', err)
-        setError(err instanceof Error ? err.message : 'Translation error')
-        setTranslatedText(text) // fall back to original
-      }
+      if (!mountedRef.current) return
+      console.error('[useTranslation] Error:', err)
+      setError(err instanceof Error ? err.message : 'Translation error')
+      setTranslatedText(text) // fall back to original
     } finally {
-      if (mountedRef.current) {
-        setIsTranslating(false)
-      }
+      if (mountedRef.current) setIsTranslating(false)
     }
-  }, [text, locale, isMarkdown, cacheKey, needsTranslation])
+  }, [text, locale, isMarkdown, cacheKey])
 
+  // Resolve the displayed text whenever the inputs change: show the original
+  // for Chinese/empty content, serve a cached translation when present, or
+  // kick off a fresh translation while showing the original in the meantime.
   useEffect(() => {
-    if (!shouldFetch()) return
-    translate()
-  }, [translate, needsTranslation, text, cacheKey])
-
-  function shouldFetch(): boolean {
-    if (!needsTranslation || !text.trim()) return false
-    try {
-      return !sessionStorage.getItem(cacheKey)
-    } catch {
-      return true // sessionStorage unavailable; fetch fresh
+    if (!needsTranslation || !text.trim()) {
+      setTranslatedText(text)
+      setError(null)
+      setIsTranslating(false)
+      setShowOriginal(false)
+      return
     }
-  }
+
+    const cached = readSessionCache(cacheKey)
+    if (cached !== null) {
+      setTranslatedText(cached)
+      setError(null)
+      setIsTranslating(false)
+      return
+    }
+
+    setTranslatedText(text) // show original while the request is in flight
+    translate()
+  }, [text, locale, needsTranslation, cacheKey, translate])
 
   const displayedText = showOriginal ? text : translatedText
-
   const actuallyTranslated = needsTranslation && translatedText !== text
 
   return {
