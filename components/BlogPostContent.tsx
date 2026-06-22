@@ -14,7 +14,7 @@ import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import Image from 'next/image'
 import LikeButton from './LikeButton'
 import { useTranslation } from '@/hooks/useTranslation'
-import { localeToLabel } from '@/lib/translate.shared'
+import { TranslationIndicator } from './TranslationIndicator'
 import { useLocale } from 'next-intl'
 interface BlogPostContentProps {
   title: string
@@ -46,8 +46,6 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
     isTranslating: titleTranslating,
   } = useTranslation(title, false, `blog-title:${slug}`)
 
-  const showTranslationUI = contentTranslating || contentActuallyTranslated
-
   return (
     <div className='max-w-3xl mx-auto px-4 py-8'>
       {headerContent && (
@@ -71,30 +69,14 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
           </div>
         </header>
 
-        {/* Translation indicator — only shown while in-flight or when actual translation exists */}
-        {showTranslationUI && (
-          <div className='flex items-center gap-3 mb-4 text-xs'>
-            {contentActuallyTranslated && (
-              <button
-                onClick={toggleContentOriginal}
-                className='text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors'
-              >
-                {contentShowOriginal
-                  ? `Show ${localeToLabel(locale)}`
-                  : 'Show original (Chinese)'}
-              </button>
-            )}
-            {contentActuallyTranslated && !contentShowOriginal && (
-              <span className='inline-flex items-center gap-1 text-green-500'>
-                <span className='w-1.5 h-1.5 rounded-full bg-green-400' />
-                Auto-translated to {localeToLabel(locale)}
-              </span>
-            )}
-            {contentTranslating && (
-              <span className='text-gray-400 animate-pulse'>translating...</span>
-            )}
-          </div>
-        )}
+        <TranslationIndicator
+          variant='full'
+          locale={locale}
+          isTranslating={contentTranslating}
+          actuallyTranslated={contentActuallyTranslated}
+          showOriginal={contentShowOriginal}
+          onToggleOriginal={toggleContentOriginal}
+        />
 
         <div className='prose prose-lg max-w-none text-gray-900 leading-relaxed prose-p:my-3 prose-img:my-0'>
           <ReactMarkdown

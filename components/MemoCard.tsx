@@ -21,7 +21,7 @@ import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useTranslations, useLocale } from 'next-intl'
 import LikeButton from './LikeButton'
 import { useTranslation } from '@/hooks/useTranslation'
-import { localeToLabel } from '@/lib/translate.shared'
+import { TranslationIndicator } from './TranslationIndicator'
 
 interface MemoCardProps {
   memo: Memo
@@ -55,8 +55,6 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
     showOriginal,
     actuallyTranslated,
   } = useTranslation(memo.content, true, `memo:${memo.id}`)
-
-  const showTranslationUI = isTranslating || actuallyTranslated
 
   return (
     <article
@@ -172,30 +170,14 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
           {translatedContent}
         </ReactMarkdown>
 
-        {/* Translation indicator — only shown while in-flight or when actual translation exists */}
-        {showTranslationUI && (
-          <div className='flex items-center gap-2 mt-2 text-xs'>
-            {actuallyTranslated && (
-              <button
-                onClick={toggleOriginal}
-                className='text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors'
-              >
-                {showOriginal
-                  ? `Show in ${localeToLabel(locale)}`
-                  : 'Show original'}
-              </button>
-            )}
-            {actuallyTranslated && !showOriginal && (
-              <span className='inline-flex items-center gap-1 text-green-400'>
-                <span className='w-1.5 h-1.5 rounded-full bg-green-400' />
-                Translated
-              </span>
-            )}
-            {isTranslating && (
-              <span className='text-gray-400 animate-pulse'>translating...</span>
-            )}
-          </div>
-        )}
+        <TranslationIndicator
+          variant='compact'
+          locale={locale}
+          isTranslating={isTranslating}
+          actuallyTranslated={actuallyTranslated}
+          showOriginal={showOriginal}
+          onToggleOriginal={toggleOriginal}
+        />
       </div>
 
       {/* Footer — date + location on the left, actions on the right */}
