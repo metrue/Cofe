@@ -3,11 +3,14 @@
  * This module can be imported by both server and client code.
  */
 
-/** Map our locale codes to Google Translate target codes. */
+/**
+ * Canonicalise a locale code for use as a stable cache key and for Chinese
+ * detection: collapse regional Chinese variants (zh-HK → zh-TW) and strip the
+ * region from everything else (en-US → en).
+ */
 export function normalizeLocale(locale: string): string {
   if (locale === 'zh') return 'zh-CN'
-  if (locale === 'zh-HK') return 'zh-TW'
-  if (locale === 'zh-TW') return 'zh-TW'
+  if (locale === 'zh-HK' || locale === 'zh-TW') return 'zh-TW'
   return locale.split('-')[0]
 }
 
@@ -19,8 +22,7 @@ const CHINESE_LOCALES = new Set(['zh', 'zh-CN', 'zh-TW', 'zh-HK'])
  * Returns false for Chinese locales since the blog content is primarily in Chinese.
  */
 export function shouldTranslate(targetLocale: string): boolean {
-  const normalized = normalizeLocale(targetLocale)
-  return !CHINESE_LOCALES.has(normalized) && !CHINESE_LOCALES.has(targetLocale.split('-')[0])
+  return !CHINESE_LOCALES.has(normalizeLocale(targetLocale))
 }
 
 /**
