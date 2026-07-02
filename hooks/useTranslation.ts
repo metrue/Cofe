@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useLocale } from 'next-intl'
 import { shouldTranslate } from '@/lib/translate.shared'
+import { useAutoTranslate } from '@/components/AutoTranslateProvider'
 
 interface UseTranslationResult {
   /** Translated text, or original text if translation is not needed / pending. */
@@ -13,12 +14,6 @@ interface UseTranslationResult {
   error: string | null
   /** Manually retry translation. */
   retry: () => void
-  /** Toggle between translated and original text. */
-  toggleOriginal: () => void
-  /** Whether the original text is being shown. */
-  showOriginal: boolean
-  /** True if a translation was actually applied (text differs from original). */
-  actuallyTranslated: boolean
 }
 
 function hashText(text: string): string {
@@ -52,9 +47,10 @@ function writeSessionCache(key: string, value: string): void {
 /**
  * Hook that auto-translates text content into the user's browser language.
  *
- * - For Chinese (zh*) locales, returns the original text (no-op).
- * - For non-Chinese locales, calls /api/translate and caches in sessionStorage.
- * - Translations are cached per (contentHash, locale) pair.
+ * - Only runs when the site-wide auto-translate switch is on (see
+ *   AutoTranslateProvider) and the reader's locale is non-Chinese.
+ * - Otherwise returns the original text as-is (no request).
+ * - Calls /api/translate and caches results per (contentHash, locale) pair.
  *
  * @param text        The original text to translate.
  * @param isMarkdown  Whether to preserve markdown syntax during translation.
@@ -66,13 +62,13 @@ export function useTranslation(
   contentId?: string,
 ): UseTranslationResult {
   const locale = useLocale()
+  const { enabled } = useAutoTranslate()
   const [translatedText, setTranslatedText] = useState<string>(text)
   const [isTranslating, setIsTranslating] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showOriginal, setShowOriginal] = useState(false)
   const mountedRef = useRef(true)
 
-  const needsTranslation = shouldTranslate(locale)
+  const needsTranslation = enabled && shouldTranslate(locale)
   const cacheKey = `translate:${contentId ?? hashText(text)}:${locale}`
 
   useEffect(() => {
@@ -83,7 +79,6 @@ export function useTranslation(
   const translate = useCallback(async () => {
     setIsTranslating(true)
     setError(null)
-    setShowOriginal(false)
 
     try {
       const response = await fetch('/api/translate', {
@@ -113,14 +108,14 @@ export function useTranslation(
   }, [text, locale, isMarkdown, cacheKey])
 
   // Resolve the displayed text whenever the inputs change: show the original
-  // for Chinese/empty content, serve a cached translation when present, or
-  // kick off a fresh translation while showing the original in the meantime.
+  // when translation is off/not needed or the content is empty, serve a cached
+  // translation when present, or kick off a fresh translation while showing the
+  // original in the meantime.
   useEffect(() => {
     if (!needsTranslation || !text.trim()) {
       setTranslatedText(text)
       setError(null)
       setIsTranslating(false)
-      setShowOriginal(false)
       return
     }
 
@@ -136,16 +131,10 @@ export function useTranslation(
     translate()
   }, [text, locale, needsTranslation, cacheKey, translate])
 
-  const displayedText = showOriginal ? text : translatedText
-  const actuallyTranslated = needsTranslation && translatedText !== text
-
   return {
-    translatedText: displayedText,
+    translatedText,
     isTranslating,
     error,
     retry: translate,
-    toggleOriginal: () => setShowOriginal((prev) => !prev),
-    showOriginal,
-    actuallyTranslated,
   }
 }

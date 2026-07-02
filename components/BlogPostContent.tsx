@@ -14,8 +14,6 @@ import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import Image from 'next/image'
 import LikeButton from './LikeButton'
 import { useTranslation } from '@/hooks/useTranslation'
-import { TranslationIndicator } from './TranslationIndicator'
-import { useLocale } from 'next-intl'
 interface BlogPostContentProps {
   title: string
   date: string
@@ -30,15 +28,9 @@ interface BlogPostContentProps {
 }
 
 export function BlogPostContent({ title, date, content, slug, headerContent, discussionsComponent, location }: BlogPostContentProps) {
-  const locale = useLocale()
-
-  // Auto-translate title and content
+  // Auto-translate title and content (controlled by the site-wide switch).
   const {
     translatedText: translatedContent,
-    isTranslating: contentTranslating,
-    toggleOriginal: toggleContentOriginal,
-    showOriginal: contentShowOriginal,
-    actuallyTranslated: contentActuallyTranslated,
   } = useTranslation(content, true, `blog-content:${slug}`)
 
   const {
@@ -68,15 +60,6 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
             )}
           </div>
         </header>
-
-        <TranslationIndicator
-          variant='full'
-          locale={locale}
-          isTranslating={contentTranslating}
-          actuallyTranslated={contentActuallyTranslated}
-          showOriginal={contentShowOriginal}
-          onToggleOriginal={toggleContentOriginal}
-        />
 
         <div className='prose prose-lg max-w-none text-gray-900 leading-relaxed prose-p:my-3 prose-img:my-0'>
           <ReactMarkdown
