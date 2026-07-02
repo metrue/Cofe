@@ -3,6 +3,8 @@ import './globals.css'
 import { getLocale, getMessages } from 'next-intl/server'
 
 import CreateButton from '@/components/CreateButton'
+import { AutoTranslateProvider } from '@/components/AutoTranslateProvider'
+import { AutoTranslateToggle } from '@/components/AutoTranslateToggle'
 import Head from 'next/head'
 import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
@@ -69,11 +71,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <Analytics />
       <body className={`${gowun_wodum.className} bg-[#f6f8fa]`}>
         <NextIntlClientProvider messages={messages}>
-          <SessionProvider>
-            <main className='pb-20 m-auto'>{children}</main>
-            <CreateButton messages={messages} />
-            <Toaster />
-          </SessionProvider>
+          <AutoTranslateProvider>
+            <SessionProvider>
+              <main className='pb-20 m-auto'>{children}</main>
+              <CreateButton messages={messages} />
+              <AutoTranslateToggle />
+              <Toaster />
+            </SessionProvider>
+          </AutoTranslateProvider>
         </NextIntlClientProvider>
       </body>
     </html>
