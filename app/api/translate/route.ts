@@ -1,6 +1,13 @@
 import { translateMarkdown, translateText, shouldTranslate } from '@/lib/translate'
 import { NextRequest, NextResponse } from 'next/server'
 
+// Translating a full blog post is a single DeepSeek call that routinely runs
+// well past Vercel's ~10s default, returning 504 for anything but short text
+// (e.g. titles). Give the request room to finish. 60s is the Hobby ceiling;
+// Pro allows up to 300.
+export const maxDuration = 60
+export const runtime = 'nodejs'
+
 export interface TranslateRequestBody {
   text: string
   targetLocale: string
