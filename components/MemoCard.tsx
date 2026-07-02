@@ -18,8 +18,10 @@ import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import LikeButton from './LikeButton'
+import { useTranslation } from '@/hooks/useTranslation'
+import { TranslationIndicator } from './TranslationIndicator'
 
 interface MemoCardProps {
   memo: Memo
@@ -43,7 +45,16 @@ function memoLocationLabel(memo: Memo): string | null {
 
 export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCardProps) => {
   const t = useTranslations('HomePage')
+  const locale = useLocale()
   const location = memoLocationLabel(memo)
+
+  const {
+    translatedText: translatedContent,
+    isTranslating,
+    toggleOriginal,
+    showOriginal,
+    actuallyTranslated,
+  } = useTranslation(memo.content, true, `memo:${memo.id}`)
 
   return (
     <article
@@ -156,8 +167,17 @@ export const MemoCard = ({ memo, onDelete, onEdit, isDeleting = false }: MemoCar
             ),
           }}
         >
-          {memo.content}
+          {translatedContent}
         </ReactMarkdown>
+
+        <TranslationIndicator
+          variant='compact'
+          locale={locale}
+          isTranslating={isTranslating}
+          actuallyTranslated={actuallyTranslated}
+          showOriginal={showOriginal}
+          onToggleOriginal={toggleOriginal}
+        />
       </div>
 
       {/* Footer — date + location on the left, actions on the right */}

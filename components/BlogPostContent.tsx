@@ -13,6 +13,9 @@ import remarkMath from 'remark-math'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import Image from 'next/image'
 import LikeButton from './LikeButton'
+import { useTranslation } from '@/hooks/useTranslation'
+import { TranslationIndicator } from './TranslationIndicator'
+import { useLocale } from 'next-intl'
 interface BlogPostContentProps {
   title: string
   date: string
@@ -27,6 +30,22 @@ interface BlogPostContentProps {
 }
 
 export function BlogPostContent({ title, date, content, slug, headerContent, discussionsComponent, location }: BlogPostContentProps) {
+  const locale = useLocale()
+
+  // Auto-translate title and content
+  const {
+    translatedText: translatedContent,
+    isTranslating: contentTranslating,
+    toggleOriginal: toggleContentOriginal,
+    showOriginal: contentShowOriginal,
+    actuallyTranslated: contentActuallyTranslated,
+  } = useTranslation(content, true, `blog-content:${slug}`)
+
+  const {
+    translatedText: translatedTitle,
+    isTranslating: titleTranslating,
+  } = useTranslation(title, false, `blog-title:${slug}`)
+
   return (
     <div className='max-w-3xl mx-auto px-4 py-8'>
       {headerContent && (
@@ -36,7 +55,10 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
       )}
       <main className='bg-white rounded-lg border border-gray-200 p-8'>
         <header className='mb-8'>
-          <h1 className='text-3xl font-bold leading-tight mb-3 text-gray-900'>{title}</h1>
+          <h1 className='text-3xl font-bold leading-tight mb-3 text-gray-900'>
+            {translatedTitle}
+            {titleTranslating && <span className='ml-2 text-xs text-gray-400 animate-pulse'>translating...</span>}
+          </h1>
           <div className='text-sm text-gray-600 flex items-center gap-3'>
             <time dateTime={date}>
               {format(new Date(date), 'MMM d, yyyy')}
@@ -46,6 +68,16 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
             )}
           </div>
         </header>
+
+        <TranslationIndicator
+          variant='full'
+          locale={locale}
+          isTranslating={contentTranslating}
+          actuallyTranslated={contentActuallyTranslated}
+          showOriginal={contentShowOriginal}
+          onToggleOriginal={toggleContentOriginal}
+        />
+
         <div className='prose prose-lg max-w-none text-gray-900 leading-relaxed prose-p:my-3 prose-img:my-0'>
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
@@ -116,7 +148,7 @@ export function BlogPostContent({ title, date, content, slug, headerContent, dis
               ),
             }}
           >
-            {content}
+            {translatedContent}
           </ReactMarkdown>
         </div>
         

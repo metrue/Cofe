@@ -2,6 +2,32 @@
 
 import { BlogPost } from "@/lib/types";
 import Link from "next/link";
+import { useTranslation } from '@/hooks/useTranslation';
+
+const BlogCardContent = ({ post }: { post: BlogPost }) => {
+  const {
+    translatedText: translatedTitle,
+    isTranslating,
+  } = useTranslation(post.title, false, `blog-card:${post.id}`);
+
+  return (
+    <Link
+      href={`/blog/${encodeURIComponent(post.id)}`}
+      className="block p-6 h-full flex flex-col justify-between"
+      aria-label={post.title}
+    >
+      <div className="space-y-4">
+        <h3 className="font-semibold text-xl md:text-2xl text-gray-900 group-hover:text-blue-600 transition-colors duration-200 leading-tight">
+          {translatedTitle}
+          {isTranslating && <span className='ml-1 text-xs text-gray-400 animate-pulse'>translating...</span>}
+        </h3>
+        <p className="text-sm text-gray-500">
+          {formatDate(post.date)}
+        </p>
+      </div>
+    </Link>
+  );
+};
 
 export const BlogCard = ({ post }: { post: BlogPost }) => (
   <div className="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200">
@@ -17,20 +43,7 @@ export const BlogCard = ({ post }: { post: BlogPost }) => (
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
       </div>
     )}
-    <Link
-      href={`/blog/${encodeURIComponent(post.id)}`}
-      className="block p-6 h-full flex flex-col justify-between"
-      aria-label={post.title}
-    >
-      <div className="space-y-4">
-        <h3 className="font-semibold text-xl md:text-2xl text-gray-900 group-hover:text-blue-600 transition-colors duration-200 leading-tight">
-          {post.title}
-        </h3>
-        <p className="text-sm text-gray-500">
-          {formatDate(post.date)}
-        </p>
-      </div>
-    </Link>
+    <BlogCardContent post={post} />
   </div>
 );
 

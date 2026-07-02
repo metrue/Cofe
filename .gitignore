@@ -39,3 +39,6 @@ next-env.d.ts
 
 # AGENTS.md is the canonical agent instructions file.
 # CLAUDE.md is a symlink → AGENTS.md (tracked by git, don't ignore).
+
+# Translation cache (auto-generated)
+data/translations/
