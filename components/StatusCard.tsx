@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Memo } from '@/lib/types'
 import { formatMemoDate, processMemoForPreview } from '@/lib/utils'
+import { StatusCardContent } from './StatusCardContent'
 
 const SocialLink = ({ href, title, icon, label, textClassName = '' }: {
   href: string
@@ -121,16 +122,7 @@ export const StatusCard = ({
             </div>
             {memo && (() => {
               const { processedContent, hasImages } = processMemoForPreview(memo.content);
-              return (
-                <div className='text-base leading-relaxed break-words'>
-                  <p>{processedContent}</p>
-                  {hasImages && (
-                    <p className='text-xs text-gray-400 mt-2 italic'>
-                      Contains images - view in &quot;more&quot; →
-                    </p>
-                  )}
-                </div>
-              );
+              return <StatusCardContent content={processedContent} hasImages={hasImages} />;
             })()}
           </div>
         </CardContent>
