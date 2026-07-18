@@ -1,4 +1,5 @@
 import { Octokit } from '@octokit/rest'
+import { contentPaths } from './content/paths'
 
 /**
  * Generate and update the blog manifest file based on published blog posts
@@ -12,7 +13,7 @@ export async function updateBlogManifest(accessToken: string, owner: string, rep
     const { data: files } = await octokit.repos.getContent({
       owner,
       repo,
-      path: 'data/blog',
+      path: contentPaths.blogDir(),
     })
     
     if (!Array.isArray(files)) {
@@ -41,7 +42,7 @@ export async function updateBlogManifest(accessToken: string, owner: string, rep
       const { data: currentManifest } = await octokit.repos.getContent({
         owner,
         repo,
-        path: 'data/blog-manifest.json',
+        path: contentPaths.blogManifest(),
       })
       
       if (!Array.isArray(currentManifest) && 'sha' in currentManifest) {
@@ -56,7 +57,7 @@ export async function updateBlogManifest(accessToken: string, owner: string, rep
     await octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
-      path: 'data/blog-manifest.json',
+      path: contentPaths.blogManifest(),
       message: 'Update blog manifest',
       content: Buffer.from(JSON.stringify(manifest, null, 2)).toString('base64'),
       sha: currentSha, // Required for updates, undefined for creates

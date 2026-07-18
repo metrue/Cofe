@@ -28,9 +28,9 @@ import {
   PostHighlightsSchema,
   emptyPostHighlights,
 } from './schema'
+import { contentPaths } from '../content/paths'
 
 const REPO = 'Cofe'
-const FILE_DIR = 'data/highlights'
 const CACHE_TTL_MS = 30_000
 const SAVE_RETRY_LIMIT = 3
 const MAX_POST_ID_LENGTH = 200
@@ -69,7 +69,7 @@ export function clearHighlightsCache(): void {
 }
 
 function pathFor(postId: string): string {
-  return `${FILE_DIR}/${postId}.json`
+  return contentPaths.highlightsFile(postId)
 }
 
 function assertSafePostId(postId: string): void {
@@ -123,7 +123,7 @@ export class LocalFsHighlightsRepo implements HighlightsRepo {
   constructor(private rootDir: string) {}
 
   private absPath(postId: string): string {
-    return path.join(this.rootDir, FILE_DIR, `${postId}.json`)
+    return path.join(this.rootDir, contentPaths.highlightsFile(postId))
   }
 
   async load(postId: string): Promise<LoadedHighlights> {

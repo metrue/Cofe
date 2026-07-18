@@ -1,6 +1,7 @@
 import { Memo, ExternalDiscussion } from './types';
 import { Octokit } from '@octokit/rest';
 import { updateBlogManifest } from './manifestUtils';
+import { contentPaths } from './content/paths';
 import path from 'path';
 import {
   getOctokit,
@@ -108,7 +109,7 @@ async function ensureContentStructure(octokit: Octokit, owner: string, repo: str
       octokit,
       owner,
       repo,
-      'data/.gitkeep',
+      contentPaths.rootKeep(),
       'Initialize content directory',
       ''
     )
@@ -116,7 +117,7 @@ async function ensureContentStructure(octokit: Octokit, owner: string, repo: str
       octokit,
       owner,
       repo,
-      'data/blog/.gitkeep',
+      contentPaths.blogDirKeep(),
       'Initialize blog directory',
       ''
     )
@@ -124,7 +125,7 @@ async function ensureContentStructure(octokit: Octokit, owner: string, repo: str
       octokit,
       owner,
       repo,
-      'data/memos.json',
+      contentPaths.memos(),
       'Initialize memos.json',
       '[]'
     )
@@ -152,7 +153,7 @@ export async function createBlogPost(
   await initializeGitHubStructure(octokit, owner, repo)
 
   const filename = `${title.toLowerCase().replace(/\s+/g, '-')}.md`
-  const path = `data/blog/${filename}`
+  const path = contentPaths.blogFile(filename)
   const date = new Date().toISOString() // Store full ISO string
   const discussionsYaml = formatDiscussions(discussions)
   const locationYaml = location ? `latitude: ${location.latitude || ''}
@@ -209,7 +210,7 @@ export async function createMemo(
       const response = await octokit.repos.getContent({
         owner,
         repo,
-        path: 'data/memos.json',
+        path: contentPaths.memos(),
       })
 
       if (!Array.isArray(response.data) && 'content' in response.data) {
@@ -247,7 +248,7 @@ export async function createMemo(
     const updateParams: UpdateFileParams = {
       owner,
       repo,
-      path: 'data/memos.json',
+      path: contentPaths.memos(),
       message: 'Add new memo',
       content: Buffer.from(JSON.stringify(memos, null, 2)).toString('base64'),
     }
@@ -287,7 +288,7 @@ export async function deleteMemo(id: string, accessToken: string): Promise<void>
     const response = await octokit.repos.getContent({
       owner,
       repo,
-      path: 'data/memos.json',
+      path: contentPaths.memos(),
     })
 
     if (!Array.isArray(response.data) && 'content' in response.data) {
@@ -306,7 +307,7 @@ export async function deleteMemo(id: string, accessToken: string): Promise<void>
     const updateParams: UpdateFileParams = {
       owner,
       repo,
-      path: 'data/memos.json',
+      path: contentPaths.memos(),
       message: 'Delete a memo',
       content: Buffer.from(JSON.stringify(newMemos, null, 2)).toString('base64'),
       sha: existingSha,
@@ -347,7 +348,7 @@ export async function updateMemo(
     const response = await octokit.repos.getContent({
       owner,
       repo,
-      path: 'data/memos.json',
+      path: contentPaths.memos(),
     })
 
     if (!Array.isArray(response.data) && 'content' in response.data) {
@@ -374,7 +375,7 @@ export async function updateMemo(
     const updateParams: UpdateFileParams = {
       owner,
       repo,
-      path: 'data/memos.json',
+      path: contentPaths.memos(),
       message: 'Update memo',
       content: Buffer.from(JSON.stringify(memos, null, 2)).toString('base64'),
       sha: existingSha,
@@ -402,7 +403,7 @@ export async function deleteBlogPost(id: string, accessToken: string): Promise<v
     // Decode the ID and create the file path
     const decodedId = decodeURIComponent(id)
     const filename = `${decodedId}.md`
-    const path = `data/blog/${filename}`
+    const path = contentPaths.blogFile(filename)
 
     console.log(`Attempting to delete file: ${path}`)
 
@@ -461,7 +462,7 @@ export async function updateBlogPost(
       octokit,
       owner,
       repo,
-      `data/blog/${id}.md`
+      contentPaths.blogPost(id)
     )
     const dateMatch = existingContent.match(/date:\s*(.+)/)
     const date = dateMatch ? dateMatch[1] : new Date().toISOString()
@@ -490,7 +491,7 @@ ${content}`
       octokit,
       owner,
       repo,
-      `data/blog/${id}.md`,
+      contentPaths.blogPost(id),
       'Update blog post',
       updatedContent,
       sha

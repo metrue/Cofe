@@ -2,6 +2,7 @@ import { BlogPost, Memo } from './types'
 import { createGitHubAPIClient } from './client'
 import { LikesDatabase } from './likeUtils'
 import { parseBlogPostMetadata } from './markdown'
+import { contentPaths } from './content/paths'
 
 const REPO = 'Cofe'
 
@@ -36,7 +37,7 @@ export class PublicGitHubClient {
     try {
       // Try to fetch a blog manifest file if it exists
       try {
-        const manifestResponse = await fetch(`${this.baseUrl}/data/blog-manifest.json`)
+        const manifestResponse = await fetch(`${this.baseUrl}/${contentPaths.blogManifest()}`)
         if (manifestResponse.ok) {
           const manifest = await manifestResponse.json()
           // Handle both legacy and new manifest formats
@@ -71,7 +72,7 @@ export class PublicGitHubClient {
    */
   async getBlogPost(filename: string): Promise<BlogPost | null> {
     try {
-      const response = await fetch(`${this.baseUrl}/data/blog/${filename}`)
+      const response = await fetch(`${this.baseUrl}/${contentPaths.blogFile(filename)}`)
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -111,7 +112,7 @@ export class PublicGitHubClient {
    */
   async getMemos(): Promise<Memo[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/data/memos.json`)
+      const response = await fetch(`${this.baseUrl}/${contentPaths.memos()}`)
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -134,7 +135,7 @@ export class PublicGitHubClient {
    */
   async getLinks(): Promise<Record<string, string>> {
     try {
-      const response = await fetch(`${this.baseUrl}/data/site-config.json`)
+      const response = await fetch(`${this.baseUrl}/${contentPaths.siteConfig()}`)
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -156,7 +157,7 @@ export class PublicGitHubClient {
    */
   async getLikes(): Promise<LikesDatabase> {
     try {
-      const response = await fetch(`${this.baseUrl}/data/likes.json`)
+      const response = await fetch(`${this.baseUrl}/${contentPaths.likes()}`)
       
       if (!response.ok) {
         if (response.status === 404) {

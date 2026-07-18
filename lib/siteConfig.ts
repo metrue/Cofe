@@ -1,3 +1,7 @@
+// Build-time static import: the path must be a literal, so it cannot go through
+// contentPaths. The runtime read/write source of truth is contentPaths.siteConfig()
+// (used by client.ts / publicClient.ts / localClient.server.ts). Keep this literal
+// in sync with contentPaths.siteConfig() if the content layout ever moves.
 import siteConfig from '@/data/site-config.json'
 import { headers } from 'next/headers'
 

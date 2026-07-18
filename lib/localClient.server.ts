@@ -3,18 +3,24 @@ import path from 'path'
 import type { BlogPost, Memo } from './types'
 import { LikesDatabase } from './likeUtils'
 import { parseBlogPostMetadata } from './markdown'
+import { contentPaths } from './content/paths'
 
 /**
  * Local file system client for development (server-side only)
  * Reads data from local data/ directory instead of GitHub
  */
 export class LocalFileSystemClient {
+  /** Resolve a repo-relative content path (from contentPaths) to an absolute local path. */
+  private abs(repoPath: string): string {
+    return path.join(process.cwd(), repoPath)
+  }
+
   private get dataDir() {
-    return path.join(process.cwd(), 'data')
+    return this.abs(contentPaths.root())
   }
 
   private get blogDir() {
-    return path.join(this.dataDir, 'blog')
+    return this.abs(contentPaths.blogDir())
   }
   /**
    * Get all blog posts from local data/blog directory
@@ -97,7 +103,7 @@ export class LocalFileSystemClient {
    */
   async getMemos(): Promise<Memo[]> {
     try {
-      const memosPath = path.join(this.dataDir, 'memos.json')
+      const memosPath = this.abs(contentPaths.memos())
       
       if (!fs.existsSync(memosPath)) {
         console.log('memos.json not found, returning empty array')
@@ -119,7 +125,7 @@ export class LocalFileSystemClient {
    */
   async getLinks(): Promise<Record<string, string>> {
     try {
-      const configPath = path.join(this.dataDir, 'site-config.json')
+      const configPath = this.abs(contentPaths.siteConfig())
       
       if (!fs.existsSync(configPath)) {
         return {}
@@ -140,7 +146,7 @@ export class LocalFileSystemClient {
    */
   async getLikes(): Promise<LikesDatabase> {
     try {
-      const likesPath = path.join(this.dataDir, 'likes.json')
+      const likesPath = this.abs(contentPaths.likes())
       
       if (!fs.existsSync(likesPath)) {
         console.log('likes.json not found, returning empty object')
@@ -162,7 +168,7 @@ export class LocalFileSystemClient {
    */
   async updateLikes(likesData: LikesDatabase): Promise<void> {
     try {
-      const likesPath = path.join(this.dataDir, 'likes.json')
+      const likesPath = this.abs(contentPaths.likes())
       const content = JSON.stringify(likesData, null, 2)
       fs.writeFileSync(likesPath, content, 'utf-8')
       console.log('Updated local likes data')
@@ -180,7 +186,7 @@ export class LocalFileSystemClient {
       const memos = await this.getMemos()
       const updatedMemos = [memo, ...memos]
       
-      const memosPath = path.join(this.dataDir, 'memos.json')
+      const memosPath = this.abs(contentPaths.memos())
       const content = JSON.stringify(updatedMemos, null, 2)
       fs.writeFileSync(memosPath, content, 'utf-8')
       
