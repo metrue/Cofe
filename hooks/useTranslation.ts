@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useLocale } from 'next-intl'
-import { shouldTranslate } from '@/lib/translate.shared'
 import { useAutoTranslate } from '@/components/AutoTranslateProvider'
 
 interface UseTranslationResult {
@@ -62,14 +61,17 @@ export function useTranslation(
   contentId?: string,
 ): UseTranslationResult {
   const locale = useLocale()
-  const { enabled } = useAutoTranslate()
+  const { enabled, canTranslate } = useAutoTranslate()
   const [translatedText, setTranslatedText] = useState<string>(text)
   const [isTranslating, setIsTranslating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const mountedRef = useRef(true)
 
-  const needsTranslation = enabled && shouldTranslate(locale)
-  const cacheKey = `translate:${contentId ?? hashText(text)}:${locale}`
+  const needsTranslation = enabled && canTranslate
+  const cacheKey = useMemo(
+    () => `translate:${contentId ?? hashText(text)}:${locale}`,
+    [contentId, text, locale],
+  )
 
   useEffect(() => {
     mountedRef.current = true

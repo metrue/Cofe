@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useLocale } from 'next-intl'
 import { shouldTranslate } from '@/lib/translate.shared'
 
@@ -9,9 +9,7 @@ const STORAGE_KEY = 'auto-translate-enabled'
 interface AutoTranslateValue {
   /** Whether auto-translation is currently turned on. */
   enabled: boolean
-  /** Turn auto-translation on or off (persisted across sessions). */
-  setEnabled: (value: boolean) => void
-  /** Flip the current on/off state. */
+  /** Flip the current on/off state (persisted across sessions). */
   toggle: () => void
   /** Whether translation is even relevant for this reader (false for Chinese locales). */
   canTranslate: boolean
@@ -38,19 +36,27 @@ export function AutoTranslateProvider({ children }: { children: React.ReactNode 
     }
   }, [])
 
-  const setEnabled = useCallback((value: boolean) => {
-    setEnabledState(value)
-    try {
-      localStorage.setItem(STORAGE_KEY, String(value))
-    } catch {
-      /* localStorage unavailable */
-    }
+  // Stable across the provider's lifetime: reads the previous value from the
+  // updater so it never needs `enabled` in its dependency list.
+  const toggle = useCallback(() => {
+    setEnabledState((prev) => {
+      const next = !prev
+      try {
+        localStorage.setItem(STORAGE_KEY, String(next))
+      } catch {
+        /* localStorage unavailable */
+      }
+      return next
+    })
   }, [])
 
-  const toggle = useCallback(() => setEnabled(!enabled), [enabled, setEnabled])
+  const value = useMemo(
+    () => ({ enabled, toggle, canTranslate }),
+    [enabled, toggle, canTranslate],
+  )
 
   return (
-    <AutoTranslateContext.Provider value={{ enabled, setEnabled, toggle, canTranslate }}>
+    <AutoTranslateContext.Provider value={value}>
       {children}
     </AutoTranslateContext.Provider>
   )

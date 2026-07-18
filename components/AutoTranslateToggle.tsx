@@ -2,11 +2,12 @@
 
 import { Globe } from 'lucide-react'
 import { useLocale } from 'next-intl'
+import { localeToLabel, normalizeLocale } from '@/lib/translate.shared'
 import { useAutoTranslate } from './AutoTranslateProvider'
 
 /** Short code for the reader's target language, e.g. en-US -> EN. */
 function targetLanguageCode(locale: string): string {
-  return locale.split('-')[0].toUpperCase()
+  return normalizeLocale(locale).toUpperCase()
 }
 
 /**
@@ -31,7 +32,7 @@ export function AutoTranslateToggle() {
     >
       <Globe className={`h-3.5 w-3.5 ${enabled ? 'text-green-500' : 'text-gray-400'}`} />
       <span className={enabled ? 'text-gray-700' : 'text-gray-400'}>
-        {enabled ? targetLanguageCode(locale) : '中文'}
+        {enabled ? targetLanguageCode(locale) : localeToLabel('zh')}
       </span>
     </button>
   )
