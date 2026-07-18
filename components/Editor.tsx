@@ -22,6 +22,7 @@ import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { uploadImage } from "@/lib/githubApi";
 import { useDropzone } from "react-dropzone";
 import { useSession } from "next-auth/react";
+import { useLocalMode } from "./LocalModeProvider";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslations } from "next-intl";
 import { useGeolocation } from "@/hooks/useGeolocation";
@@ -49,6 +50,23 @@ export default function Editor({
   const [isSuccess, setIsSuccess] = useState(false);
   const t = useTranslations("HomePage");
   const { data: session } = useSession();
+  const localMode = useLocalMode();
+
+  // Upload an image: local mode POSTs to /api/upload (disk); otherwise GitHub.
+  const uploadImageForMode = useCallback(
+    async (file: File): Promise<string> => {
+      if (localMode) {
+        const form = new FormData();
+        form.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: form });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || "Upload failed");
+        return data.url as string;
+      }
+      return uploadImage(file, session!.accessToken as string);
+    },
+    [localMode, session]
+  );
   const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
   const { toast } = useToast();
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
@@ -311,7 +329,7 @@ export default function Editor({
 
   const handleImageUpload = useCallback(
     async (file: File) => {
-      if (!session?.accessToken) {
+      if (!localMode && !session?.accessToken) {
         toast({
           title: t("error"),
           description: t("notAuthenticated"),
@@ -323,7 +341,7 @@ export default function Editor({
 
       setIsImageUploading(true);
       try {
-        const imageUrl = await uploadImage(file, session.accessToken);
+        const imageUrl = await uploadImageForMode(file);
         const imageMarkdown = `![${file.name}](${imageUrl})`;
 
         if (cursorPosition !== null) {
@@ -353,7 +371,7 @@ export default function Editor({
         setIsImageUploading(false);
       }
     },
-    [session?.accessToken, cursorPosition, content, toast, t]
+    [localMode, session?.accessToken, uploadImageForMode, cursorPosition, content, toast, t]
   );
 
   const addDiscussion = () => {
@@ -400,7 +418,7 @@ export default function Editor({
 
   const handlePaste = useCallback(
     async (e: React.ClipboardEvent) => {
-      if (!session?.accessToken) {
+      if (!localMode && !session?.accessToken) {
         toast({
           title: t("error"),
           description: t("notAuthenticated"),
@@ -420,7 +438,7 @@ export default function Editor({
             const file = item.getAsFile();
             if (!file) continue;
 
-            const imageUrl = await uploadImage(file, session.accessToken);
+            const imageUrl = await uploadImageForMode(file);
             const imageMarkdown = `![${
               file.name || "Pasted image"
             }](${imageUrl})`;
@@ -454,7 +472,7 @@ export default function Editor({
         }
       }
     },
-    [session?.accessToken, cursorPosition, content, toast, t]
+    [localMode, session?.accessToken, uploadImageForMode, cursorPosition, content, toast, t]
   );
 
   return (
