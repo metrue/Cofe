@@ -1,7 +1,7 @@
 import { createPublicGitHubClient } from './publicClient'
 import { createGitHubAPIClient } from './client'
 import { contentPaths } from './content/paths'
-import { useLocalBackend } from './runtime/mode'
+import { shouldUseLocalBackend } from './runtime/mode'
 import type { BlogPost, Memo } from './types'
 import type { LikesDatabase } from './likeUtils'
 
@@ -24,7 +24,7 @@ export class SmartClient {
   }
 
   private async getLocalClient(): Promise<DataClient | null> {
-    if (!this.localClient && typeof window === 'undefined' && useLocalBackend()) {
+    if (!this.localClient && typeof window === 'undefined' && shouldUseLocalBackend()) {
       const { createLocalFileSystemClient } = await import('./localClient.server')
       this.localClient = createLocalFileSystemClient()
     }
@@ -70,7 +70,7 @@ export class SmartClient {
   async getBlogPosts(): Promise<BlogPost[]> {
     const includeAuthenticatedDrafts = !!this.accessToken
     
-    if (typeof window === 'undefined' && useLocalBackend()) {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
       const client = await this.getLocalClient()
       return client ? await client.getBlogPosts(includeAuthenticatedDrafts) : []
     } else {
@@ -86,7 +86,7 @@ export class SmartClient {
   }
 
   async getBlogPost(name: string): Promise<BlogPost | undefined> {
-    if (typeof window === 'undefined' && useLocalBackend()) {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
       const client = await this.getLocalClient()
       if (!client?.getBlogPost) return undefined
       const result = await client.getBlogPost(name)
@@ -100,7 +100,7 @@ export class SmartClient {
   }
 
   async getMemos(): Promise<Memo[]> {
-    if (typeof window === 'undefined' && useLocalBackend()) {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
       const client = await this.getLocalClient()
       return client ? await client.getMemos() : []
     } else {
@@ -110,7 +110,7 @@ export class SmartClient {
   }
 
   async getLinks(): Promise<Record<string, string>> {
-    if (typeof window === 'undefined' && useLocalBackend()) {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
       const client = await this.getLocalClient()
       return client ? await client.getLinks() : {}
     } else {
@@ -120,7 +120,7 @@ export class SmartClient {
   }
 
   async getLikes(): Promise<LikesDatabase> {
-    if (typeof window === 'undefined' && useLocalBackend()) {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
       const client = await this.getLocalClient()
       return client ? await client.getLikes() : {}
     } else {
@@ -130,7 +130,7 @@ export class SmartClient {
   }
 
   async createMemo(memo: Memo): Promise<Memo> {
-    if (typeof window === 'undefined' && useLocalBackend()) {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
       const client = await this.getLocalClient()
       if (!client?.createMemo) {
         throw new Error('Local client createMemo not available')
@@ -189,7 +189,7 @@ export class SmartClient {
   }
 
   async updateLikes(likesData: LikesDatabase): Promise<void> {
-    if (typeof window === 'undefined' && useLocalBackend()) {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
       const client = await this.getLocalClient()
       if (!client?.updateLikes) {
         throw new Error('Local client updateLikes not available')
@@ -214,7 +214,7 @@ export class SmartClient {
       return []
     }
     
-    if (typeof window === 'undefined' && useLocalBackend()) {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
       const client = await this.getLocalClient()
       if (client?.getDrafts) {
         return await client.getDrafts()
@@ -239,7 +239,7 @@ export class SmartClient {
   }
 
   async getAllBlogPosts(): Promise<BlogPost[]> {
-    if (typeof window === 'undefined' && useLocalBackend()) {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
       const client = await this.getLocalClient()
       if (client?.getAllBlogPosts) {
         return await client.getAllBlogPosts()

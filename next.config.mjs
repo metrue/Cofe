@@ -5,7 +5,9 @@ const withNextIntl = createNextIntlPlugin()
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-  // output: 'export',
+  // Standalone output powers the `npx cofe` CLI: a self-contained server that
+  // can serve any `--data <dir>` at runtime. Vercel handles this output natively.
+  output: 'standalone',
   reactStrictMode: true,
   images: {
     remotePatterns: [

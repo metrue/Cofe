@@ -29,7 +29,7 @@ import {
   emptyPostHighlights,
 } from './schema'
 import { contentPaths, contentRel } from '../content/paths'
-import { useLocalBackend, localDataDir } from '../runtime/mode'
+import { shouldUseLocalBackend, localDataDir } from '../runtime/mode'
 
 const REPO = 'Cofe'
 const CACHE_TTL_MS = 30_000
@@ -263,7 +263,7 @@ export interface GetRepoOptions {
  * clear error rather than silently failing the way `updateLikes` does.
  */
 export function getHighlightsRepo(opts: GetRepoOptions = {}): HighlightsRepo {
-  if (useLocalBackend() && typeof window === 'undefined') {
+  if (shouldUseLocalBackend() && typeof window === 'undefined') {
     return new LocalFsHighlightsRepo(localDataDir())
   }
 

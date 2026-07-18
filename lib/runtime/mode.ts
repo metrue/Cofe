@@ -38,6 +38,6 @@ export function localDataDir(): string {
  * Whether to use the local filesystem backend instead of GitHub.
  * True in local mode, or in development (unchanged legacy behavior).
  */
-export function useLocalBackend(): boolean {
+export function shouldUseLocalBackend(): boolean {
   return isLocalMode() || process.env.NODE_ENV === 'development'
 }
