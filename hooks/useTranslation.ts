@@ -98,7 +98,13 @@ export function useTranslation(
       if (!mountedRef.current) return
 
       setTranslatedText(translatedText)
-      writeSessionCache(cacheKey, translatedText)
+      // Only cache a genuine translation. An identity response (text unchanged)
+      // means the server fell back to the original — e.g. the translation key
+      // was missing — and caching it would pin stale, untranslated text for the
+      // whole tab session. Mirrors the server-side guard in lib/translate.ts.
+      if (translatedText && translatedText !== text) {
+        writeSessionCache(cacheKey, translatedText)
+      }
     } catch (err) {
       if (!mountedRef.current) return
       console.error('[useTranslation] Error:', err)
@@ -121,8 +127,11 @@ export function useTranslation(
       return
     }
 
+    // Treat a cached value equal to the original as a miss: it's a stale
+    // identity result (e.g. cached before the translation key was configured),
+    // so re-request instead of pinning untranslated text.
     const cached = readSessionCache(cacheKey)
-    if (cached !== null) {
+    if (cached !== null && cached !== text) {
       setTranslatedText(cached)
       setError(null)
       setIsTranslating(false)
