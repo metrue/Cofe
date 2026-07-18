@@ -2,12 +2,12 @@ import BlogPage from './blog/page'
 import { Memo } from '@/lib/types'
 import React from 'react'
 import { StatusCard } from '@/components/StatusCard'
-import { createOptimizedGitHubClient } from '@/lib/client'
+import { getProvider } from '@/lib/runtime/provider'
 
 export default async function Home() {
   const username = process.env.GITHUB_USERNAME ?? ''
 
-  const client = createOptimizedGitHubClient(username)
+  const client = getProvider()
   const memos = await client.getMemos()
   const links = await client.getLinks()
   let latestMemo: Memo | undefined

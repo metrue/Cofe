@@ -7,10 +7,10 @@ import Head from 'next/head'
 import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import { SessionProvider } from '../components/SessionProvider'
-import { LocalModeProvider } from '@/components/LocalModeProvider'
+import { EditProvider } from '@/components/EditContext'
 import { Toaster } from '@/components/ui/toaster'
 import { authOptions } from '@/lib/auth'
-import { isLocalMode } from '@/lib/runtime/mode'
+import { getProvider } from '@/lib/runtime/provider'
 import { getIconUrls } from '@/lib/githubApi'
 import { getServerSession } from 'next-auth/next'
 import { gowun_wodum } from '@/components/ui/font'
@@ -57,6 +57,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale()
   const messages = await getMessages()
   const session = await getServerSession(authOptions)
+  const canEdit = getProvider(session?.accessToken).canWrite()
 
   const { iconPath } = await getIconPaths(session?.accessToken)
 
@@ -72,11 +73,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`${gowun_wodum.className} bg-[#f6f8fa]`}>
         <NextIntlClientProvider messages={messages}>
           <SessionProvider>
-            <LocalModeProvider localMode={isLocalMode()}>
+            <EditProvider canEdit={canEdit}>
               <main className='pb-20 m-auto'>{children}</main>
               <CreateButton messages={messages} />
               <Toaster />
-            </LocalModeProvider>
+            </EditProvider>
           </SessionProvider>
         </NextIntlClientProvider>
       </body>

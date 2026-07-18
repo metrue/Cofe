@@ -1,42 +1,40 @@
 /**
- * Runtime mode detection (server-only).
+ * Runtime mode helpers (server-only). Thin predicates over the environment the
+ * CLI / deploy platform sets. The authoritative backend choice lives in
+ * `config.ts` (resolveRuntimeConfig) + the provider factory; these helpers are
+ * for render-layer spots that only need a boolean (layout, editor gate, asset
+ * routes, highlights).
  *
- * Cofe has two backends for content:
- *   - GitHub (production on Vercel): reads via raw URLs, writes via Octokit.
- *   - Local filesystem: reads/writes a directory on disk.
- *
- * Historically the local backend was reachable only in `NODE_ENV=development`
- * (rooted at `process.cwd()/data`). "Local mode" generalizes that so a
- * prebuilt binary — `npx cofe --data <dir>` — can serve and edit any folder:
- * the CLI sets `COFE_DATA_DIR` to an absolute path and that directory IS the
- * content root (it contains `blog/`, `memos.json`, … directly, with no `data/`
- * prefix).
- *
- * Server-only: this reads `process.env` and `path`. Do not import from client
- * components. Client code learns the mode via the layout → context injection.
+ * Server-only: reads process.env + path. Do not import from client components.
  */
 
 import path from 'path'
 
-/** True when launched against a user-supplied content directory (`npx cofe --data`). */
+/** Local filesystem mode — `npx cofe --dir <path>` (sets COFE_DIR). */
 export function isLocalMode(): boolean {
-  return !!process.env.COFE_DATA_DIR
+  return !!process.env.COFE_DIR
+}
+
+/** Remote-repo mode — `npx cofe --repo owner/name` (sets COFE_REPO). */
+export function isRepoMode(): boolean {
+  return !!process.env.COFE_REPO
 }
 
 /**
- * Absolute path to the content root.
- * - Local mode: the `--data` directory itself.
- * - Dev fallback: `<cwd>/data` (repo-embedded content), preserving prior behavior.
+ * Absolute path to the local content root.
+ * - Local mode: the `--dir` directory itself.
+ * - Dev fallback: `<cwd>/data` (repo-embedded content).
  */
 export function localDataDir(): string {
-  const dir = process.env.COFE_DATA_DIR
+  const dir = process.env.COFE_DIR
   if (dir) return path.resolve(dir)
   return path.join(process.cwd(), 'data')
 }
 
 /**
- * Whether to use the local filesystem backend instead of GitHub.
- * True in local mode, or in development (unchanged legacy behavior).
+ * Whether the local filesystem backend is active (local mode, or dev). Used by
+ * the highlights repo factory and dev tooling. The provider factory makes the
+ * primary decision; this stays for the highlights sub-domain + dev.
  */
 export function shouldUseLocalBackend(): boolean {
   return isLocalMode() || process.env.NODE_ENV === 'development'

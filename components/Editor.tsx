@@ -19,10 +19,8 @@ import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { uploadImage } from "@/lib/githubApi";
 import { useDropzone } from "react-dropzone";
-import { useSession } from "next-auth/react";
-import { useLocalMode } from "./LocalModeProvider";
+import { useCanEdit } from "./EditContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslations } from "next-intl";
 import { useGeolocation } from "@/hooks/useGeolocation";
@@ -49,24 +47,17 @@ export default function Editor({
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const t = useTranslations("HomePage");
-  const { data: session } = useSession();
-  const localMode = useLocalMode();
+  const canEdit = useCanEdit();
 
-  // Upload an image: local mode POSTs to /api/upload (disk); otherwise GitHub.
-  const uploadImageForMode = useCallback(
-    async (file: File): Promise<string> => {
-      if (localMode) {
-        const form = new FormData();
-        form.append("file", file);
-        const res = await fetch("/api/upload", { method: "POST", body: form });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || "Upload failed");
-        return data.url as string;
-      }
-      return uploadImage(file, session!.accessToken as string);
-    },
-    [localMode, session]
-  );
+  // Upload an image through the provider (one endpoint for local + GitHub).
+  const uploadImageForMode = useCallback(async (file: File): Promise<string> => {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || "Upload failed");
+    return data.url as string;
+  }, []);
   const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
   const { toast } = useToast();
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
@@ -104,7 +95,6 @@ export default function Editor({
 
   const fetchBlogPost = useCallback(
     async (id: string) => {
-      if (!session?.accessToken) return;
       try {
         const response = await fetch('/api/graphql', {
           method: 'POST',
@@ -164,7 +154,7 @@ export default function Editor({
         console.error("Error fetching blog post:", error);
       }
     },
-    [session?.accessToken]
+    []
   );
 
   useEffect(() => {
@@ -329,7 +319,7 @@ export default function Editor({
 
   const handleImageUpload = useCallback(
     async (file: File) => {
-      if (!localMode && !session?.accessToken) {
+      if (!canEdit) {
         toast({
           title: t("error"),
           description: t("notAuthenticated"),
@@ -371,7 +361,7 @@ export default function Editor({
         setIsImageUploading(false);
       }
     },
-    [localMode, session?.accessToken, uploadImageForMode, cursorPosition, content, toast, t]
+    [canEdit, uploadImageForMode, cursorPosition, content, toast, t]
   );
 
   const addDiscussion = () => {
@@ -418,7 +408,7 @@ export default function Editor({
 
   const handlePaste = useCallback(
     async (e: React.ClipboardEvent) => {
-      if (!localMode && !session?.accessToken) {
+      if (!canEdit) {
         toast({
           title: t("error"),
           description: t("notAuthenticated"),
@@ -472,7 +462,7 @@ export default function Editor({
         }
       }
     },
-    [localMode, session?.accessToken, uploadImageForMode, cursorPosition, content, toast, t]
+    [canEdit, uploadImageForMode, cursorPosition, content, toast, t]
   );
 
   return (

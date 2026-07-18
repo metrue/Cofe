@@ -1,14 +1,13 @@
-import { createOptimizedGitHubClient } from '@/lib/client'
+import { getProvider } from '@/lib/runtime/provider'
 import { getDynamicBaseUrl } from '@/lib/siteConfig'
 
 export const revalidate = 3600 // Revalidate every hour
 
 export async function GET() {
   const baseUrl = getDynamicBaseUrl()
-  const username = process.env.GITHUB_USERNAME || 'metrue'
-  
+
   try {
-    const client = createOptimizedGitHubClient(username)
+    const client = getProvider()
     const blogPosts = await client.getBlogPosts()
     
     // Sort posts by date (newest first)

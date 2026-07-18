@@ -1,13 +1,12 @@
 import { MetadataRoute } from 'next'
-import { createOptimizedGitHubClient } from '@/lib/client'
+import { getProvider } from '@/lib/runtime/provider'
 import { getDynamicBaseUrl } from '@/lib/siteConfig'
 
 export const revalidate = 3600 // Revalidate every hour
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getDynamicBaseUrl()
-  const username = process.env.GITHUB_USERNAME || 'metrue'
-  
+
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     {
@@ -44,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     // Get blog posts dynamically
-    const client = createOptimizedGitHubClient(username)
+    const client = getProvider()
     const blogPosts = await client.getBlogPosts()
     
     const blogPostPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({

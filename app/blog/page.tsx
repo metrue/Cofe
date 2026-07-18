@@ -1,5 +1,5 @@
 import BlogList from "@/components/BlogList";
-import { createSmartClient } from '@/lib/smartClient'
+import { getProvider } from '@/lib/runtime/provider'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 
@@ -7,10 +7,10 @@ export const revalidate = 0; // Force fresh data fetch to fix cached empty state
 
 export default async function BlogPage() {
   const session = await getServerSession(authOptions);
-  const client = createSmartClient(session?.accessToken);
+  const client = getProvider(session?.accessToken);
 
   try {
-    const posts = await client.getBlogPosts();
+    const posts = await client.getBlogPosts({ includeDrafts: client.canWrite() });
     return <BlogList posts={posts} />;
   } catch (error) {
     console.error("Error fetching blog posts:", error);

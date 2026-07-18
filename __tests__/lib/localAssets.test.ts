@@ -14,7 +14,7 @@ class FakeFile {
 
 describe('localAssets (local mode image storage)', () => {
   let tmpDir: string
-  const prev = process.env.COFE_DATA_DIR
+  const prev = process.env.COFE_DIR
 
   async function fresh() {
     jest.resetModules()
@@ -23,11 +23,11 @@ describe('localAssets (local mode image storage)', () => {
 
   beforeEach(async () => {
     tmpDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'cofe-assets-'))
-    process.env.COFE_DATA_DIR = tmpDir
+    process.env.COFE_DIR = tmpDir
   })
   afterEach(async () => {
-    if (prev === undefined) delete process.env.COFE_DATA_DIR
-    else process.env.COFE_DATA_DIR = prev
+    if (prev === undefined) delete process.env.COFE_DIR
+    else process.env.COFE_DIR = prev
     await fsp.rm(tmpDir, { recursive: true, force: true })
   })
 

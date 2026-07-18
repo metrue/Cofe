@@ -1,11 +1,11 @@
-import { createSmartClient } from '@/lib/smartClient'
+import { getProvider } from '@/lib/runtime/provider'
 import { getDynamicBaseUrl } from '@/lib/siteConfig'
 import type { BlogPost } from '@/lib/types'
 
 export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 3600
 
 export async function GET() {
-  const client = createSmartClient()
+  const client = getProvider()
   const baseUrl = getDynamicBaseUrl()
 
   let posts: BlogPost[] = []

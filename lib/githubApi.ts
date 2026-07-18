@@ -131,16 +131,24 @@ async function initializeGitHubStructure(octokit: Octokit, owner: string, repo: 
   await ensureContentStructure(octokit, owner, repo)
 }
 
+/** Explicit repo target — lets a provider write to an arbitrary owner/repo
+ * (`--repo`) instead of always the token owner's Cofe repo. */
+export interface RepoTarget {
+  owner: string
+  repo: string
+}
+
 export async function createBlogPost(
   title: string,
   content: string,
   accessToken: string,
   discussions: ExternalDiscussion[] = [],
   location?: { latitude?: number; longitude?: number; city?: string; street?: string },
-  status: string = 'published'
+  status: string = 'published',
+  target?: RepoTarget
 ): Promise<void> {
   const octokit = getOctokit(accessToken)
-  const { owner, repo } = await getRepoInfo(accessToken)
+  const { owner, repo } = target ?? await getRepoInfo(accessToken)
   await initializeGitHubStructure(octokit, owner, repo)
 
   const filename = `${slugFromTitle(title)}.md`
@@ -375,7 +383,7 @@ export async function updateMemo(
   }
 }
 
-export async function deleteBlogPost(id: string, accessToken: string): Promise<void> {
+export async function deleteBlogPost(id: string, accessToken: string, target?: RepoTarget): Promise<void> {
   console.log('Deleting blog post...')
   if (!accessToken) {
     throw new Error('Access token is required')
@@ -383,7 +391,7 @@ export async function deleteBlogPost(id: string, accessToken: string): Promise<v
   const octokit = getOctokit(accessToken)
 
   try {
-    const { owner, repo } = await getRepoInfo(accessToken)
+    const { owner, repo } = target ?? await getRepoInfo(accessToken)
 
     // Decode the ID and create the file path
     const decodedId = decodeURIComponent(id)
@@ -431,7 +439,8 @@ export async function updateBlogPost(
   accessToken: string,
   discussions: ExternalDiscussion[] = [],
   location?: { latitude?: number; longitude?: number; city?: string; street?: string },
-  status?: string
+  status?: string,
+  target?: RepoTarget
 ): Promise<void> {
   console.log('Updating blog post...')
   if (!accessToken) {
@@ -440,7 +449,7 @@ export async function updateBlogPost(
   const octokit = getOctokit(accessToken)
 
   try {
-    const { owner, repo } = await getRepoInfo(accessToken)
+    const { owner, repo } = target ?? await getRepoInfo(accessToken)
 
     // Get the current file to retrieve its SHA and content
     const { content: existingContent, sha } = await getFileContent(
@@ -484,7 +493,7 @@ export async function updateBlogPost(
   }
 }
 
-export async function uploadImage(file: File, accessToken: string): Promise<string> {
+export async function uploadImage(file: File, accessToken: string, target?: RepoTarget): Promise<string> {
   console.log('Uploading image...')
   if (!accessToken) {
     throw new Error('Access token is required')
@@ -493,7 +502,7 @@ export async function uploadImage(file: File, accessToken: string): Promise<stri
   console.log('Octokit instance created')
 
   try {
-    const { owner, repo } = await getRepoInfo(accessToken)
+    const { owner, repo } = target ?? await getRepoInfo(accessToken)
     console.log('Repo info:', { owner, repo })
 
     // Get the default branch

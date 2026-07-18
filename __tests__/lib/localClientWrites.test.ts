@@ -3,7 +3,7 @@
  *
  * Exercises the local filesystem WRITE path used by `npx cofe --data <dir>`:
  * createBlogPost / updateBlogPost / deleteBlogPost / updateMemo / deleteMemo,
- * rooted at COFE_DATA_DIR.
+ * rooted at COFE_DIR.
  */
 import { promises as fs } from 'fs'
 import os from 'os'
@@ -11,7 +11,7 @@ import path from 'path'
 
 describe('LocalFileSystemClient writes (local mode)', () => {
   let tmpDir: string
-  const prevDataDir = process.env.COFE_DATA_DIR
+  const prevDataDir = process.env.COFE_DIR
 
   // Re-require the module after setting env, since localDataDir() reads process.env.
   async function freshClient() {
@@ -22,14 +22,14 @@ describe('LocalFileSystemClient writes (local mode)', () => {
 
   beforeEach(async () => {
     tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cofe-local-'))
-    process.env.COFE_DATA_DIR = tmpDir
+    process.env.COFE_DIR = tmpDir
     await fs.mkdir(path.join(tmpDir, 'blog'), { recursive: true })
     await fs.writeFile(path.join(tmpDir, 'memos.json'), '[]', 'utf-8')
   })
 
   afterEach(async () => {
-    if (prevDataDir === undefined) delete process.env.COFE_DATA_DIR
-    else process.env.COFE_DATA_DIR = prevDataDir
+    if (prevDataDir === undefined) delete process.env.COFE_DIR
+    else process.env.COFE_DIR = prevDataDir
     await fs.rm(tmpDir, { recursive: true, force: true })
   })
 
