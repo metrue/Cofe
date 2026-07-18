@@ -24,29 +24,45 @@ cd Cofe && npm install && npm run dev
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/metrue/Cofe)
 
-## Run it locally with `npx` (no GitHub, no deploy)
+## Run it anywhere with `npx` (no deploy)
 
-Point Cofe at a folder of your own content and it serves — and edits — everything
-straight from disk. No sign-in, no server, no Vercel.
+Cofe has a runtime layer with two backends — **local files** and a **GitHub repo** —
+behind one content contract. Point the CLI at either:
 
 ```bash
-npx cofe --data ~/my-blog        # → http://localhost:3000
-npx cofe --data ~/my-blog --port 4000
+# Local folder — serve AND edit, straight from disk (no GitHub, no sign-in)
+npx cofe --dir ~/my-blog
+
+# Any GitHub content repo — read-only viewer
+npx cofe --repo metrue/Cofe
+
+# ...with a token, edit that repo too
+npx cofe --repo owner/name --token ghp_xxx --port 4000
 ```
 
-Your `--data` folder is the content root:
+The content contract (same for `--dir` and `--repo`):
 
 ```
-my-blog/
+<root>/
   blog/            # one <slug>.md per post (front-matter + markdown)
   memos.json       # your memos
   site-config.json # optional site settings
-  assets/          # images uploaded from the editor land here
+  likes.json       # optional
+  highlights/      # optional, one <slug>.json per post
+  assets/          # images uploaded from the editor land here (local mode)
 ```
 
-Open `/editor` to write posts and memos — everything you create or edit is written
-back into that folder as plain files you own. Empty folder? It starts blank; create
-your first post in the editor.
+When editing is available (local mode, or a GitHub repo with a token) open `/editor`
+to write posts and memos — everything is written back through the provider: to disk
+in `--dir` mode, or committed to the repo in `--repo --token` mode.
+
+### Architecture
+
+- **Runtime layer** (`lib/runtime/`): a `ContentProvider` interface with `LocalProvider`
+  and `GitHubProvider` implementations; `getProvider()` is the single factory that picks
+  one from `COFE_DIR` / `COFE_REPO` / `GITHUB_USERNAME`.
+- **Render layer** (`app/`, `components/`): depends only on `getProvider()` — never on
+  `fs` or Octokit directly.
 
 ## Documentation
 
