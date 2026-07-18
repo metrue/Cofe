@@ -3,24 +3,27 @@ import path from 'path'
 import type { BlogPost, Memo } from './types'
 import { LikesDatabase } from './likeUtils'
 import { parseBlogPostMetadata } from './markdown'
-import { contentPaths } from './content/paths'
+import { contentRel } from './content/paths'
+import { localDataDir } from './runtime/mode'
 
 /**
- * Local file system client for development (server-side only)
- * Reads data from local data/ directory instead of GitHub
+ * Local file system client (server-side only).
+ * Reads/writes content from the local content root — `<cwd>/data` in dev, or
+ * the `--data <dir>` directory in local mode. Paths are resolved relative to
+ * that root via `contentRel` (which carries no `data/` prefix).
  */
 export class LocalFileSystemClient {
-  /** Resolve a repo-relative content path (from contentPaths) to an absolute local path. */
-  private abs(repoPath: string): string {
-    return path.join(process.cwd(), repoPath)
+  /** Resolve a content-root-relative path (from contentRel) to an absolute local path. */
+  private abs(relPath: string): string {
+    return path.join(localDataDir(), relPath)
   }
 
   private get dataDir() {
-    return this.abs(contentPaths.root())
+    return localDataDir()
   }
 
   private get blogDir() {
-    return this.abs(contentPaths.blogDir())
+    return this.abs(contentRel.blogDir())
   }
   /**
    * Get all blog posts from local data/blog directory
@@ -103,7 +106,7 @@ export class LocalFileSystemClient {
    */
   async getMemos(): Promise<Memo[]> {
     try {
-      const memosPath = this.abs(contentPaths.memos())
+      const memosPath = this.abs(contentRel.memos())
       
       if (!fs.existsSync(memosPath)) {
         console.log('memos.json not found, returning empty array')
@@ -125,7 +128,7 @@ export class LocalFileSystemClient {
    */
   async getLinks(): Promise<Record<string, string>> {
     try {
-      const configPath = this.abs(contentPaths.siteConfig())
+      const configPath = this.abs(contentRel.siteConfig())
       
       if (!fs.existsSync(configPath)) {
         return {}
@@ -146,7 +149,7 @@ export class LocalFileSystemClient {
    */
   async getLikes(): Promise<LikesDatabase> {
     try {
-      const likesPath = this.abs(contentPaths.likes())
+      const likesPath = this.abs(contentRel.likes())
       
       if (!fs.existsSync(likesPath)) {
         console.log('likes.json not found, returning empty object')
@@ -168,7 +171,7 @@ export class LocalFileSystemClient {
    */
   async updateLikes(likesData: LikesDatabase): Promise<void> {
     try {
-      const likesPath = this.abs(contentPaths.likes())
+      const likesPath = this.abs(contentRel.likes())
       const content = JSON.stringify(likesData, null, 2)
       fs.writeFileSync(likesPath, content, 'utf-8')
       console.log('Updated local likes data')
@@ -186,7 +189,7 @@ export class LocalFileSystemClient {
       const memos = await this.getMemos()
       const updatedMemos = [memo, ...memos]
       
-      const memosPath = this.abs(contentPaths.memos())
+      const memosPath = this.abs(contentRel.memos())
       const content = JSON.stringify(updatedMemos, null, 2)
       fs.writeFileSync(memosPath, content, 'utf-8')
       

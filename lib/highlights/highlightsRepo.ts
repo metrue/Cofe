@@ -28,7 +28,8 @@ import {
   PostHighlightsSchema,
   emptyPostHighlights,
 } from './schema'
-import { contentPaths } from '../content/paths'
+import { contentPaths, contentRel } from '../content/paths'
+import { useLocalBackend, localDataDir } from '../runtime/mode'
 
 const REPO = 'Cofe'
 const CACHE_TTL_MS = 30_000
@@ -123,7 +124,8 @@ export class LocalFsHighlightsRepo implements HighlightsRepo {
   constructor(private rootDir: string) {}
 
   private absPath(postId: string): string {
-    return path.join(this.rootDir, contentPaths.highlightsFile(postId))
+    // rootDir is the content root (localDataDir), so use the root-relative path.
+    return path.join(this.rootDir, contentRel.highlightsFile(postId))
   }
 
   async load(postId: string): Promise<LoadedHighlights> {
@@ -261,9 +263,8 @@ export interface GetRepoOptions {
  * clear error rather than silently failing the way `updateLikes` does.
  */
 export function getHighlightsRepo(opts: GetRepoOptions = {}): HighlightsRepo {
-  const isDev = process.env.NODE_ENV === 'development'
-  if (isDev && typeof window === 'undefined') {
-    return new LocalFsHighlightsRepo(process.cwd())
+  if (useLocalBackend() && typeof window === 'undefined') {
+    return new LocalFsHighlightsRepo(localDataDir())
   }
 
   const token = opts.ownerToken ?? process.env.HIGHLIGHTS_GH_TOKEN

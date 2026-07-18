@@ -5,6 +5,7 @@ import { parseBlogPostMetadata } from './markdown'
 import { Octokit } from '@octokit/rest'
 import { createHybridGitHubClient } from './publicClient'
 import { contentPaths } from './content/paths'
+import { useLocalBackend } from './runtime/mode'
 
 const REPO = 'Cofe'
 
@@ -264,8 +265,9 @@ export const createOptimizedGitHubClient = (owner: string, token?: string) => {
  * Only works on server-side due to fs dependency
  */
 export const createDevelopmentOptimizedClient = async (owner: string, token?: string) => {
-  // Only use local client on server-side in development
-  if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
+  // Only use local client on server-side when the local backend is active
+  // (dev, or `npx cofe --data` local mode).
+  if (typeof window === 'undefined' && useLocalBackend()) {
     const { createLocalFileSystemClient } = await import('./localClient.server')
     return createLocalFileSystemClient()
   }
