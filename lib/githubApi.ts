@@ -2,6 +2,7 @@ import { Memo, ExternalDiscussion } from './types';
 import { Octokit } from '@octokit/rest';
 import { updateBlogManifest } from './manifestUtils';
 import { contentPaths } from './content/paths';
+import { buildBlogMarkdown, slugFromTitle, extractDate, extractStatus } from './blogFrontmatter';
 import path from 'path';
 import {
   getOctokit,
@@ -16,16 +17,6 @@ import {
 } from './githubUtils';
 
 const REPO = 'Cofe';
-
-function formatDiscussions(discussions: ExternalDiscussion[]): string {
-  if (!discussions.length) return '';
-  
-  const formatted = discussions.map(d => 
-    `  - platform: ${d.platform}\n    url: ${d.url}`
-  ).join('\n');
-  
-  return `external_discussions:\n${formatted}\n`;
-}
 
 async function ensureRepoExists(octokit: Octokit, owner: string, repo: string) {
   try {
@@ -152,22 +143,16 @@ export async function createBlogPost(
   const { owner, repo } = await getRepoInfo(accessToken)
   await initializeGitHubStructure(octokit, owner, repo)
 
-  const filename = `${title.toLowerCase().replace(/\s+/g, '-')}.md`
+  const filename = `${slugFromTitle(title)}.md`
   const path = contentPaths.blogFile(filename)
-  const date = new Date().toISOString() // Store full ISO string
-  const discussionsYaml = formatDiscussions(discussions)
-  const locationYaml = location ? `latitude: ${location.latitude || ''}
-longitude: ${location.longitude || ''}
-city: ${location.city || ''}
-street: ${location.street || ''}
-` : ''
-  const statusYaml = status !== 'published' ? `status: ${status}\n` : ''
-  const fullContent = `---
-title: ${title}
-date: ${date}
-${statusYaml}${locationYaml}${discussionsYaml}---
-
-${content}`
+  const fullContent = buildBlogMarkdown({
+    title,
+    date: new Date().toISOString(), // Store full ISO string
+    content,
+    status,
+    location,
+    discussions,
+  })
 
   await octokit.repos.createOrUpdateFileContents({
     owner,
@@ -464,27 +449,18 @@ export async function updateBlogPost(
       repo,
       contentPaths.blogPost(id)
     )
-    const dateMatch = existingContent.match(/date:\s*(.+)/)
-    const date = dateMatch ? dateMatch[1] : new Date().toISOString()
-    const discussionsYaml = formatDiscussions(discussions)
-    const locationYaml = location ? `latitude: ${location.latitude || ''}
-longitude: ${location.longitude || ''}
-city: ${location.city || ''}
-street: ${location.street || ''}
-` : ''
+    const date = extractDate(existingContent) ?? new Date().toISOString()
+    // Preserve existing status if the caller didn't provide one.
+    const finalStatus = status !== undefined ? status : (extractStatus(existingContent) ?? 'published')
 
-    // Extract existing status if not provided
-    const statusMatch = existingContent.match(/status:\s*(.+)/)
-    const currentStatus = statusMatch ? statusMatch[1].trim() : 'published'
-    const finalStatus = status !== undefined ? status : currentStatus
-    const statusYaml = finalStatus !== 'published' ? `status: ${finalStatus}\n` : ''
-    
-    const updatedContent = `---
-title: ${title}
-date: ${date}
-${statusYaml}${locationYaml}${discussionsYaml}---
-
-${content}`
+    const updatedContent = buildBlogMarkdown({
+      title,
+      date,
+      content,
+      status: finalStatus,
+      location,
+      discussions,
+    })
 
     // Update the blog post file
     await updateFileContents(

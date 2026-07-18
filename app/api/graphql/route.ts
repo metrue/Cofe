@@ -3,9 +3,9 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 import { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { createSmartClient } from '@/lib/smartClient'
+import { shouldUseLocalBackend } from '@/lib/runtime/mode'
 import { Memo, BlogPost, Link, ExternalDiscussion } from '@/lib/types'
-import { createBlogPost, updateBlogPost, deleteBlogPost, updateMemo, deleteMemo } from '@/lib/githubApi'
-import { 
+import {
   getClientIP, 
   getLocationFromHeaders, 
   hashIP, 
@@ -259,8 +259,8 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
   Mutation: {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     createMemo: async (_parent, { input }, context) => {
-      // In development, allow memo creation without authentication for testing
-      if (process.env.NODE_ENV !== 'development' && !context.token?.accessToken) {
+      // Local mode (npx cofe --data) and dev write to disk without a GitHub token.
+      if (!shouldUseLocalBackend() && !context.token?.accessToken) {
         throw new Error('Authentication required')
       }
 
@@ -355,16 +355,13 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     updateMemo: async (_parent, { id, input }, context) => {
-      if (!context.token?.accessToken) {
+      if (!shouldUseLocalBackend() && !context.token?.accessToken) {
         throw new Error('Authentication required')
       }
 
       try {
-        await updateMemo(id, input.content, context.token.accessToken)
-        // Return the updated memo
-        const client = createSmartClient(context.token.accessToken)
-        const memos = await client.getMemos()
-        const updatedMemo = Array.isArray(memos) ? memos.find(m => m.id === id) : null
+        const client = createSmartClient(context.token?.accessToken)
+        const updatedMemo = await client.updateMemo(id, input.content)
         if (!updatedMemo) {
           throw new Error('Memo not found after update')
         }
@@ -376,12 +373,13 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     deleteMemo: async (_parent, { id }, context) => {
-      if (!context.token?.accessToken) {
+      if (!shouldUseLocalBackend() && !context.token?.accessToken) {
         throw new Error('Authentication required')
       }
 
       try {
-        await deleteMemo(id, context.token.accessToken)
+        const client = createSmartClient(context.token?.accessToken)
+        await client.deleteMemo(id)
         return true
       } catch (error) {
         console.error('Error deleting memo:', error)
@@ -390,7 +388,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     saveBlogPost: async (_parent, { id, input }, context) => {
-      if (!context.token?.accessToken) {
+      if (!shouldUseLocalBackend() && !context.token?.accessToken) {
         throw new Error('Authentication required')
       }
 
@@ -401,13 +399,14 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           city: input.city,
           street: input.street
         }
-        
+
         const status = input.status || 'published'
-        
+        const client = createSmartClient(context.token?.accessToken)
+        const saveInput = { title: input.title, content: input.content, discussions: input.discussions, location, status }
+
         if (id) {
           // Update existing blog post
-          await updateBlogPost(id, input.title, input.content, context.token.accessToken, input.discussions, location, status)
-          const client = createSmartClient(context.token.accessToken)
+          await client.updateBlogPost(id, saveInput)
           const post = await client.getBlogPost(`${id}.md`)
           if (!post) {
             throw new Error('Blog post not found after update')
@@ -415,14 +414,12 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           return post
         } else {
           // Create new blog post
-          await createBlogPost(input.title, input.content, context.token.accessToken, input.discussions, location, status)
-          const client = createSmartClient(context.token.accessToken)
-          const posts = await client.getBlogPosts()
-          const createdPost = Array.isArray(posts) ? posts.find(p => p.title === input.title) : null
-          if (!createdPost) {
+          const slug = await client.createBlogPost(saveInput)
+          const post = await client.getBlogPost(`${slug}.md`)
+          if (!post) {
             throw new Error('Blog post not found after creation')
           }
-          return createdPost
+          return post
         }
       } catch (error) {
         console.error('Error saving blog post:', error)
@@ -431,12 +428,13 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     deleteBlogPost: async (_parent, { id }, context) => {
-      if (!context.token?.accessToken) {
+      if (!shouldUseLocalBackend() && !context.token?.accessToken) {
         throw new Error('Authentication required')
       }
 
       try {
-        await deleteBlogPost(id, context.token.accessToken)
+        const client = createSmartClient(context.token?.accessToken)
+        await client.deleteBlogPost(id)
         return true
       } catch (error) {
         console.error('Error deleting blog post:', error)

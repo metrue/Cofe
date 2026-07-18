@@ -2,8 +2,17 @@ import { createPublicGitHubClient } from './publicClient'
 import { createGitHubAPIClient } from './client'
 import { contentPaths } from './content/paths'
 import { shouldUseLocalBackend } from './runtime/mode'
-import type { BlogPost, Memo } from './types'
+import type { BlogPost, Memo, ExternalDiscussion } from './types'
 import type { LikesDatabase } from './likeUtils'
+import type { BlogLocation } from './blogFrontmatter'
+
+export interface BlogSaveInput {
+  title: string
+  content: string
+  discussions?: ExternalDiscussion[]
+  location?: BlogLocation
+  status?: string
+}
 
 // Use any to allow flexible client interfaces with different signatures
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -207,6 +216,73 @@ export class SmartClient {
       }
       return await client.updateLikes(likesData)
     }
+  }
+
+  /**
+   * Create a blog post. Local mode writes to disk; production writes via GitHub.
+   * Returns the created post's slug id.
+   */
+  async createBlogPost(input: BlogSaveInput): Promise<string> {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
+      const client = await this.getLocalClient()
+      if (!client?.createBlogPost) throw new Error('Local client createBlogPost not available')
+      return await client.createBlogPost(input)
+    }
+    if (!this.accessToken) throw new Error('Authentication required')
+    const { createBlogPost } = await import('./githubApi')
+    await createBlogPost(input.title, input.content, this.accessToken, input.discussions, input.location, input.status)
+    return input.title.toLowerCase().replace(/\s+/g, '-')
+  }
+
+  /** Update a blog post by slug id. */
+  async updateBlogPost(id: string, input: BlogSaveInput): Promise<string> {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
+      const client = await this.getLocalClient()
+      if (!client?.updateBlogPost) throw new Error('Local client updateBlogPost not available')
+      return await client.updateBlogPost(id, input)
+    }
+    if (!this.accessToken) throw new Error('Authentication required')
+    const { updateBlogPost } = await import('./githubApi')
+    await updateBlogPost(id, input.title, input.content, this.accessToken, input.discussions, input.location, input.status)
+    return id
+  }
+
+  /** Delete a blog post by slug id. */
+  async deleteBlogPost(id: string): Promise<void> {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
+      const client = await this.getLocalClient()
+      if (!client?.deleteBlogPost) throw new Error('Local client deleteBlogPost not available')
+      return await client.deleteBlogPost(id)
+    }
+    if (!this.accessToken) throw new Error('Authentication required')
+    const { deleteBlogPost } = await import('./githubApi')
+    await deleteBlogPost(id, this.accessToken)
+  }
+
+  /** Update a memo's content. */
+  async updateMemo(id: string, content: string): Promise<Memo | undefined> {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
+      const client = await this.getLocalClient()
+      if (!client?.updateMemo) throw new Error('Local client updateMemo not available')
+      return await client.updateMemo(id, content)
+    }
+    if (!this.accessToken) throw new Error('Authentication required')
+    const { updateMemo } = await import('./githubApi')
+    await updateMemo(id, content, this.accessToken)
+    const memos = await this.getMemos()
+    return Array.isArray(memos) ? memos.find((m) => m.id === id) : undefined
+  }
+
+  /** Delete a memo by id. */
+  async deleteMemo(id: string): Promise<void> {
+    if (typeof window === 'undefined' && shouldUseLocalBackend()) {
+      const client = await this.getLocalClient()
+      if (!client?.deleteMemo) throw new Error('Local client deleteMemo not available')
+      return await client.deleteMemo(id)
+    }
+    if (!this.accessToken) throw new Error('Authentication required')
+    const { deleteMemo } = await import('./githubApi')
+    await deleteMemo(id, this.accessToken)
   }
 
   async getDrafts(): Promise<BlogPost[]> {

@@ -1,10 +1,25 @@
 import fs from 'fs'
 import path from 'path'
-import type { BlogPost, Memo } from './types'
+import type { BlogPost, Memo, ExternalDiscussion } from './types'
 import { LikesDatabase } from './likeUtils'
 import { parseBlogPostMetadata } from './markdown'
 import { contentRel } from './content/paths'
 import { localDataDir } from './runtime/mode'
+import {
+  buildBlogMarkdown,
+  slugFromTitle,
+  extractDate,
+  extractStatus,
+  type BlogLocation,
+} from './blogFrontmatter'
+
+export interface BlogWriteInput {
+  title: string
+  content: string
+  discussions?: ExternalDiscussion[]
+  location?: BlogLocation
+  status?: string
+}
 
 /**
  * Local file system client (server-side only).
@@ -199,6 +214,88 @@ export class LocalFileSystemClient {
       console.error('Error creating local memo:', error)
       throw new Error('Failed to create memo locally')
     }
+  }
+
+  /**
+   * Create a new blog post on disk. Returns the slug id.
+   */
+  async createBlogPost(input: BlogWriteInput): Promise<string> {
+    const slug = slugFromTitle(input.title)
+    const filePath = this.abs(contentRel.blogFile(`${slug}.md`))
+    const markdown = buildBlogMarkdown({
+      title: input.title,
+      date: new Date().toISOString(),
+      content: input.content,
+      status: input.status,
+      location: input.location,
+      discussions: input.discussions,
+    })
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.writeFileSync(filePath, markdown, 'utf-8')
+    return slug
+  }
+
+  /**
+   * Update an existing blog post on disk, preserving its original date and
+   * (unless overridden) its status.
+   */
+  async updateBlogPost(id: string, input: BlogWriteInput): Promise<string> {
+    const filePath = this.abs(contentRel.blogPost(id))
+    let existing = ''
+    try {
+      existing = fs.readFileSync(filePath, 'utf-8')
+    } catch {
+      // No existing file — treat like a create at this id.
+    }
+    const date = extractDate(existing) ?? new Date().toISOString()
+    const status = input.status !== undefined ? input.status : (extractStatus(existing) ?? 'published')
+    const markdown = buildBlogMarkdown({
+      title: input.title,
+      date,
+      content: input.content,
+      status,
+      location: input.location,
+      discussions: input.discussions,
+    })
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.writeFileSync(filePath, markdown, 'utf-8')
+    return id
+  }
+
+  /**
+   * Delete a blog post from disk. No-op if it doesn't exist.
+   */
+  async deleteBlogPost(id: string): Promise<void> {
+    const filePath = this.abs(contentRel.blogPost(id))
+    try {
+      fs.unlinkSync(filePath)
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException)?.code !== 'ENOENT') throw error
+    }
+  }
+
+  /**
+   * Update a memo's content in local memos.json (timestamp preserved).
+   */
+  async updateMemo(id: string, content: string): Promise<Memo> {
+    const memos = await this.getMemos()
+    const idx = memos.findIndex((m) => m.id === id)
+    if (idx === -1) {
+      throw new Error('Memo not found')
+    }
+    const updated: Memo = { ...memos[idx], content }
+    const next = memos.map((m, i) => (i === idx ? updated : m))
+    fs.writeFileSync(this.abs(contentRel.memos()), JSON.stringify(next, null, 2), 'utf-8')
+    return updated
+  }
+
+  /**
+   * Delete a memo from local memos.json.
+   */
+  async deleteMemo(id: string): Promise<void> {
+    const memos = await this.getMemos()
+    const next = memos.filter((m) => m.id !== id)
+    fs.writeFileSync(this.abs(contentRel.memos()), JSON.stringify(next, null, 2), 'utf-8')
   }
 
   /**
