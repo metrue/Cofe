@@ -19,6 +19,7 @@ import {
   hashIP,
 } from '@/lib/likeUtils'
 import { getSession } from '@/lib/auth'
+import { isLocalMode } from '@/lib/runtime/mode'
 import { Platform } from './schema'
 
 export interface ApiResponse<T> {
@@ -72,6 +73,9 @@ export function extractIdentity(request: NextRequest): RequestIdentity {
 }
 
 export async function isOwner(): Promise<boolean> {
+  // Local mode (npx cofe --data): the single local user is the trusted owner.
+  if (isLocalMode()) return true
+
   const session = await getSession()
   const owner = process.env.GITHUB_USERNAME
   if (!owner) return false

@@ -24,6 +24,30 @@ cd Cofe && npm install && npm run dev
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/metrue/Cofe)
 
+## Run it locally with `npx` (no GitHub, no deploy)
+
+Point Cofe at a folder of your own content and it serves — and edits — everything
+straight from disk. No sign-in, no server, no Vercel.
+
+```bash
+npx cofe --data ~/my-blog        # → http://localhost:3000
+npx cofe --data ~/my-blog --port 4000
+```
+
+Your `--data` folder is the content root:
+
+```
+my-blog/
+  blog/            # one <slug>.md per post (front-matter + markdown)
+  memos.json       # your memos
+  site-config.json # optional site settings
+  assets/          # images uploaded from the editor land here
+```
+
+Open `/editor` to write posts and memos — everything you create or edit is written
+back into that folder as plain files you own. Empty folder? It starts blank; create
+your first post in the editor.
+
 ## Documentation
 
 **[→ Complete Cofe Guide](/blog/cofe)** - Everything you need in one place:
