@@ -2,14 +2,8 @@
 
 import { BlogPost } from "@/lib/types";
 import Link from "next/link";
-import { useTranslation } from '@/hooks/useTranslation';
 
 const BlogCardContent = ({ post }: { post: BlogPost }) => {
-  const {
-    translatedText: translatedTitle,
-    isTranslating,
-  } = useTranslation(post.title, false, `blog-card:${post.id}`);
-
   return (
     <Link
       href={`/blog/${encodeURIComponent(post.id)}`}
@@ -18,8 +12,7 @@ const BlogCardContent = ({ post }: { post: BlogPost }) => {
     >
       <div className="space-y-4">
         <h3 className="font-semibold text-xl md:text-2xl text-gray-900 group-hover:text-blue-600 transition-colors duration-200 leading-tight">
-          {translatedTitle}
-          {isTranslating && <span className='ml-1 text-xs text-gray-400 animate-pulse'>translating...</span>}
+          {post.title}
         </h3>
         <p className="text-sm text-gray-500">
           {formatDate(post.date)}
