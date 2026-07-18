@@ -15,7 +15,6 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { Textarea } from "@/components/ui/textarea";
-import { createGitHubAPIClient } from "@/lib/client"
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -65,21 +64,25 @@ export default function Editor({
   const [isPublished, setIsPublished] = useState(true);
   const [isMemoLocationIgnored, setIsMemoLocationIgnored] = useState(false);
 
-  const fetchMemo = useCallback(
-    async (id: string) => {
-      if (!session?.accessToken) return;
-      try {
-        const memos = await createGitHubAPIClient(session.accessToken).getMemos()
-        const memo = memos.find((t) => t.id === id);
-        if (memo) {
-          setContent(memo.content);
-        }
-      } catch (error) {
-        console.error("Error fetching memo:", error);
+  const fetchMemo = useCallback(async (id: string) => {
+    // Fetch via GraphQL so it works in both GitHub and local (`npx cofe --data`) mode.
+    try {
+      const response = await fetch("/api/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: `query { memos { id content } }` }),
+      });
+      const result = await response.json();
+      if (result.errors) throw new Error(result.errors[0].message);
+      const memos: Array<{ id: string; content: string }> = result.data?.memos ?? [];
+      const memo = memos.find((m) => m.id === id);
+      if (memo) {
+        setContent(memo.content);
       }
-    },
-    [session?.accessToken]
-  );
+    } catch (error) {
+      console.error("Error fetching memo:", error);
+    }
+  }, []);
 
   const fetchBlogPost = useCallback(
     async (id: string) => {

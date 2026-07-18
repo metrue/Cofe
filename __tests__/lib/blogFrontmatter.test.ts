@@ -13,8 +13,8 @@ describe('blogFrontmatter', () => {
 
   it('formatDiscussions is empty for none, structured otherwise', () => {
     expect(formatDiscussions([])).toBe('')
-    expect(formatDiscussions([{ platform: 'x', url: 'https://x/1' }])).toBe(
-      'external_discussions:\n  - platform: x\n    url: https://x/1\n'
+    expect(formatDiscussions([{ platform: 'reddit', url: 'https://reddit.com/1' }])).toBe(
+      'external_discussions:\n  - platform: reddit\n    url: https://reddit.com/1\n'
     )
   })
 

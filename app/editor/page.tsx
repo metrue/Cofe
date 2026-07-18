@@ -2,6 +2,7 @@ import EditorComponent from "@/components/Editor";
 import GitHubSignInButton from "@/components/GitHubSignInButton";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth/next";
+import { isLocalMode } from "@/lib/runtime/mode";
 
 export default async function EditorPage({
   searchParams,
@@ -11,10 +12,10 @@ export default async function EditorPage({
   const session = await getServerSession(authOptions);
   const defaultType = searchParams.type === "blog" ? "blog" : "memo";
 
-  if (!session) {
-
+  // Local mode (npx cofe --data) is the trusted local owner — no sign-in needed.
+  if (!session && !isLocalMode()) {
     const username = process.env.GITHUB_USERNAME;
-    if (!username) { 
+    if (!username) {
       return <GitHubSignInButton />;
     }
   }

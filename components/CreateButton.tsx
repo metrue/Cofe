@@ -6,6 +6,7 @@ import GitHubSignInButton from "./GitHubSignInButton";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useLocalMode } from "./LocalModeProvider";
 
 export default function CreateButton({
   messages,
@@ -14,12 +15,14 @@ export default function CreateButton({
 }) {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const localMode = useLocalMode();
 
   const isMemosPage = pathname === "/" || pathname === "/memos";
   const isBlogPage = pathname === "/blog";
   const createLink = isBlogPage ? "/editor?type=blog" : "/editor?type=memo";
 
-  if (!session) {
+  // Local mode: the local owner can always create — no GitHub sign-in.
+  if (!session && !localMode) {
     return (
       <div className="fixed bottom-9 right-9 z-20">
         <GitHubSignInButton />
