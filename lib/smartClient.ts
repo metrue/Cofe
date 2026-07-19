@@ -1,5 +1,6 @@
 import { createPublicGitHubClient } from './publicClient'
 import { createGitHubAPIClient } from './client'
+import { contentPaths } from './content/paths'
 import type { BlogPost, Memo } from './types'
 import type { LikesDatabase } from './likeUtils'
 
@@ -155,14 +156,14 @@ export class SmartClient {
         const currentFile = await octokit.repos.getContent({
           owner,
           repo: 'Cofe',
-          path: 'data/memos.json',
+          path: contentPaths.memos(),
         })
 
         if (!Array.isArray(currentFile.data) && 'sha' in currentFile.data) {
           await octokit.repos.createOrUpdateFileContents({
             owner,
             repo: 'Cofe',
-            path: 'data/memos.json',
+            path: contentPaths.memos(),
             message: `Add new memo: ${memo.id}`,
             content: Buffer.from(JSON.stringify(updatedMemos, null, 2)).toString('base64'),
             sha: currentFile.data.sha,
@@ -173,7 +174,7 @@ export class SmartClient {
           await octokit.repos.createOrUpdateFileContents({
             owner,
             repo: 'Cofe',
-            path: 'data/memos.json',
+            path: contentPaths.memos(),
             message: `Create memos.json with first memo: ${memo.id}`,
             content: Buffer.from(JSON.stringify(updatedMemos, null, 2)).toString('base64'),
           })

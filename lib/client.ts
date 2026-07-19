@@ -4,6 +4,7 @@ import { parseBlogPostMetadata } from './markdown'
 
 import { Octokit } from '@octokit/rest'
 import { createHybridGitHubClient } from './publicClient'
+import { contentPaths } from './content/paths'
 
 const REPO = 'Cofe'
 
@@ -52,7 +53,7 @@ class GitHubAPIClient {
       const response = await octokit.repos.getContent({
         owner: safeOwner,
         repo: REPO,
-        path: 'data/blog',
+        path: contentPaths.blogDir(),
       })
 
       if (!Array.isArray(response.data)) {
@@ -99,7 +100,7 @@ class GitHubAPIClient {
     const contentResponse = await octokit.repos.getContent({
       owner: safeOwner,
       repo: REPO,
-      path: `data/blog/${name}`,
+      path: contentPaths.blogFile(name),
     })
 
     if ('content' in contentResponse.data) {
@@ -133,7 +134,7 @@ class GitHubAPIClient {
       const response = await octokit.repos.getContent({
         owner: safeOwner,
         repo: REPO,
-        path: 'data/memos.json',
+        path: contentPaths.memos(),
       })
 
       if (Array.isArray(response.data) || !('content' in response.data)) {
@@ -155,7 +156,7 @@ class GitHubAPIClient {
       const response = await octokit.repos.getContent({
         owner: safeOwner,
         repo: REPO,
-        path: 'data/site-config.json',
+        path: contentPaths.siteConfig(),
       })
       if (Array.isArray(response.data) || !('content' in response.data)) {
         return {}
@@ -176,7 +177,7 @@ class GitHubAPIClient {
       const response = await octokit.repos.getContent({
         owner: safeOwner,
         repo: REPO,
-        path: 'data/likes.json',
+        path: contentPaths.likes(),
       })
 
       if (Array.isArray(response.data) || !('content' in response.data)) {
@@ -206,7 +207,7 @@ class GitHubAPIClient {
         const currentFile = await octokit.repos.getContent({
           owner: safeOwner,
           repo: REPO,
-          path: 'data/likes.json',
+          path: contentPaths.likes(),
         })
 
         if (!Array.isArray(currentFile.data) && 'sha' in currentFile.data) {
@@ -220,7 +221,7 @@ class GitHubAPIClient {
       await octokit.repos.createOrUpdateFileContents({
         owner: safeOwner,
         repo: REPO,
-        path: 'data/likes.json',
+        path: contentPaths.likes(),
         message: `Update likes data - ${new Date().toISOString()}`,
         content: Buffer.from(JSON.stringify(likesData, null, 2)).toString('base64'),
         ...(sha && { sha }),
