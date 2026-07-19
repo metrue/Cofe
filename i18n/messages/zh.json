@@ -10,10 +10,10 @@
       "writeContent": "在这里写下内容...(支持Markdown)",
       "enterTitle": "在这里输入标题...",
       "howItWorksTitle": "工作原理：",
-      "howItWorksStep1": "授权 Cofe 访问您的公共 GitHub 仓库。",
-      "howItWorksStep2": "Cofe 在您的 GitHub 账户中创建一个名为 \"Cofe\" 的公共仓库。",
-      "howItWorksStep3": "您在 Cofe 上写的任何内容都会提交到这个仓库。",
-      "howItWorksStep4": "您的数据存储在您的 GitHub 仓库中，与 Cofe 分开。",
+      "howItWorksStep1": "授权 cici 访问您的公共 GitHub 仓库。",
+      "howItWorksStep2": "cici 在您的 GitHub 账户中创建一个名为 \"cici\" 的公共仓库。",
+      "howItWorksStep3": "您在 cici 上写的任何内容都会提交到这个仓库。",
+      "howItWorksStep4": "您的数据存储在您的 GitHub 仓库中，与 cici 分开。",
       "signInWithGitHub": "使用GitHub登录",
       "redirecting": "重定向中...",
       "publishing": "发布中...",
@@ -47,7 +47,7 @@
       "publicContentTooltip": "我们只请求公共仓库的读/写权限，所以我们无法创建私有仓库。",
       "myHomepage": "我的公开主页",
       "dataStoredOnGithub": "数据存储在GitHub",
-      "blogTitle": " 的 Cofe 博客",
+      "blogTitle": " 的 cici 博客",
       "blogShortTitle": " 的博客",
       "blogDescription": "使用Markdown编写博客并同步，数据存储在GitHub中。",
       "demoPage": "演示页面",
@@ -57,7 +57,7 @@
       "enterDiscussionUrl": "输入讨论链接"
     },
     "metadata": {
-      "title": "Cofe - 使用GitHub编写博客和想法。",
+      "title": "cici - 使用GitHub编写博客和想法。",
       "description": "使用Markdown编写并同步博客文章和想法，数据存储在GitHub中。"
     }
   }

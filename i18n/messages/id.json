@@ -10,10 +10,10 @@
     "writeContent": "Tulis konten Anda di sini...(mendukung Markdown)",
     "enterTitle": "Masukkan judul Anda di sini...",
     "howItWorksTitle": "Cara kerjanya:",
-    "howItWorksStep1": "Izinkan Cofe untuk mengakses repositori GitHub publik Anda.",
-    "howItWorksStep2": "Cofe membuat repositori publik bernama \"Cofe\" di akun GitHub Anda.",
-    "howItWorksStep3": "Apa pun yang Anda tulis di Cofe akan disimpan ke repositori ini.",
-    "howItWorksStep4": "Data Anda disimpan di repositori GitHub Anda, terpisah dari Cofe.",
+    "howItWorksStep1": "Izinkan cici untuk mengakses repositori GitHub publik Anda.",
+    "howItWorksStep2": "cici membuat repositori publik bernama \"cici\" di akun GitHub Anda.",
+    "howItWorksStep3": "Apa pun yang Anda tulis di cici akan disimpan ke repositori ini.",
+    "howItWorksStep4": "Data Anda disimpan di repositori GitHub Anda, terpisah dari cici.",
     "signInWithGitHub": "Masuk dengan GitHub",
     "redirecting": "Mengalihkan...",
     "publishing": "Sedang menerbitkan...",
@@ -47,7 +47,7 @@
     "notAuthenticated": "Anda belum diautentikasi. Silakan masuk.",
     "myHomepage": "Beranda Publik Saya",
     "dataStoredOnGithub": "Data Disimpan di GitHub",
-    "blogTitle": " Blog Cofe",
+    "blogTitle": " Blog cici",
     "blogShortTitle": " Blog",
     "blogDescription": "Tulis dan sinkronkan blog dalam Markdown dengan data yang disimpan di GitHub.",
     "demoPage": "Halaman Demo",
@@ -57,7 +57,7 @@
     "enterDiscussionUrl": "Masukkan URL diskusi"
   },
   "metadata": {
-    "title": "Cofe - Tulis blog & pemikiran dengan GitHub.",
+    "title": "cici - Tulis blog & pemikiran dengan GitHub.",
     "description": "Tulis dan sinkronkan postingan blog & pemikiran dalam Markdown dengan data yang disimpan di GitHub."
   }
 }

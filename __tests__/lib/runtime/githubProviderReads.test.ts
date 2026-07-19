@@ -39,7 +39,7 @@ describe('GitHubProvider read strategy', () => {
 
   it('with a token, reads go through the API (fresh), not raw', async () => {
     apiGetBlogPosts.mockResolvedValue([{ id: 'a' }])
-    const p = new GitHubProvider({ owner: 'metrue', repo: 'Cofe', token: 'tkn' })
+    const p = new GitHubProvider({ owner: 'metrue', repo: 'cici', token: 'tkn' })
     const posts = await p.getBlogPosts({ includeDrafts: true })
     expect(apiGetBlogPosts).toHaveBeenCalledWith('metrue', true)
     expect(rawGetBlogPosts).not.toHaveBeenCalled()
@@ -49,7 +49,7 @@ describe('GitHubProvider read strategy', () => {
   it('falls back to raw URLs when the API read throws', async () => {
     apiGetBlogPosts.mockRejectedValue(new Error('rate limited'))
     rawGetBlogPosts.mockResolvedValue([{ id: 'raw' }])
-    const p = new GitHubProvider({ owner: 'metrue', repo: 'Cofe', token: 'tkn' })
+    const p = new GitHubProvider({ owner: 'metrue', repo: 'cici', token: 'tkn' })
     const posts = await p.getBlogPosts()
     expect(apiGetBlogPosts).toHaveBeenCalled()
     expect(rawGetBlogPosts).toHaveBeenCalledWith(false)
@@ -58,7 +58,7 @@ describe('GitHubProvider read strategy', () => {
 
   it('without a token, no API client is created — raw only', async () => {
     rawGetBlogPosts.mockResolvedValue([{ id: 'pub' }])
-    const p = new GitHubProvider({ owner: 'metrue', repo: 'Cofe' })
+    const p = new GitHubProvider({ owner: 'metrue', repo: 'cici' })
     const posts = await p.getBlogPosts()
     expect(createGitHubAPIClient).not.toHaveBeenCalled()
     expect(rawGetBlogPosts).toHaveBeenCalledWith(false)

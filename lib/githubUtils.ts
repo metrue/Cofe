@@ -1,6 +1,6 @@
 import { Octokit } from '@octokit/rest';
 
-const REPO = 'Cofe';
+const REPO = 'cici';
 
 export type UpdateFileParams = Parameters<Octokit['repos']['createOrUpdateFileContents']>[0];
 

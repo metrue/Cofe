@@ -147,7 +147,7 @@ This post is being read by thousands of visitors simultaneously.`
 
       // ✅ Raw URL was used (no API quota consumed during outages)
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://raw.githubusercontent.com/service-unavailable/Cofe/main/data/memos.json'
+        'https://raw.githubusercontent.com/service-unavailable/cici/main/data/memos.json'
       )
     })
   })

@@ -4,7 +4,7 @@ import { readLocalAsset } from '@/lib/localAssets'
 
 /**
  * Serve local image assets written by the local-mode editor, from
- * `<COFE_DIR>/assets/<path>`. Path-guarded against traversal.
+ * `<CICI_DIR>/assets/<path>`. Path-guarded against traversal.
  */
 export async function GET(
   _request: NextRequest,

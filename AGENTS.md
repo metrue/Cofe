@@ -1,10 +1,10 @@
-# Cofe (blog.minghe.me) — AGENTS.md
+# cici (blog.minghe.me) — AGENTS.md
 
-This file provides guidance to AI coding agents (Claude Code, Pi, Codex, OpenCode, etc.) when working with the Cofe blog app codebase.
+This file provides guidance to AI coding agents (Claude Code, Pi, Codex, OpenCode, etc.) when working with the cici blog app codebase.
 
 ## Overview
 
-**Cofe** is a Next.js blog and memo app powering [blog.minghe.me](https://blog.minghe.me). Content is stored in the repo itself (`data/blog/`, `data/memos/`) and rendered as static pages. GitHub OAuth for auth, i18n via `next-intl`.
+**cici** is a Next.js blog and memo app powering [blog.minghe.me](https://blog.minghe.me). Content is stored in the repo itself (`data/blog/`, `data/memos/`) and rendered as static pages. GitHub OAuth for auth, i18n via `next-intl`.
 
 - **Stack**: Next.js 14 (App Router), TypeScript, Tailwind CSS, Radix UI
 - **Auth**: GitHub OAuth (next-auth/Auth.js)

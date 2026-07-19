@@ -10,9 +10,9 @@
     "writeContent": "内容を入力...(Markdown対応)",
     "enterTitle": "タイトルを入力...",
     "howItWorksTitle": "使い方：",
-    "howItWorksStep1": "Cofeにあなたの公開GitHubリポジトリへのアクセスを許可します。",
-    "howItWorksStep2": "CofeはあなたのGitHubアカウントに\"Cofe\"という名前の公開リポジトリを作成します。",
-    "howItWorksStep3": "Cofeで書いたものはすべて、あなたの\"あなたの名前/Cofe\"リポジトリにコミットされます。",
+    "howItWorksStep1": "ciciにあなたの公開GitHubリポジトリへのアクセスを許可します。",
+    "howItWorksStep2": "ciciはあなたのGitHubアカウントに\"cici\"という名前の公開リポジトリを作成します。",
+    "howItWorksStep3": "ciciで書いたものはすべて、あなたの\"あなたの名前/cici\"リポジトリにコミットされます。",
     "signInWithGitHub": "GitHubでログイン",
     "redirecting": "リダイレクト中...",
     "publishing": "公開中...",
@@ -46,7 +46,7 @@
     "publicContentTooltip": "パブリックリポジトリの読み取り/書き込み権限のみを要求するため、プライベートリポジトリを作成することはできません。",
     "myHomepage": "私の公開ホームページ",
     "dataStoredOnGithub": "GitHubに保存されたデータ",
-    "blogTitle": " の Cofe ブログ",
+    "blogTitle": " の cici ブログ",
     "blogShortTitle": " のブログ",
     "blogDescription": "GitHubに保存されたデータでMarkdownでブログを書いて同期します。",
     "demoPage": "デモページ",
@@ -56,7 +56,7 @@
     "enterDiscussionUrl": "ディスカッションURLを入力"
   },
   "metadata": {
-    "title": "Cofe - GitHubでブログと思考を書く。",
+    "title": "cici - GitHubでブログと思考を書く。",
     "description": "GitHubに保存されたデータでMarkdownでブログ投稿と思考を書いて同期します。"
   }
 }

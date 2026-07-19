@@ -31,7 +31,7 @@ describe('PublicGitHubClient - Rate Limit Tests', () => {
 
       // ✅ Uses raw URL, not API
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://raw.githubusercontent.com/testuser/Cofe/main/data/memos.json'
+        'https://raw.githubusercontent.com/testuser/cici/main/data/memos.json'
       )
       expect(result).toEqual(mockMemos)
     })
@@ -53,7 +53,7 @@ Test content`
 
       // ✅ Uses raw URL for blog posts
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://raw.githubusercontent.com/testuser/Cofe/main/data/blog/test.md'
+        'https://raw.githubusercontent.com/testuser/cici/main/data/blog/test.md'
       )
       expect(result?.title).toBe('Test Post')
     })

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
   if (!provider.canWrite()) {
     return NextResponse.json(
-      { error: 'This Cofe instance is read-only.' },
+      { error: 'This cici instance is read-only.' },
       { status: 403 }
     )
   }

@@ -48,7 +48,7 @@ async function reverseGeocode(lat: number, lon: number): Promise<GeocodeResult |
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
       {
         headers: {
-          'User-Agent': 'Cofe Blog App'
+          'User-Agent': 'cici Blog App'
         }
       }
     )

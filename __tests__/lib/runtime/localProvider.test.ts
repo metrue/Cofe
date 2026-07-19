@@ -9,18 +9,18 @@ import path from 'path'
 
 describe('LocalProvider (ContentProvider contract)', () => {
   let tmpDir: string
-  const saved = process.env.COFE_DIR
+  const saved = process.env.CICI_DIR
 
   async function provider() {
     jest.resetModules()
-    process.env.COFE_DIR = tmpDir
+    process.env.CICI_DIR = tmpDir
     const { LocalProvider } = await import('@/lib/runtime/localProvider')
     return new LocalProvider(tmpDir)
   }
 
   beforeEach(async () => {
-    tmpDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'cofe-lp-'))
-    process.env.COFE_DIR = tmpDir
+    tmpDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'cici-lp-'))
+    process.env.CICI_DIR = tmpDir
     await fsp.mkdir(path.join(tmpDir, 'blog'), { recursive: true })
     await fsp.writeFile(path.join(tmpDir, 'memos.json'), '[]', 'utf-8')
     await fsp.writeFile(
@@ -31,8 +31,8 @@ describe('LocalProvider (ContentProvider contract)', () => {
   })
 
   afterEach(async () => {
-    if (saved === undefined) delete process.env.COFE_DIR
-    else process.env.COFE_DIR = saved
+    if (saved === undefined) delete process.env.CICI_DIR
+    else process.env.CICI_DIR = saved
     await fsp.rm(tmpDir, { recursive: true, force: true })
   })
 

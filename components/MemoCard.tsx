@@ -29,7 +29,7 @@ interface MemoCardProps {
 }
 
 function memoLocationLabel(memo: Memo): string | null {
-  // Some memos came from DailyMemo with only `street`; some from Cofe-native
+  // Some memos came from DailyMemo with only `street`; some from cici-native
   // entries have city + street; some have neither. Render whichever pieces
   // exist, deduplicated.
   const parts = [memo.city, memo.street].filter(

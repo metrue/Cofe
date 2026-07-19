@@ -10,10 +10,10 @@
     "writeContent": "Напишите ваш контент здесь...(поддерживается Markdown)",
     "enterTitle": "Введите ваш заголовок здесь...",
     "howItWorksTitle": "Как это работает:",
-    "howItWorksStep1": "Авторизуйте Cofe для доступа к вашим публичным репозиториям GitHub.",
-    "howItWorksStep2": "Cofe создает публичный репозиторий с именем \"Cofe\" в вашей учетной записи GitHub.",
-    "howItWorksStep3": "Все, что вы пишете на Cofe, сохраняется в этом репозитории.",
-    "howItWorksStep4": "Ваши данные хранятся в вашем репозитории GitHub, отдельно от Cofe.",
+    "howItWorksStep1": "Авторизуйте cici для доступа к вашим публичным репозиториям GitHub.",
+    "howItWorksStep2": "cici создает публичный репозиторий с именем \"cici\" в вашей учетной записи GitHub.",
+    "howItWorksStep3": "Все, что вы пишете на cici, сохраняется в этом репозитории.",
+    "howItWorksStep4": "Ваши данные хранятся в вашем репозитории GitHub, отдельно от cici.",
     "signInWithGitHub": "Войти с GitHub",
     "redirecting": "Перенаправление...",
     "publishing": "Публикация...",
@@ -47,7 +47,7 @@
     "publicContentTooltip": "Мы запрашиваем только разрешение на чтение/запись публичного репозитория, поэтому мы не можем создавать частные репозитории.",
     "myHomepage": "Моя публичная домашняя страница",
     "dataStoredOnGithub": "Данные хранятся на GitHub",
-    "blogTitle": " Блог Cofe",
+    "blogTitle": " Блог cici",
     "blogShortTitle": " Блог",
     "blogDescription": "Пишите и синхронизируйте блоги в Markdown с данными, хранящимися в GitHub.",
     "demoPage": "Демо-страница",
@@ -57,7 +57,7 @@
     "enterDiscussionUrl": "Введите URL обсуждения"
   },
   "metadata": {
-    "title": "Cofe - Пишите блог и мысли с GitHub.",
+    "title": "cici - Пишите блог и мысли с GitHub.",
     "description": "Пишите и синхронизируйте записи в блоге и мысли в Markdown с данными, хранящимися в GitHub."
   }
 }

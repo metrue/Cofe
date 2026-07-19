@@ -74,7 +74,7 @@ export default function Editor({
   const [isMemoLocationIgnored, setIsMemoLocationIgnored] = useState(false);
 
   const fetchMemo = useCallback(async (id: string) => {
-    // Fetch via GraphQL so it works in both GitHub and local (`npx cofe --data`) mode.
+    // Fetch via GraphQL so it works in both GitHub and local (`npx cici --data`) mode.
     try {
       const response = await fetch("/api/graphql", {
         method: "POST",

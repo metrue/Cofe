@@ -3,9 +3,9 @@
  * deploy platform). This is the single source of truth for "which backend".
  *
  * Precedence:
- *   1. COFE_DIR              → local filesystem (`npx cofe --dir <path>`)
- *   2. COFE_REPO=owner/name  → remote GitHub repo (`npx cofe --repo owner/name`);
- *                              COFE_TOKEN (optional) enables writes
+ *   1. CICI_DIR              → local filesystem (`npx cici --dir <path>`)
+ *   2. CICI_REPO=owner/name  → remote GitHub repo (`npx cici --repo owner/name`);
+ *                              CICI_TOKEN (optional) enables writes
  *   3. GITHUB_USERNAME       → production: the owner's repo, session token for writes
  *
  * Server-only (reads process.env + path). Do not import from client components.
@@ -14,25 +14,25 @@
 import path from 'path'
 import type { RuntimeConfig } from './types'
 
-const DEFAULT_REPO = 'Cofe'
+const DEFAULT_REPO = 'cici'
 
 export function resolveRuntimeConfig(sessionToken?: string): RuntimeConfig {
-  const dir = process.env.COFE_DIR
+  const dir = process.env.CICI_DIR
   if (dir) {
     return { kind: 'local', dir: path.resolve(dir) }
   }
 
-  const repoSpec = process.env.COFE_REPO
+  const repoSpec = process.env.CICI_REPO
   if (repoSpec) {
     const [owner, repo] = repoSpec.split('/')
     if (!owner) {
-      throw new Error(`Invalid COFE_REPO "${repoSpec}" — expected "owner/name".`)
+      throw new Error(`Invalid CICI_REPO "${repoSpec}" — expected "owner/name".`)
     }
     return {
       kind: 'github',
       owner,
       repo: repo || DEFAULT_REPO,
-      token: process.env.COFE_TOKEN || sessionToken || undefined,
+      token: process.env.CICI_TOKEN || sessionToken || undefined,
     }
   }
 

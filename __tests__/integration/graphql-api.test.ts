@@ -214,7 +214,7 @@ describe('GraphQL API Integration', () => {
     it('should validate GitHub API update parameters', () => {
       const updateParams = {
         owner: 'testuser',
-        repo: 'Cofe',
+        repo: 'cici',
         path: 'data/memos.json',
         message: 'Add new memo: 12345',
         content: 'base64-encoded-content',

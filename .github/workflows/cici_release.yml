@@ -1,0 +1,60 @@
+name: Release (npm)
+
+# Publishes the `cici` package (the cici CLI) to npm when a version tag is pushed.
+#
+# Auth: npm Trusted Publisher (OIDC) — NO NPM_TOKEN secret. Set up the trust on
+# npmjs.com → package `cici` → Settings → Trusted Publisher:
+#   Publisher: GitHub Actions | Org/user: metrue | Repository: cici
+#   Workflow filename: cici_release.yml | Allowed actions: Allow npm publish
+# The OIDC id-token (permissions.id-token: write) is exchanged for a short-lived
+# publish credential at publish time.
+#
+# To activate: move this file to `.github/workflows/cici_release.yml`
+# (requires a token with GitHub `workflow` scope).
+#
+# Release flow:
+#   1. bump "version" in package.json (must be > the current npm version)
+#   2. git tag vX.Y.Z && git push origin vX.Y.Z   (tag must match package.json version)
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # OIDC trusted publishing + provenance
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing (OIDC) needs npm >= 11.5.1; Node 20 ships npm 10.x.
+      - name: Upgrade npm (OIDC support)
+        run: npm install -g npm@latest
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Verify tag matches package version
+        run: |
+          PKG_VERSION="v$(node -p "require('./package.json').version")"
+          if [ "$PKG_VERSION" != "${GITHUB_REF_NAME}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match package.json version ${PKG_VERSION}" >&2
+            exit 1
+          fi
+
+      # `prepack` runs `next build` + assemble-standalone, so the published
+      # tarball contains the standalone server + static assets + public + bin.
+      # No NODE_AUTH_TOKEN: auth is via the OIDC trusted publisher.
+      - name: Publish
+        run: npm publish --provenance --access public

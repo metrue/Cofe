@@ -16,10 +16,10 @@
       "enterTitle": "Enter your title here...",
 
       "howItWorksTitle": "How it works:",
-      "howItWorksStep1": "Authorize Cofe to access your public GitHub repositories.",
-      "howItWorksStep2": "Cofe creates a public repository named \"Cofe\" in your GitHub account.",
-      "howItWorksStep3": "Anything you write on Cofe is committed to this repository.",
-      "howItWorksStep4": "Your data is stored on your GitHub repository, separate from Cofe.",
+      "howItWorksStep1": "Authorize cici to access your public GitHub repositories.",
+      "howItWorksStep2": "cici creates a public repository named \"cici\" in your GitHub account.",
+      "howItWorksStep3": "Anything you write on cici is committed to this repository.",
+      "howItWorksStep4": "Your data is stored on your GitHub repository, separate from cici.",
       "signInWithGitHub": "Sign in with GitHub",
       "publicContentWarning": "All content is public.",
       "write": "Write",
@@ -43,7 +43,7 @@
       "publicContentTooltip": "We only request public repository read/write permission, so we can't create private repositories.",
       "myHomepage": "My Public Homepage",
       "dataStoredOnGithub": "Data Stored on GitHub",
-      "blogTitle": "'s Cofe Blog",
+      "blogTitle": "'s cici Blog",
       "blogShortTitle": "'s Blog",
       "blogDescription": "Write and sync blog in Markdown with data stored in GitHub.",
       "demoPage": "Demo Page",
@@ -53,7 +53,7 @@
       "enterDiscussionUrl": "Enter discussion URL"
     },
     "metadata": {
-      "title": "Cofe - Write blog & memos with GitHub.",
+      "title": "cici - Write blog & memos with GitHub.",
       "description": "Write and sync blog posts & memos in Markdown with data stored in GitHub."
     }
   }

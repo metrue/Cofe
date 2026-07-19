@@ -10,10 +10,10 @@
     "writeContent": "अपनी सामग्री यहाँ लिखें...(Markdown समर्थित)",
     "enterTitle": "अपना शीर्षक यहाँ दर्ज करें...",
     "howItWorksTitle": "यह कैसे काम करता है:",
-    "howItWorksStep1": "Cofe को अपने सार्वजनिक GitHub रिपॉजिटरीज तक पहुंच की अनुमति दें।",
-    "howItWorksStep2": "Cofe आपके GitHub खाते में \"Cofe\" नाम का एक सार्वजनिक रिपॉजिटरी बनाता है।",
-    "howItWorksStep3": "Cofe पर आप जो कुछ भी लिखते हैं, वह इस रिपॉजिटरी में कमिट किया जाता है।",
-    "howItWorksStep4": "आपका डेटा GitHub रिपॉजिटरी में संग्रहीत किया जाता है, Cofe से अलग।",
+    "howItWorksStep1": "cici को अपने सार्वजनिक GitHub रिपॉजिटरीज तक पहुंच की अनुमति दें।",
+    "howItWorksStep2": "cici आपके GitHub खाते में \"cici\" नाम का एक सार्वजनिक रिपॉजिटरी बनाता है।",
+    "howItWorksStep3": "cici पर आप जो कुछ भी लिखते हैं, वह इस रिपॉजिटरी में कमिट किया जाता है।",
+    "howItWorksStep4": "आपका डेटा GitHub रिपॉजिटरी में संग्रहीत किया जाता है, cici से अलग।",
     "signInWithGitHub": "GitHub के साथ साइन इन करें",
     "redirecting": "पुनर्निर्देशित कर रहा है...",
     "publishing": "प्रकाशित हो रहा है...",
@@ -47,7 +47,7 @@
     "notAuthenticated": "आप प्रमाणित नहीं हैं। कृपया साइन इन करें।",
     "myHomepage": "मेरा सार्वजनिक होमपेज",
     "dataStoredOnGithub": "GitHub पर संग्रहीत डेटा",
-    "blogTitle": " का Cofe ब्लॉग",
+    "blogTitle": " का cici ब्लॉग",
     "blogShortTitle": " का ब्लॉग",
     "blogDescription": "GitHub में संग्रहीत डेटा के साथ Markdown में ब्लॉग लिखें और सिंक करें।",
     "demoPage": "डेमो पेज",
@@ -57,7 +57,7 @@
     "enterDiscussionUrl": "चर्चा URL दर्ज करें"
   },
   "metadata": {
-    "title": "Cofe - GitHub के साथ ब्लॉग और विचार लिखें।",
+    "title": "cici - GitHub के साथ ब्लॉग और विचार लिखें।",
     "description": "GitHub में संग्रहीत डेटा के साथ Markdown में ब्लॉग पोस्ट और विचार लिखें और सिंक करें।"
   }
 }

@@ -2,7 +2,7 @@
  * GitHubProvider — the GitHub runtime backend.
  *
  * Serves two cases behind one class:
- *   - `npx cofe --repo owner/name`  (read-only, or read-write with a token)
+ *   - `npx cici --repo owner/name`  (read-only, or read-write with a token)
  *   - production on Vercel          (owner = GITHUB_USERNAME, session token)
  *
  * Reads use public raw.githubusercontent URLs (no rate limit, works without a

@@ -43,9 +43,9 @@ export async function GET() {
   const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Cofe Blog</title>
+    <title>cici Blog</title>
     <link>${baseUrl}/blog</link>
-    <description>Blog posts from Cofe</description>
+    <description>Blog posts from cici</description>
     <language>en</language>
     <atom:link href="${baseUrl}/rss.xml" rel="self" type="application/rss+xml"/>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>

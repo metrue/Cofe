@@ -10,10 +10,10 @@
     "writeContent": "Escreva seu conteúdo aqui...(Markdown suportado)",
     "enterTitle": "Digite seu título aqui...",
     "howItWorksTitle": "Como funciona:",
-    "howItWorksStep1": "Autorize o Cofe a acessar seus repositórios públicos do GitHub.",
-    "howItWorksStep2": "O Cofe cria um repositório público chamado \"Cofe\" na sua conta do GitHub.",
-    "howItWorksStep3": "Tudo o que você escreve no Cofe é salvo neste repositório.",
-    "howItWorksStep4": "Seus dados são armazenados no seu repositório do GitHub, separado do Cofe.",
+    "howItWorksStep1": "Autorize o cici a acessar seus repositórios públicos do GitHub.",
+    "howItWorksStep2": "O cici cria um repositório público chamado \"cici\" na sua conta do GitHub.",
+    "howItWorksStep3": "Tudo o que você escreve no cici é salvo neste repositório.",
+    "howItWorksStep4": "Seus dados são armazenados no seu repositório do GitHub, separado do cici.",
     "signInWithGitHub": "Entrar com GitHub",
     "redirecting": "Redirecionando...",
     "publishing": "Publicando...",
@@ -47,7 +47,7 @@
     "publicContentTooltip": "Solicitamos apenas permissão de leitura/escrita do repositório público, então não podemos criar repositórios privados.",
     "myHomepage": "Minha página inicial pública",
     "dataStoredOnGithub": "Dados armazenados no GitHub",
-    "blogTitle": " Blog Cofe de",
+    "blogTitle": " Blog cici de",
     "blogShortTitle": " Blog de",
     "blogDescription": "Escreva e sincronize blogs em Markdown com dados armazenados no GitHub.",
     "demoPage": "Página de Demonstração",
@@ -57,7 +57,7 @@
     "enterDiscussionUrl": "Digite a URL da discussão"
   },
   "metadata": {
-    "title": "Cofe - Escreva blog e pensamentos com GitHub.",
+    "title": "cici - Escreva blog e pensamentos com GitHub.",
     "description": "Escreva e sincronize postagens de blog e pensamentos em Markdown com dados armazenados no GitHub."
   }
 }

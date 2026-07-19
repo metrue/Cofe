@@ -33,7 +33,7 @@ export interface AssetInput {
 }
 
 export interface ContentProvider {
-  /** Human label for logs/CLI ("local: ~/blog", "github: metrue/Cofe (read-only)"). */
+  /** Human label for logs/CLI ("local: ~/blog", "github: metrue/cici (read-only)"). */
   readonly label: string
   /** True when writes are possible (local always; github only with a token). */
   canWrite(): boolean
@@ -67,7 +67,7 @@ export type RuntimeConfig =
 
 /** Thrown by write methods when the provider is read-only. */
 export class ReadOnlyError extends Error {
-  constructor(message = 'This Cofe instance is read-only. Provide a token to enable editing.') {
+  constructor(message = 'This cici instance is read-only. Provide a token to enable editing.') {
     super(message)
     this.name = 'ReadOnlyError'
   }
