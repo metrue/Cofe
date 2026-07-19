@@ -1,56 +1,63 @@
-# Releasing `@metrue/cofe` to npm
+# Releasing the Cofe CLI to npm (as `cici`)
 
-The CLI (`npx @metrue/cofe --dir … | --repo …`) only works once the package is
-published to npm. This is a one-time setup, then tag-to-release.
+The CLI (`npx cici --dir … | --repo …`) is published to npm under the **`cici`**
+package name (repurposed from an older placeholder we own). Auth uses npm
+**Trusted Publisher (OIDC)** — no `NPM_TOKEN` secret.
 
-## Package name
+## One-time setup
 
-Published as **`@metrue/cofe`** (scoped). The bare name `cofe` is already taken on
-public npm (a placeholder at `0.0.0`), so we scope under the `@metrue` account.
-The binary is still `cofe` — `npx @metrue/cofe …`, or just `cofe …` when installed
-globally. If you later confirm `npmjs.com/package/cofe` is free/yours, revert
-`name` in `package.json` to `cofe` to get the shorter `npx cofe`.
+### 1. npm Trusted Publisher (on npmjs.com)
+Package `cici` → **Settings → Trusted Publisher → GitHub Actions**:
 
-Scoped packages are private by default; `publishConfig.access: "public"` (already
-set in `package.json`) makes the publish public.
+| Field | Value |
+|---|---|
+| Publisher | GitHub Actions |
+| Organization or user | `metrue` |
+| Repository | `Cofe` |
+| Workflow filename | `cofe_release.yml` |
+| Environment name | *(leave blank)* |
+| Allowed actions | ☑ **Allow `npm publish`** |
 
-## Option A — one-off manual publish (fastest)
+→ **Set up connection**. This trusts our release workflow to publish via a
+short-lived OIDC token; no long-lived secret is stored anywhere.
 
-From a clean checkout, logged into npm as a maintainer of the `@metrue` scope:
-
+### 2. Activate the workflow
+Move the parked file into place (needs a token with GitHub `workflow` scope):
 ```bash
-npm login                       # if not already
-npm run build:cli               # builds .next/standalone + copies static/public
-npm publish --access public     # prepack also runs build:cli; --access public for the scope
+git mv ci/cofe_release.yml .github/workflows/cofe_release.yml
+git commit -m "ci: activate npm release workflow" && git push
+```
+The filename **must** stay `cofe_release.yml` to match the Trusted Publisher config.
+
+### 3. Deprecate the old `cici`
+The old `cici@0.0.11` is an unrelated 9-year-old package. Mark it deprecated:
+```bash
+npm deprecate cici@"<0.1.0" "Repurposed as the Cofe blog CLI — see npx cici"
 ```
 
-Then verify from anywhere:
-
+## Cutting a release
 ```bash
-npx @metrue/cofe --dir ~/my-blog
+npm version patch            # or edit "version" in package.json (must be > latest on npm)
+git push && git push --tags
+```
+Pushing a `v*` tag runs `.github/workflows/cofe_release.yml`, which tests, checks
+the tag matches `package.json` version, and runs `npm publish --provenance` via OIDC.
+
+Verify:
+```bash
+npx cici --dir ~/my-blog
 ```
 
-## Option B — automated tag-based releases (CI)
-
-1. **Activate the workflow** — move the parked file into place (needs a token with
-   GitHub `workflow` scope, which the assistant's push token lacked):
-   ```bash
-   git mv ci/cofe_release.yml .github/workflows/cofe_release.yml
-   git commit -m "ci: activate npm release workflow" && git push
-   ```
-2. **Add the secret** — repo → Settings → Secrets → Actions → `NPM_TOKEN`
-   (an npm **automation** token with publish rights to `@metrue`).
-3. **Release** — bump `version` in `package.json`, commit, then tag:
-   ```bash
-   npm version patch          # or edit package.json + commit
-   git push && git push --tags
-   ```
-   The workflow (`on: push tags 'v*'`) runs tests, checks the tag matches
-   `package.json` version, and runs `npm publish --provenance --access public`.
+## Manual fallback (no CI)
+If you'd rather publish by hand (logged in as a `cici` maintainer):
+```bash
+npm run build:cli
+npm publish --provenance --access public
+```
 
 ## Notes
-
-- `files` in `package.json` ships only `bin/` and `.next/standalone/` (the
-  prebuilt server + bundled static/public). `prepack` rebuilds them, so the
-  tarball is always fresh — don't commit `.next/`.
-- First release is `0.1.0`. Bump per semver thereafter.
+- `files` ships only `bin/` + `.next/standalone/` (the prebuilt server + bundled
+  static/public). `prepack` rebuilds them, so the tarball is always fresh — don't
+  commit `.next/`.
+- The published binary exposes both `cici` and `cofe` commands (same CLI).
+- First Cofe release is `0.1.0` (> the old `cici@0.0.11`).

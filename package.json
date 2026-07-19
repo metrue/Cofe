@@ -1,9 +1,10 @@
 {
-  "name": "@metrue/cofe",
+  "name": "cici",
   "version": "0.1.0",
   "private": false,
-  "description": "Git-backed blog CMS. Run `npx cofe --data <dir>` to serve and edit your posts locally.",
+  "description": "Cofe — a git-backed blog CMS. Run `npx cici --dir <dir>` or `--repo <owner/name>` to serve and edit your posts.",
   "bin": {
+    "cici": "bin/cofe.js",
     "cofe": "bin/cofe.js"
   },
   "files": [

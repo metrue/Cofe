@@ -1,15 +1,20 @@
 name: Release (npm)
 
+# Publishes the `cici` package (the Cofe CLI) to npm when a version tag is pushed.
+#
+# Auth: npm Trusted Publisher (OIDC) — NO NPM_TOKEN secret. Set up the trust on
+# npmjs.com → package `cici` → Settings → Trusted Publisher:
+#   Publisher: GitHub Actions | Org/user: metrue | Repository: Cofe
+#   Workflow filename: cofe_release.yml | Allowed actions: Allow npm publish
+# The OIDC id-token (permissions.id-token: write) is exchanged for a short-lived
+# publish credential at publish time.
+#
 # To activate: move this file to `.github/workflows/cofe_release.yml`
-# (kept here because the CLI's push token lacked GitHub `workflow` scope).
+# (requires a token with GitHub `workflow` scope).
 #
-# Publishes the `cofe` CLI to npm when a version tag is pushed.
 # Release flow:
-#   1. bump "version" in package.json (e.g. 0.2.0)
-#   2. git tag v0.2.0 && git push origin v0.2.0
-# The tag must match the package.json version.
-#
-# Requires repo secret NPM_TOKEN (an npm automation token with publish rights).
+#   1. bump "version" in package.json (must be > the current npm version)
+#   2. git tag vX.Y.Z && git push origin vX.Y.Z   (tag must match package.json version)
 
 on:
   push:
@@ -21,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # npm provenance
+      id-token: write # OIDC trusted publishing + provenance
     steps:
       - uses: actions/checkout@v4
 
@@ -29,6 +34,10 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing (OIDC) needs npm >= 11.5.1; Node 20 ships npm 10.x.
+      - name: Upgrade npm (OIDC support)
+        run: npm install -g npm@latest
 
       - name: Install deps
         run: npm ci
@@ -46,7 +55,6 @@ jobs:
 
       # `prepack` runs `next build` + assemble-standalone, so the published
       # tarball contains the standalone server + static assets + public + bin.
+      # No NODE_AUTH_TOKEN: auth is via the OIDC trusted publisher.
       - name: Publish
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

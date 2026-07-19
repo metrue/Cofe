@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * `npx @metrue/cofe` — serve and edit a Cofe blog from local files or a GitHub repo.
+ * `npx cici` — serve and edit a Cofe blog from local files or a GitHub repo.
  *
- *   npx @metrue/cofe --dir <path>          serve/edit a local content folder
- *   npx @metrue/cofe --repo <owner/name>   serve a remote GitHub content repo (read-only)
- *   npx @metrue/cofe --repo <owner/name> --token <t>   ...and edit it
+ *   npx cici --dir <path>          serve/edit a local content folder
+ *   npx cici --repo <owner/name>   serve a remote GitHub content repo (read-only)
+ *   npx cici --repo <owner/name> --token <t>   ...and edit it
  *
  * Boots the prebuilt Next.js standalone server. The backend is chosen at runtime
  * by lib/runtime/config.ts from the env vars set below (COFE_DIR / COFE_REPO /
@@ -24,8 +24,8 @@ function printHelp() {
 cofe ${pkg.version} — serve and edit your blog from local files or a GitHub repo
 
 Usage:
-  npx @metrue/cofe --dir <path> [options]
-  npx @metrue/cofe --repo <owner/name> [--token <token>] [options]
+  npx cici --dir <path> [options]
+  npx cici --repo <owner/name> [--token <token>] [options]
 
 Targets (exactly one required):
   --dir <path>       Local content folder (contains blog/, memos.json, …)
@@ -39,9 +39,9 @@ Options:
   --help, -h         Show this help
 
 Examples:
-  npx @metrue/cofe --dir ~/my-blog
-  npx @metrue/cofe --repo metrue/Cofe
-  npx @metrue/cofe --repo metrue/Cofe --token ghp_xxx --port 4000
+  npx cici --dir ~/my-blog
+  npx cici --repo metrue/Cofe
+  npx cici --repo metrue/Cofe --token ghp_xxx --port 4000
 `)
 }
 
