@@ -21,9 +21,11 @@ const getFirstImageURLFrom = (content: string): string | null => {
 
 class GitHubAPIClient {
   private accessToken: string
+  private repo: string
 
-  constructor(token: string) {
+  constructor(token: string, repo: string = REPO) {
     this.accessToken = token
+    this.repo = repo
   }
 
   private async getSafeOwner(owner?: string): Promise<string> {
@@ -53,7 +55,7 @@ class GitHubAPIClient {
     try {
       const response = await octokit.repos.getContent({
         owner: safeOwner,
-        repo: REPO,
+        repo: this.repo,
         path: contentPaths.blogDir(),
       })
 
@@ -100,7 +102,7 @@ class GitHubAPIClient {
 
     const contentResponse = await octokit.repos.getContent({
       owner: safeOwner,
-      repo: REPO,
+      repo: this.repo,
       path: contentPaths.blogFile(name),
     })
 
@@ -134,7 +136,7 @@ class GitHubAPIClient {
     try {
       const response = await octokit.repos.getContent({
         owner: safeOwner,
-        repo: REPO,
+        repo: this.repo,
         path: contentPaths.memos(),
       })
 
@@ -156,7 +158,7 @@ class GitHubAPIClient {
     try {
       const response = await octokit.repos.getContent({
         owner: safeOwner,
-        repo: REPO,
+        repo: this.repo,
         path: contentPaths.siteConfig(),
       })
       if (Array.isArray(response.data) || !('content' in response.data)) {
@@ -177,7 +179,7 @@ class GitHubAPIClient {
     try {
       const response = await octokit.repos.getContent({
         owner: safeOwner,
-        repo: REPO,
+        repo: this.repo,
         path: contentPaths.likes(),
       })
 
@@ -207,7 +209,7 @@ class GitHubAPIClient {
       try {
         const currentFile = await octokit.repos.getContent({
           owner: safeOwner,
-          repo: REPO,
+          repo: this.repo,
           path: contentPaths.likes(),
         })
 
@@ -221,7 +223,7 @@ class GitHubAPIClient {
       // Update or create the file
       await octokit.repos.createOrUpdateFileContents({
         owner: safeOwner,
-        repo: REPO,
+        repo: this.repo,
         path: contentPaths.likes(),
         message: `Update likes data - ${new Date().toISOString()}`,
         content: Buffer.from(JSON.stringify(likesData, null, 2)).toString('base64'),
@@ -243,7 +245,7 @@ class GitHubAPIClient {
   }
 }
 
-export const createGitHubAPIClient = (token: string) => new GitHubAPIClient(token)
+export const createGitHubAPIClient = (token: string, repo?: string) => new GitHubAPIClient(token, repo)
 
 /**
  * Create a client that prioritizes raw GitHub URLs for public reads

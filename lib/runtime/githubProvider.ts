@@ -27,14 +27,19 @@ import {
   type RepoTarget,
 } from '@/lib/githubApi'
 import { PublicGitHubClient } from '@/lib/publicClient'
+import { createGitHubAPIClient } from '@/lib/client'
 import { GitHubHighlightsRepo, type HighlightsRepo } from '@/lib/highlights/highlightsRepo'
 import { ReadOnlyError, type AssetInput, type BlogSaveInput, type ContentProvider } from './types'
+
+type ApiReader = ReturnType<typeof createGitHubAPIClient>
 
 export class GitHubProvider implements ContentProvider {
   private readonly owner: string
   private readonly repo: string
   private readonly token?: string
   private readonly reader: PublicGitHubClient
+  /** API reader (fresh, includes drafts) — only when authenticated. */
+  private readonly apiReader?: ApiReader
   private readonly target: RepoTarget
 
   constructor(cfg: { owner: string; repo: string; token?: string }) {
@@ -42,7 +47,24 @@ export class GitHubProvider implements ContentProvider {
     this.repo = cfg.repo
     this.token = cfg.token
     this.reader = new PublicGitHubClient(cfg.owner, cfg.repo)
+    this.apiReader = cfg.token ? createGitHubAPIClient(cfg.token, cfg.repo) : undefined
     this.target = { owner: cfg.owner, repo: cfg.repo }
+  }
+
+  /**
+   * Read fresh via the GitHub API when authenticated (so the owner sees edits
+   * immediately), falling back to public raw URLs on any API error. Without a
+   * token, reads are raw-URL only.
+   */
+  private async fresh<T>(viaApi: (c: ApiReader) => Promise<T>, viaRaw: () => Promise<T>): Promise<T> {
+    if (this.apiReader) {
+      try {
+        return await viaApi(this.apiReader)
+      } catch (error) {
+        console.warn('GitHub API read failed, falling back to raw URL:', error)
+      }
+    }
+    return viaRaw()
   }
 
   get label(): string {
@@ -62,26 +84,42 @@ export class GitHubProvider implements ContentProvider {
     return getOctokit(this.requireToken())
   }
 
-  // --- reads (public raw URLs) ---
+  // --- reads (API-fresh when authenticated, raw URL otherwise) ---
   getBlogPosts(opts?: { includeDrafts?: boolean }): Promise<BlogPost[]> {
-    return this.reader.getBlogPosts(opts?.includeDrafts ?? false)
+    const includeDrafts = opts?.includeDrafts ?? false
+    return this.fresh(
+      (c) => c.getBlogPosts(this.owner, includeDrafts),
+      () => this.reader.getBlogPosts(includeDrafts)
+    )
   }
 
   async getBlogPost(id: string): Promise<BlogPost | undefined> {
-    const post = await this.reader.getBlogPost(`${id}.md`)
+    const post = await this.fresh<BlogPost | null | undefined>(
+      (c) => c.getBlogPost(`${id}.md`, this.owner),
+      () => this.reader.getBlogPost(`${id}.md`)
+    )
     return post ?? undefined
   }
 
   getMemos(): Promise<Memo[]> {
-    return this.reader.getMemos()
+    return this.fresh(
+      (c) => c.getMemos(this.owner),
+      () => this.reader.getMemos()
+    )
   }
 
   getLinks(): Promise<Record<string, string>> {
-    return this.reader.getLinks()
+    return this.fresh(
+      (c) => c.getLinks(this.owner),
+      () => this.reader.getLinks()
+    )
   }
 
   getLikes(): Promise<LikesDatabase> {
-    return this.reader.getLikes()
+    return this.fresh(
+      (c) => c.getLikes(this.owner),
+      () => this.reader.getLikes()
+    )
   }
 
   async getSiteConfig(): Promise<SiteConfig | null> {
