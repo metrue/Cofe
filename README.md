@@ -31,13 +31,13 @@ behind one content contract. Point the CLI at either:
 
 ```bash
 # Local folder — serve AND edit, straight from disk (no GitHub, no sign-in)
-npx cofe --dir ~/my-blog
+npx @metrue/cofe --dir ~/my-blog
 
 # Any GitHub content repo — read-only viewer
-npx cofe --repo metrue/Cofe
+npx @metrue/cofe --repo metrue/Cofe
 
 # ...with a token, edit that repo too
-npx cofe --repo owner/name --token ghp_xxx --port 4000
+npx @metrue/cofe --repo owner/name --token ghp_xxx --port 4000
 ```
 
 The content contract (same for `--dir` and `--repo`):

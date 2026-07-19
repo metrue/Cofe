@@ -1,5 +1,5 @@
 {
-  "name": "cofe",
+  "name": "@metrue/cofe",
   "version": "0.1.0",
   "private": false,
   "description": "Git-backed blog CMS. Run `npx cofe --data <dir>` to serve and edit your posts locally.",
