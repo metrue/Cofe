@@ -4,8 +4,7 @@
   "private": false,
   "description": "Cofe — a git-backed blog CMS. Run `npx cici --dir <dir>` or `--repo <owner/name>` to serve and edit your posts.",
   "bin": {
-    "cici": "bin/cofe.js",
-    "cofe": "bin/cofe.js"
+    "cici": "bin/cici.js"
   },
   "files": [
     "bin/",

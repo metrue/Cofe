@@ -10,10 +10,10 @@
     "writeContent": "اكتب المحتوى هنا...(يدعم Markdown)",
     "enterTitle": "أدخل العنوان هنا...",
     "howItWorksTitle": "كيف يعمل:",
-    "howItWorksStep1": "قم بتفويض Cofe للوصول إلى مستودعات GitHub العامة الخاصة بك.",
-    "howItWorksStep2": "يقوم Cofe بإنشاء مستودع عام باسم \"Cofe\" في حساب GitHub الخاص بك.",
-    "howItWorksStep3": "أي شيء تكتبه على Cofe يتم التزامه في هذا المستودع.",
-    "howItWorksStep4": "يتم تخزين بياناتك في مستودع GitHub الخاص بك، بشكل منفصل عن Cofe.",
+    "howItWorksStep1": "قم بتفويض cici للوصول إلى مستودعات GitHub العامة الخاصة بك.",
+    "howItWorksStep2": "يقوم cici بإنشاء مستودع عام باسم \"cici\" في حساب GitHub الخاص بك.",
+    "howItWorksStep3": "أي شيء تكتبه على cici يتم التزامه في هذا المستودع.",
+    "howItWorksStep4": "يتم تخزين بياناتك في مستودع GitHub الخاص بك، بشكل منفصل عن cici.",
     "signInWithGitHub": "تسجيل الدخول باستخدام GitHub",
     "redirecting": "إعادة التوجيه...",
     "publishing": "جارٍ النشر...",
@@ -47,7 +47,7 @@
     "publicContentTooltip": "نطلب فقط إذن القراءة/الكتابة للمستودع العام، لذا لا يمكننا إنشاء مستودعات خاصة.",
     "myHomepage": "صفحتي الرئيسية العامة",
     "dataStoredOnGithub": "البيانات المخزنة على GitHub",
-    "blogTitle": " مدونة Cofe الخاصة بـ",
+    "blogTitle": " مدونة cici الخاصة بـ",
     "blogShortTitle": " مدونة",
     "blogDescription": "اكتب وزامن المدونة بصيغة Markdown مع تخزين البيانات في GitHub.",
     "demoPage": "صفحة العرض التوضيحي",
@@ -57,7 +57,7 @@
     "enterDiscussionUrl": "أدخل رابط النقاش"
   },
   "metadata": {
-    "title": "Cofe - اكتب وزامن منشورات مدونتك وأفكارك بتسجيل دخول GitHub بنقرة واحدة",
+    "title": "cici - اكتب وزامن منشورات مدونتك وأفكارك بتسجيل دخول GitHub بنقرة واحدة",
     "description": "اكتب وزامن المدونة بصيغة Markdown مع تخزين البيانات في GitHub."
   }
 }

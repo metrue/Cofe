@@ -221,7 +221,7 @@ describe('GitHubHighlightsRepo', () => {
       const callArgs = mockRepos.createOrUpdateFileContents.mock.calls[0][0]
       expect(callArgs).toMatchObject({
         owner: 'test-owner',
-        repo: 'Cofe',
+        repo: 'cici',
         path: 'data/highlights/post-a.json',
         message: 'first highlight',
       })

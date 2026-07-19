@@ -11,7 +11,7 @@ import path from 'path'
 import { resolveRuntimeConfig } from './config'
 
 /**
- * True when the active backend is the local filesystem — `npx cofe --dir` OR
+ * True when the active backend is the local filesystem — `npx cici --dir` OR
  * `next dev`. Derived from the same config the provider factory uses, so the
  * two never disagree.
  */
@@ -24,7 +24,7 @@ export function isLocalMode(): boolean {
  * in development.
  */
 export function localDataDir(): string {
-  const dir = process.env.COFE_DIR
+  const dir = process.env.CICI_DIR
   if (dir) return path.resolve(dir)
   return path.join(process.cwd(), 'data')
 }

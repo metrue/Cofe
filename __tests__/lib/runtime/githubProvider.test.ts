@@ -8,8 +8,8 @@ import { GitHubProvider } from '@/lib/runtime/githubProvider'
 import { ReadOnlyError } from '@/lib/runtime/types'
 
 describe('GitHubProvider read-only (no token)', () => {
-  const ro = new GitHubProvider({ owner: 'metrue', repo: 'Cofe' })
-  const rw = new GitHubProvider({ owner: 'metrue', repo: 'Cofe', token: 'tkn' })
+  const ro = new GitHubProvider({ owner: 'metrue', repo: 'cici' })
+  const rw = new GitHubProvider({ owner: 'metrue', repo: 'cici', token: 'tkn' })
 
   it('canWrite reflects token presence', () => {
     expect(ro.canWrite()).toBe(false)
@@ -17,8 +17,8 @@ describe('GitHubProvider read-only (no token)', () => {
   })
 
   it('label marks read-only', () => {
-    expect(ro.label).toBe('github: metrue/Cofe (read-only)')
-    expect(rw.label).toBe('github: metrue/Cofe')
+    expect(ro.label).toBe('github: metrue/cici (read-only)')
+    expect(rw.label).toBe('github: metrue/cici')
   })
 
   it('writes throw ReadOnlyError without a token (no network)', async () => {

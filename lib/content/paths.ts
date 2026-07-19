@@ -1,5 +1,5 @@
 /**
- * Single source of truth for Cofe's content layout.
+ * Single source of truth for cici's content layout.
  *
  * Two layers:
  *   - `contentRel.*` — paths RELATIVE to the content root (`blog/<slug>.md`,

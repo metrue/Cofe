@@ -10,10 +10,10 @@
     "writeContent": "Escreva seu conteúdo aqui...(suporta Markdown)",
     "enterTitle": "Digite seu título aqui...",
     "howItWorksTitle": "Como funciona:",
-    "howItWorksStep1": "Autoryzuj Cofe do dostępu do swoich publicznych repozytoriów GitHub.",
-    "howItWorksStep2": "Cofe tworzy publiczne repozytorium o nazwie \"Cofe\" w Twoim koncie GitHub.",
-    "howItWorksStep3": "Wszystko, co napiszesz na Cofe, jest zapisywane w tym repozytorium.",
-    "howItWorksStep4": "Twoje dane są przechowywane w Twoim repozytorium GitHub, oddzielnie od Cofe.",
+    "howItWorksStep1": "Autoryzuj cici do dostępu do swoich publicznych repozytoriów GitHub.",
+    "howItWorksStep2": "cici tworzy publiczne repozytorium o nazwie \"cici\" w Twoim koncie GitHub.",
+    "howItWorksStep3": "Wszystko, co napiszesz na cici, jest zapisywane w tym repozytorium.",
+    "howItWorksStep4": "Twoje dane są przechowywane w Twoim repozytorium GitHub, oddzielnie od cici.",
     "signInWithGitHub": "Entrar com o GitHub",
     "redirecting": "Redirecionando...",
     "publishing": "Publicando...",
@@ -47,7 +47,7 @@
     "publicContentTooltip": "Prosimy tylko o uprawnienia do odczytu/zapisu publicznego repozytorium, więc nie możemy tworzyć prywatnych repozytoriów.",
     "myHomepage": "Moja publiczna strona główna",
     "dataStoredOnGithub": "Dane przechowywane na GitHub",
-    "blogTitle": " Blog Cofe",
+    "blogTitle": " Blog cici",
     "blogShortTitle": " Blog",
     "blogDescription": "Pisz i synchronizuj blogi w Markdown z danymi przechowywanymi w GitHub.",
     "demoPage": "Strona Demonstracyjna",
@@ -57,7 +57,7 @@
     "enterDiscussionUrl": "Wprowadź URL dyskusji"
   },
   "metadata": {
-    "title": "Cofe - Pisz blog i myśli z GitHub.",
+    "title": "cici - Pisz blog i myśli z GitHub.",
     "description": "Pisz i synchronizuj posty na blogu i myśli w Markdown z danymi przechowywanymi w GitHub."
   }
 }

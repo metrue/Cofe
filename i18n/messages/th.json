@@ -10,10 +10,10 @@
     "writeContent": "เขียนเนื้อหาของคุณที่นี่...(รองรับ Markdown)",
     "enterTitle": "ป้อนชื่อเรื่องของคุณที่นี่...",
     "howItWorksTitle": "วิธีการทำงาน:",
-    "howItWorksStep1": "อนุญาตให้ Cofe เข้าถึงที่เก็บ GitHub สาธารณะของคุณ",
-    "howItWorksStep2": "Cofe สร้างที่เก็บสาธารณะชื่อ \"Cofe\" ในบัญชี GitHub ของคุณ",
-    "howItWorksStep3": "ทุกสิ่งที่คุณเขียนบน Cofe จะถูกบันทึกในที่เก็บนี้",
-    "howItWorksStep4": "ข้อมูลของคุณถูกจัดเก็บในที่เก็บ GitHub ของคุณ แยกจาก Cofe",
+    "howItWorksStep1": "อนุญาตให้ cici เข้าถึงที่เก็บ GitHub สาธารณะของคุณ",
+    "howItWorksStep2": "cici สร้างที่เก็บสาธารณะชื่อ \"cici\" ในบัญชี GitHub ของคุณ",
+    "howItWorksStep3": "ทุกสิ่งที่คุณเขียนบน cici จะถูกบันทึกในที่เก็บนี้",
+    "howItWorksStep4": "ข้อมูลของคุณถูกจัดเก็บในที่เก็บ GitHub ของคุณ แยกจาก cici",
     "signInWithGitHub": "ลงชื่อเข้าใช้ด้วย GitHub",
     "redirecting": "กำลังเปลี่ยนเส้นทาง...",
     "publishing": "กำลังเผยแพร่...",
@@ -47,7 +47,7 @@
     "publicContentTooltip": "เราขออนุญาตอ่าน/เขียนที่เก็บสาธารณะเท่านั้น ดังนั้นเราจึงไม่สามารถสร้างที่เก็บส่วนตัวได้",
     "myHomepage": "หน้าแรกสาธารณะของฉัน",
     "dataStoredOnGithub": "ข้อมูลที่เก็บไว้ใน GitHub",
-    "blogTitle": " บล็อก Cofe ของ",
+    "blogTitle": " บล็อก cici ของ",
     "blogShortTitle": " บล็อกของ",
     "blogDescription": "เขียนและซิงค์บล็อกใน Markdown โดยเก็บข้อมูลไว้ใน GitHub",
     "demoPage": "หน้าสาธิต",
@@ -57,7 +57,7 @@
     "enterDiscussionUrl": "ป้อน URL การอภิปราย"
   },
   "metadata": {
-    "title": "Cofe - เขียนบล็อกและความคิดด้วย GitHub",
+    "title": "cici - เขียนบล็อกและความคิดด้วย GitHub",
     "description": "เขียนและซิงค์โพสต์บล็อกและความคิดใน Markdown โดยเก็บข้อมูลไว้ใน GitHub"
   }
 }

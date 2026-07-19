@@ -10,10 +10,10 @@
     "writeContent": "Schrijf je inhoud hier...(Markdown ondersteund)",
     "enterTitle": "Voer hier je titel in...",
     "howItWorksTitle": "Hoe het werkt:",
-    "howItWorksStep1": "Geef Cofe toestemming om toegang te krijgen tot je openbare GitHub-repositories.",
-    "howItWorksStep2": "Cofe maakt een openbaar repository genaamd \"Cofe\" in je GitHub-account.",
-    "howItWorksStep3": "Alles wat je op Cofe schrijft, wordt in dit repository opgeslagen.",
-    "howItWorksStep4": "Je gegevens worden opgeslagen in je GitHub-repository, los van Cofe.",
+    "howItWorksStep1": "Geef cici toestemming om toegang te krijgen tot je openbare GitHub-repositories.",
+    "howItWorksStep2": "cici maakt een openbaar repository genaamd \"cici\" in je GitHub-account.",
+    "howItWorksStep3": "Alles wat je op cici schrijft, wordt in dit repository opgeslagen.",
+    "howItWorksStep4": "Je gegevens worden opgeslagen in je GitHub-repository, los van cici.",
     "signInWithGitHub": "Inloggen met GitHub",
     "redirecting": "Doorverwijzen...",
     "publishing": "Publiceren...",
@@ -47,7 +47,7 @@
     "publicContentTooltip": "We vragen alleen om openbare repository lees-/schrijfrechten, dus we kunnen geen privérepository's maken.",
     "myHomepage": "Mijn openbare homepage",
     "dataStoredOnGithub": "Gegevens opgeslagen op GitHub",
-    "blogTitle": "'s Cofe Blog",
+    "blogTitle": "'s cici Blog",
     "blogShortTitle": "'s Blog",
     "blogDescription": "Schrijf en synchroniseer blogs in Markdown met gegevens opgeslagen in GitHub.",
     "demoPage": "Demopagina",
@@ -57,7 +57,7 @@
     "enterDiscussionUrl": "Voer discussie-URL in"
   },
   "metadata": {
-    "title": "Cofe - Schrijf blog & gedachten met GitHub.",
+    "title": "cici - Schrijf blog & gedachten met GitHub.",
     "description": "Schrijf en synchroniseer blogposts & gedachten in Markdown met gegevens opgeslagen in GitHub."
   }
 }

@@ -19,7 +19,7 @@ import { Octokit } from '@octokit/rest'
 // Mock dependencies
 jest.mock('@/lib/githubUtils', () => ({
   getOctokit: jest.fn(() => new Octokit()),
-  getRepoInfo: jest.fn(() => Promise.resolve({ owner: 'testuser', repo: 'Cofe' })),
+  getRepoInfo: jest.fn(() => Promise.resolve({ owner: 'testuser', repo: 'cici' })),
   getFileContent: jest.fn(),
   updateFileContents: jest.fn(),
   ensureDirectoryExists: jest.fn(),
@@ -68,7 +68,7 @@ describe('githubApi', () => {
     // Setup default mocks
     const { getOctokit, getRepoInfo, isNotFoundError, createFileIfNotExists } = require('@/lib/githubUtils')
     getOctokit.mockReturnValue(mockOctokit)
-    getRepoInfo.mockResolvedValue({ owner: 'testuser', repo: 'Cofe' })
+    getRepoInfo.mockResolvedValue({ owner: 'testuser', repo: 'cici' })
     isNotFoundError.mockImplementation((error: any) => error.status === 404)
     createFileIfNotExists.mockResolvedValue({})
   })
@@ -160,7 +160,7 @@ describe('githubApi', () => {
       // Verify file deletion
       expect(mockOctokit.repos.deleteFile).toHaveBeenCalledWith({
         owner: 'testuser',
-        repo: 'Cofe',
+        repo: 'cici',
         path: 'data/blog/post-to-delete.md',
         message: 'Delete blog post',
         sha: 'file-sha',
@@ -369,7 +369,7 @@ Original content`
       expect(updateFileContents).toHaveBeenCalledWith(
         mockOctokit,
         'testuser',
-        'Cofe',
+        'cici',
         'data/blog/test-post.md',
         'Update blog post',
         expect.stringContaining('Updated Title'),
@@ -419,8 +419,8 @@ Original content`
 
       const result = await getIconUrls(longToken)
       
-      expect(result.iconPath).toBe('https://github.com/testuser/Cofe/blob/main/assets/icon.jpg?raw=true')
-      expect(result.appleTouchIconPath).toBe('https://github.com/testuser/Cofe/blob/main/assets/icon-144.jpg?raw=true')
+      expect(result.iconPath).toBe('https://github.com/testuser/cici/blob/main/assets/icon.jpg?raw=true')
+      expect(result.appleTouchIconPath).toBe('https://github.com/testuser/cici/blob/main/assets/icon-144.jpg?raw=true')
     })
   })
 
@@ -432,7 +432,7 @@ Original content`
       ;(mockOctokit.repos.createOrUpdateFileContents as unknown as jest.Mock).mockResolvedValueOnce({
         data: {
           content: {
-            download_url: 'https://raw.githubusercontent.com/testuser/Cofe/main/assets/images/2024-01-01/123456.jpg'
+            download_url: 'https://raw.githubusercontent.com/testuser/cici/main/assets/images/2024-01-01/123456.jpg'
           }
         }
       })
@@ -453,7 +453,7 @@ Original content`
 
       const result = await uploadImage(mockFile, 'fake-token')
       
-      expect(result).toBe('https://github.com/testuser/Cofe/blob/main/assets/images/2024-01-01/123456.jpg?raw=true')
+      expect(result).toBe('https://github.com/testuser/cici/blob/main/assets/images/2024-01-01/123456.jpg?raw=true')
       expect(ensureDirectoryExists).toHaveBeenCalled()
 
       // Restore Date

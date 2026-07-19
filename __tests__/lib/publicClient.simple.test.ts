@@ -29,7 +29,7 @@ describe('PublicGitHubClient - Simple Tests', () => {
       const result = await client.getMemos()
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://raw.githubusercontent.com/testuser/Cofe/main/data/memos.json'
+        'https://raw.githubusercontent.com/testuser/cici/main/data/memos.json'
       )
       expect(result).toEqual(mockMemos)
     })

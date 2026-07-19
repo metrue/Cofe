@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Cofe app provides a GraphQL API endpoint at `/api/graphql` for managing memos from external applications (e.g., iOS apps).
+The cici app provides a GraphQL API endpoint at `/api/graphql` for managing memos from external applications (e.g., iOS apps).
 
 **Endpoint**: `https://blog.minghe.me/api/graphql`
 

@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * `npx cici` — serve and edit a Cofe blog from local files or a GitHub repo.
+ * `npx cici` — serve and edit a cici blog from local files or a GitHub repo.
  *
  *   npx cici --dir <path>          serve/edit a local content folder
  *   npx cici --repo <owner/name>   serve a remote GitHub content repo (read-only)
  *   npx cici --repo <owner/name> --token <t>   ...and edit it
  *
  * Boots the prebuilt Next.js standalone server. The backend is chosen at runtime
- * by lib/runtime/config.ts from the env vars set below (COFE_DIR / COFE_REPO /
- * COFE_TOKEN). No GitHub OAuth, no Vercel.
+ * by lib/runtime/config.ts from the env vars set below (CICI_DIR / CICI_REPO /
+ * CICI_TOKEN). No GitHub OAuth, no Vercel.
  */
 
 'use strict'
@@ -21,7 +21,7 @@ const pkg = require('../package.json')
 
 function printHelp() {
   process.stdout.write(`
-cofe ${pkg.version} — serve and edit your blog from local files or a GitHub repo
+cici ${pkg.version} — serve and edit your blog from local files or a GitHub repo
 
 Usage:
   npx cici --dir <path> [options]
@@ -40,8 +40,8 @@ Options:
 
 Examples:
   npx cici --dir ~/my-blog
-  npx cici --repo metrue/Cofe
-  npx cici --repo metrue/Cofe --token ghp_xxx --port 4000
+  npx cici --repo metrue/cici
+  npx cici --repo metrue/cici --token ghp_xxx --port 4000
 `)
 }
 
@@ -62,7 +62,7 @@ function parseArgs(argv) {
       case '--help': case '-h': out.help = true; break
       case '--version': case '-v': out.version = true; break
       default:
-        process.stderr.write(`cofe: unknown option "${arg}"\n`)
+        process.stderr.write(`cici: unknown option "${arg}"\n`)
         printHelp()
         process.exit(1)
     }
@@ -71,7 +71,7 @@ function parseArgs(argv) {
 }
 
 function fail(msg) {
-  process.stderr.write(`cofe: ${msg}\n`)
+  process.stderr.write(`cici: ${msg}\n`)
   process.exit(1)
 }
 
@@ -81,7 +81,7 @@ function main() {
   if (args.help) { printHelp(); return }
   if (args.version) { process.stdout.write(`${pkg.version}\n`); return }
 
-  if (!args.dir && !args.repo) fail('provide exactly one of --dir <path> or --repo <owner/name>. Run `cofe --help`.')
+  if (!args.dir && !args.repo) fail('provide exactly one of --dir <path> or --repo <owner/name>. Run `cici --help`.')
   if (args.dir && args.repo) fail('use only one of --dir or --repo, not both.')
 
   const port = String(parseInt(args.port, 10) || 3000)
@@ -94,16 +94,16 @@ function main() {
       fail(`--dir path is not a directory: ${dir}`)
     }
     if (!fs.existsSync(path.join(dir, 'blog')) && !fs.existsSync(path.join(dir, 'memos.json'))) {
-      process.stderr.write(`cofe: note — ${dir} has no blog/ or memos.json yet. Starting empty.\n`)
+      process.stderr.write(`cici: note — ${dir} has no blog/ or memos.json yet. Starting empty.\n`)
     }
-    process.env.COFE_DIR = dir
+    process.env.CICI_DIR = dir
     servingLabel = dir
   } else {
     if (!/^[^/]+\/[^/]+$/.test(args.repo)) {
       fail(`--repo must be "owner/name" (got "${args.repo}").`)
     }
-    process.env.COFE_REPO = args.repo
-    if (args.token) process.env.COFE_TOKEN = args.token
+    process.env.CICI_REPO = args.repo
+    if (args.token) process.env.CICI_TOKEN = args.token
     servingLabel = `${args.repo}${args.token ? '' : ' (read-only)'}`
   }
 
@@ -122,7 +122,7 @@ function main() {
     )
   }
 
-  process.stdout.write(`\n  cofe ${pkg.version}\n  serving ${servingLabel}\n  → http://${host}:${port}\n\n`)
+  process.stdout.write(`\n  cici ${pkg.version}\n  serving ${servingLabel}\n  → http://${host}:${port}\n\n`)
 
   require(serverPath)
 }

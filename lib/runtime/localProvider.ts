@@ -1,5 +1,5 @@
 /**
- * LocalProvider — the filesystem runtime backend (`npx cofe --dir <path>` and
+ * LocalProvider — the filesystem runtime backend (`npx cici --dir <path>` and
  * `npm run dev`). Reads/writes content under the local content root, uploads
  * assets to disk, and serves highlights from the local FS repo.
  *

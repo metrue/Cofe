@@ -10,10 +10,10 @@
     "writeContent": "Viết nội dung của bạn ở đây...(hỗ trợ Markdown)",
     "enterTitle": "Nhập tiêu đề của bạn ở đây...",
     "howItWorksTitle": "Cách hoạt động:",
-    "howItWorksStep1": "Ủy quyền cho Cofe truy cập vào các kho lưu trữ công khai của GitHub của bạn.",
-    "howItWorksStep2": "Cofe tạo một kho lưu trữ công khai có tên \"Cofe\" trong tài khoản GitHub của bạn.",
-    "howItWorksStep3": "Bất cứ điều gì bạn viết trên Cofe sẽ được lưu vào kho lưu trữ này.",
-    "howItWorksStep4": "Dữ liệu của bạn được lưu trữ trong kho lưu trữ GitHub của bạn, tách biệt với Cofe.",
+    "howItWorksStep1": "Ủy quyền cho cici truy cập vào các kho lưu trữ công khai của GitHub của bạn.",
+    "howItWorksStep2": "cici tạo một kho lưu trữ công khai có tên \"cici\" trong tài khoản GitHub của bạn.",
+    "howItWorksStep3": "Bất cứ điều gì bạn viết trên cici sẽ được lưu vào kho lưu trữ này.",
+    "howItWorksStep4": "Dữ liệu của bạn được lưu trữ trong kho lưu trữ GitHub của bạn, tách biệt với cici.",
     "signInWithGitHub": "Đăng nhập bằng GitHub",
     "redirecting": "Đang chuyển hướng...",
     "publishing": "Đang xuất bản...",
@@ -47,7 +47,7 @@
     "publicContentTooltip": "Chúng tôi chỉ yêu cầu quyền đọc/ghi kho lưu trữ công khai, vì vậy chúng tôi không thể tạo kho lưu trữ riêng tư.",
     "myHomepage": "Trang chủ công khai của tôi",
     "dataStoredOnGithub": "Dữ liệu được lưu trữ trên GitHub",
-    "blogTitle": " Blog Cofe của",
+    "blogTitle": " Blog cici của",
     "blogShortTitle": " Blog của",
     "blogDescription": "Viết và đồng bộ hóa blog bằng Markdown với dữ liệu được lưu trữ trong GitHub.",
     "demoPage": "Trang Demo",
@@ -57,7 +57,7 @@
     "enterDiscussionUrl": "Nhập URL thảo luận"
   },
   "metadata": {
-    "title": "Cofe - Viết blog và suy nghĩ với GitHub.",
+    "title": "cici - Viết blog và suy nghĩ với GitHub.",
     "description": "Viết và đồng bộ hóa bài viết blog và suy nghĩ bằng Markdown với dữ liệu được lưu trữ trong GitHub."
   }
 }

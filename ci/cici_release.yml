@@ -1,15 +1,15 @@
 name: Release (npm)
 
-# Publishes the `cici` package (the Cofe CLI) to npm when a version tag is pushed.
+# Publishes the `cici` package (the cici CLI) to npm when a version tag is pushed.
 #
 # Auth: npm Trusted Publisher (OIDC) — NO NPM_TOKEN secret. Set up the trust on
 # npmjs.com → package `cici` → Settings → Trusted Publisher:
-#   Publisher: GitHub Actions | Org/user: metrue | Repository: Cofe
-#   Workflow filename: cofe_release.yml | Allowed actions: Allow npm publish
+#   Publisher: GitHub Actions | Org/user: metrue | Repository: cici
+#   Workflow filename: cici_release.yml | Allowed actions: Allow npm publish
 # The OIDC id-token (permissions.id-token: write) is exchanged for a short-lived
 # publish credential at publish time.
 #
-# To activate: move this file to `.github/workflows/cofe_release.yml`
+# To activate: move this file to `.github/workflows/cici_release.yml`
 # (requires a token with GitHub `workflow` scope).
 #
 # Release flow:

@@ -1,4 +1,4 @@
-# Releasing the Cofe CLI to npm (as `cici`)
+# Releasing the cici CLI to npm (as `cici`)
 
 The CLI (`npx cici --dir … | --repo …`) is published to npm under the **`cici`**
 package name (repurposed from an older placeholder we own). Auth uses npm
@@ -13,8 +13,8 @@ Package `cici` → **Settings → Trusted Publisher → GitHub Actions**:
 |---|---|
 | Publisher | GitHub Actions |
 | Organization or user | `metrue` |
-| Repository | `Cofe` |
-| Workflow filename | `cofe_release.yml` |
+| Repository | `cici` |
+| Workflow filename | `cici_release.yml` |
 | Environment name | *(leave blank)* |
 | Allowed actions | ☑ **Allow `npm publish`** |
 
@@ -24,15 +24,15 @@ short-lived OIDC token; no long-lived secret is stored anywhere.
 ### 2. Activate the workflow
 Move the parked file into place (needs a token with GitHub `workflow` scope):
 ```bash
-git mv ci/cofe_release.yml .github/workflows/cofe_release.yml
+git mv ci/cici_release.yml .github/workflows/cici_release.yml
 git commit -m "ci: activate npm release workflow" && git push
 ```
-The filename **must** stay `cofe_release.yml` to match the Trusted Publisher config.
+The filename **must** stay `cici_release.yml` to match the Trusted Publisher config.
 
 ### 3. Deprecate the old `cici`
 The old `cici@0.0.11` is an unrelated 9-year-old package. Mark it deprecated:
 ```bash
-npm deprecate cici@"<0.1.0" "Repurposed as the Cofe blog CLI — see npx cici"
+npm deprecate cici@"<0.1.0" "Repurposed as the cici blog CLI — see npx cici"
 ```
 
 ## Cutting a release
@@ -40,7 +40,7 @@ npm deprecate cici@"<0.1.0" "Repurposed as the Cofe blog CLI — see npx cici"
 npm version patch            # or edit "version" in package.json (must be > latest on npm)
 git push && git push --tags
 ```
-Pushing a `v*` tag runs `.github/workflows/cofe_release.yml`, which tests, checks
+Pushing a `v*` tag runs `.github/workflows/cici_release.yml`, which tests, checks
 the tag matches `package.json` version, and runs `npm publish --provenance` via OIDC.
 
 Verify:
@@ -59,5 +59,5 @@ npm publish --provenance --access public
 - `files` ships only `bin/` + `.next/standalone/` (the prebuilt server + bundled
   static/public). `prepack` rebuilds them, so the tarball is always fresh — don't
   commit `.next/`.
-- The published binary exposes both `cici` and `cofe` commands (same CLI).
-- First Cofe release is `0.1.0` (> the old `cici@0.0.11`).
+- The published binary exposes the `cici` command.
+- First cici release is `0.1.0` (> the old `cici@0.0.11`).

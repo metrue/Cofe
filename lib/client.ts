@@ -5,7 +5,7 @@ import { parseBlogPostMetadata } from './markdown'
 import { Octokit } from '@octokit/rest'
 import { contentPaths } from './content/paths'
 
-const REPO = 'Cofe'
+const REPO = 'cici'
 
 const getFirstImageURLFrom = (content: string): string | null => {
   const imgRegex = /(https?:\/\/[^\s]+?\.(?:png|jpg|jpeg|gif|webp))/i

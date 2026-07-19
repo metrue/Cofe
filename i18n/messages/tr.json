@@ -10,10 +10,10 @@
     "writeContent": "İçeriğinizi buraya yazın...(Markdown desteklenir)",
     "enterTitle": "Başlığınızı buraya girin...",
     "howItWorksTitle": "Nasıl çalışır:",
-    "howItWorksStep1": "Cofe'in genel GitHub depolarınıza erişmesine izin verin.",
-    "howItWorksStep2": "Cofe, GitHub hesabınızda \"Cofe\" adlı bir genel depo oluşturur.",
-    "howItWorksStep3": "Cofe'de yazdığınız her şey bu depoya kaydedilir.",
-    "howItWorksStep4": "Verileriniz Cofe'den ayrı olarak GitHub deponuzda saklanır.",
+    "howItWorksStep1": "cici'in genel GitHub depolarınıza erişmesine izin verin.",
+    "howItWorksStep2": "cici, GitHub hesabınızda \"cici\" adlı bir genel depo oluşturur.",
+    "howItWorksStep3": "cici'de yazdığınız her şey bu depoya kaydedilir.",
+    "howItWorksStep4": "Verileriniz cici'den ayrı olarak GitHub deponuzda saklanır.",
     "signInWithGitHub": "GitHub ile giriş yap",
     "redirecting": "Yönlendiriliyor...",
     "publishing": "Yayınlanıyor...",
@@ -47,7 +47,7 @@
     "publicContentTooltip": "Sadece genel depo okuma/yazma izni istiyoruz, bu nedenle özel depolar oluşturamıyoruz.",
     "myHomepage": "Genel Ana Sayfam",
     "dataStoredOnGithub": "GitHub'da Saklanan Veriler",
-    "blogTitle": " Cofe Blogu",
+    "blogTitle": " cici Blogu",
     "blogShortTitle": " Blogu",
     "blogDescription": "GitHub'da depolanan verilerle Markdown'da blog yazın ve senkronize edin.",
     "demoPage": "Demo Sayfası",
@@ -57,7 +57,7 @@
     "enterDiscussionUrl": "Tartışma URL'si girin"
   },
   "metadata": {
-    "title": "Cofe - GitHub ile blog ve düşünceler yazın.",
+    "title": "cici - GitHub ile blog ve düşünceler yazın.",
     "description": "GitHub'da depolanan verilerle Markdown'da blog gönderileri ve düşünceler yazın ve senkronize edin."
   }
 }

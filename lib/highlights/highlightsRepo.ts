@@ -13,7 +13,7 @@
  *
  * In production, anonymous writes need a service token because there's no
  * user session. Set `HIGHLIGHTS_GH_TOKEN` (a fine-grained PAT or GitHub App
- * token with `contents:write` on the Cofe repo). Owner-moderation routes
+ * token with `contents:write` on the cici repo). Owner-moderation routes
  * can pass the logged-in user's session token instead via `ownerToken`.
  *
  * Reads are cached in-memory for 30 s to keep GitHub reads off the hot path.
@@ -31,7 +31,7 @@ import {
 import { contentPaths, contentRel } from '../content/paths'
 import { isLocalMode, localDataDir } from '../runtime/mode'
 
-const REPO = 'Cofe'
+const REPO = 'cici'
 const CACHE_TTL_MS = 30_000
 const SAVE_RETRY_LIMIT = 3
 const MAX_POST_ID_LENGTH = 200

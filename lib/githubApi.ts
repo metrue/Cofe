@@ -16,7 +16,7 @@ import {
   type UpdateFileParams
 } from './githubUtils';
 
-const REPO = 'Cofe';
+const REPO = 'cici';
 
 async function ensureRepoExists(octokit: Octokit, owner: string, repo: string) {
   try {
@@ -67,7 +67,7 @@ async function ensureRepoExists(octokit: Octokit, owner: string, repo: string) {
           path: 'README.md',
           message: 'Update README.md with default content',
           content: Buffer.from(
-            '# Cofe Blog\n\nWrite blog posts and memos at https://tinymind.me with data stored on GitHub.'
+            '# cici Blog\n\nWrite blog posts and memos at https://tinymind.me with data stored on GitHub.'
           ).toString('base64'),
           sha: readmeContent.sha,
         })
@@ -132,7 +132,7 @@ async function initializeGitHubStructure(octokit: Octokit, owner: string, repo: 
 }
 
 /** Explicit repo target — lets a provider write to an arbitrary owner/repo
- * (`--repo`) instead of always the token owner's Cofe repo. */
+ * (`--repo`) instead of always the token owner's cici repo. */
 export interface RepoTarget {
   owner: string
   repo: string
