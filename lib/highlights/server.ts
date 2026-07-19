@@ -73,7 +73,7 @@ export function extractIdentity(request: NextRequest): RequestIdentity {
 }
 
 export async function isOwner(): Promise<boolean> {
-  // Local mode (npx cofe --data): the single local user is the trusted owner.
+  // Local mode (npx cofe --dir): the single local user is the trusted owner.
   if (isLocalMode()) return true
 
   const session = await getSession()

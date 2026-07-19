@@ -4,7 +4,7 @@
  * Two layers:
  *   - `contentRel.*` — paths RELATIVE to the content root (`blog/<slug>.md`,
  *     `memos.json`, …), with no `data/` prefix. Use this when the content root
- *     is supplied separately, e.g. the local `--data <dir>` filesystem client
+ *     is supplied separately, e.g. the local `--dir <dir>` filesystem client
  *     where the given directory IS the content root.
  *   - `contentPaths.*` — the same paths under the in-repo `data/` root
  *     (`data/blog/<slug>.md`, …). Use this for GitHub API calls and

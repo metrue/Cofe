@@ -25,7 +25,7 @@ export interface BlogWriteInput {
 /**
  * Local file system client (server-side only).
  * Reads/writes content from the local content root — `<cwd>/data` in dev, or
- * the `--data <dir>` directory in local mode. Paths are resolved relative to
+ * the `--dir <dir>` directory in local mode. Paths are resolved relative to
  * that root via `contentRel` (which carries no `data/` prefix).
  */
 export class LocalFileSystemClient {

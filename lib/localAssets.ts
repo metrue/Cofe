@@ -1,5 +1,5 @@
 /**
- * Local image asset storage for `npx cofe --data` mode (server-only).
+ * Local image asset storage for `npx cofe --dir` mode (server-only).
  *
  * Uploads are written under `<COFE_DIR>/assets/images/<date>/<file>` and
  * served back through `/api/asset/<path>`. Mirrors how the GitHub backend stores
