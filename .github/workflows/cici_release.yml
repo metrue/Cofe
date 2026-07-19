@@ -1,16 +1,10 @@
 name: Release (npm)
 
-# Publishes the `cici` package (the cici CLI) to npm when a version tag is pushed.
+# Publishes the `cici` package (the Cofe CLI) to npm when a version tag is pushed.
 #
-# Auth: npm Trusted Publisher (OIDC) — NO NPM_TOKEN secret. Set up the trust on
-# npmjs.com → package `cici` → Settings → Trusted Publisher:
-#   Publisher: GitHub Actions | Org/user: metrue | Repository: cici
-#   Workflow filename: cici_release.yml | Allowed actions: Allow npm publish
-# The OIDC id-token (permissions.id-token: write) is exchanged for a short-lived
-# publish credential at publish time.
-#
-# To activate: move this file to `.github/workflows/cici_release.yml`
-# (requires a token with GitHub `workflow` scope).
+# Auth: NPM_TOKEN repo secret (a granular automation token with read+write on the
+# `cici` package). Provenance (--provenance) additionally uses the OIDC id-token.
+# (Trusted-publisher OIDC can replace the token later once configured on npmjs.)
 #
 # Release flow:
 #   1. bump "version" in package.json (must be > the current npm version)
@@ -30,18 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # NOTE: intentionally NO `registry-url`. setup-node's registry-url writes an
-      # .npmrc `_authToken=${NODE_AUTH_TOKEN}` line (with a placeholder token when
-      # none is provided), which makes npm attempt token auth and skip OIDC → E404.
-      # Publishing to the default registry (registry.npmjs.org) with no token lets
-      # npm use the OIDC trusted publisher.
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      # Trusted publishing (OIDC) needs npm >= 11.5.1; Node 20 ships npm 10.x.
-      - name: Upgrade npm (OIDC support)
-        run: npm install -g npm@11
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install deps
         run: npm ci
@@ -59,6 +45,9 @@ jobs:
 
       # `prepack` runs `next build` + assemble-standalone, so the published
       # tarball contains the standalone server + static assets + public + bin.
-      # No NODE_AUTH_TOKEN: auth is via the OIDC trusted publisher.
+      # Auth via NPM_TOKEN (granular automation token with publish rights to cici);
+      # --provenance still uses the id-token for supply-chain attestation.
       - name: Publish
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
