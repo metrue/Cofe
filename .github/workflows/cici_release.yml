@@ -37,7 +37,7 @@ jobs:
 
       # Trusted publishing (OIDC) needs npm >= 11.5.1; Node 20 ships npm 10.x.
       - name: Upgrade npm (OIDC support)
-        run: npm install -g npm@latest
+        run: npm install -g npm@11
 
       - name: Install deps
         run: npm ci
