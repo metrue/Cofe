@@ -1,14 +1,13 @@
 import { AvatarCard } from '@/components/AvatarCard'
 import MemosList from '@/components/MemosList'
-import { createSmartClient } from '@/lib/smartClient'
+import { getProvider } from '@/lib/runtime/provider'
 
 export const revalidate = 60
 
 export default async function MemosPage() {
   const username = process.env.GITHUB_USERNAME ?? ''
-  const client = createSmartClient()
-  const memos = await client.getMemos()
-  const links = await client.getLinks()
+  const client = getProvider()
+  const [memos, links] = await Promise.all([client.getMemos(), client.getLinks()])
   return (
     <div className='max-w-3xl mx-auto px-4 py-8'>
       <AvatarCard name={username} links={links} />

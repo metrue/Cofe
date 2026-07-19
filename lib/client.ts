@@ -3,7 +3,6 @@ import { LikesDatabase } from './likeUtils'
 import { parseBlogPostMetadata } from './markdown'
 
 import { Octokit } from '@octokit/rest'
-import { createHybridGitHubClient } from './publicClient'
 import { contentPaths } from './content/paths'
 
 const REPO = 'Cofe'
@@ -20,9 +19,11 @@ const getFirstImageURLFrom = (content: string): string | null => {
 
 class GitHubAPIClient {
   private accessToken: string
+  private repo: string
 
-  constructor(token: string) {
+  constructor(token: string, repo: string = REPO) {
     this.accessToken = token
+    this.repo = repo
   }
 
   private async getSafeOwner(owner?: string): Promise<string> {
@@ -52,7 +53,7 @@ class GitHubAPIClient {
     try {
       const response = await octokit.repos.getContent({
         owner: safeOwner,
-        repo: REPO,
+        repo: this.repo,
         path: contentPaths.blogDir(),
       })
 
@@ -99,7 +100,7 @@ class GitHubAPIClient {
 
     const contentResponse = await octokit.repos.getContent({
       owner: safeOwner,
-      repo: REPO,
+      repo: this.repo,
       path: contentPaths.blogFile(name),
     })
 
@@ -133,7 +134,7 @@ class GitHubAPIClient {
     try {
       const response = await octokit.repos.getContent({
         owner: safeOwner,
-        repo: REPO,
+        repo: this.repo,
         path: contentPaths.memos(),
       })
 
@@ -155,7 +156,7 @@ class GitHubAPIClient {
     try {
       const response = await octokit.repos.getContent({
         owner: safeOwner,
-        repo: REPO,
+        repo: this.repo,
         path: contentPaths.siteConfig(),
       })
       if (Array.isArray(response.data) || !('content' in response.data)) {
@@ -176,7 +177,7 @@ class GitHubAPIClient {
     try {
       const response = await octokit.repos.getContent({
         owner: safeOwner,
-        repo: REPO,
+        repo: this.repo,
         path: contentPaths.likes(),
       })
 
@@ -206,7 +207,7 @@ class GitHubAPIClient {
       try {
         const currentFile = await octokit.repos.getContent({
           owner: safeOwner,
-          repo: REPO,
+          repo: this.repo,
           path: contentPaths.likes(),
         })
 
@@ -220,7 +221,7 @@ class GitHubAPIClient {
       // Update or create the file
       await octokit.repos.createOrUpdateFileContents({
         owner: safeOwner,
-        repo: REPO,
+        repo: this.repo,
         path: contentPaths.likes(),
         message: `Update likes data - ${new Date().toISOString()}`,
         content: Buffer.from(JSON.stringify(likesData, null, 2)).toString('base64'),
@@ -242,34 +243,4 @@ class GitHubAPIClient {
   }
 }
 
-export const createGitHubAPIClient = (token: string) => new GitHubAPIClient(token)
-
-/**
- * Create a client that prioritizes raw GitHub URLs for public reads
- * Falls back to API for authenticated operations
- */
-export const createOptimizedGitHubClient = (owner: string, token?: string) => {
-  // In production, use GitHub clients
-  if (token) {
-    // For authenticated users, use hybrid approach
-    return createHybridGitHubClient(owner, token)
-  } else {
-    // For public users, use raw URLs only
-    return createHybridGitHubClient(owner)
-  }
-}
-
-/**
- * Create a client that uses local data in development, GitHub in production
- * Only works on server-side due to fs dependency
- */
-export const createDevelopmentOptimizedClient = async (owner: string, token?: string) => {
-  // Only use local client on server-side in development
-  if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
-    const { createLocalFileSystemClient } = await import('./localClient.server')
-    return createLocalFileSystemClient()
-  }
-  
-  // In production or client-side, use GitHub clients
-  return createOptimizedGitHubClient(owner, token)
-}
+export const createGitHubAPIClient = (token: string, repo?: string) => new GitHubAPIClient(token, repo)

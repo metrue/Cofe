@@ -2,10 +2,9 @@ import { createYoga } from 'graphql-yoga'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
-import { createSmartClient } from '@/lib/smartClient'
+import { getProvider } from '@/lib/runtime/provider'
 import { Memo, BlogPost, Link, ExternalDiscussion } from '@/lib/types'
-import { createBlogPost, updateBlogPost, deleteBlogPost, updateMemo, deleteMemo } from '@/lib/githubApi'
-import { 
+import {
   getClientIP, 
   getLocationFromHeaders, 
   hashIP, 
@@ -185,12 +184,21 @@ const typeDefs = `
   }
 `
 
+/** Provider for a mutation — throws if the active backend is read-only. */
+function writableProvider(context: GraphQLContext) {
+  const client = getProvider(context.token?.accessToken)
+  if (!client.canWrite()) {
+    throw new Error('Authentication required')
+  }
+  return client
+}
+
 const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
   Query: {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     memos: async (_parent, _args, _context) => {
       try {
-        const client = createSmartClient()
+        const client = getProvider()
         const result = await client.getMemos()
         return Array.isArray(result) ? result : []
       } catch (error) {
@@ -201,7 +209,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getLikes: async (_parent, { itemType, id }, context) => {
       try {
-        const client = createSmartClient()
+        const client = getProvider()
         const likesData = await client.getLikes()
         
         console.log('getLikes - fetched data:', JSON.stringify(likesData, null, 2))
@@ -225,8 +233,8 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     blogPosts: async (_parent, _args, context) => {
       try {
-        const client = createSmartClient(context.token?.accessToken)
-        const result = await client.getBlogPosts()
+        const client = getProvider(context.token?.accessToken)
+        const result = await client.getBlogPosts({ includeDrafts: client.canWrite() })
         return Array.isArray(result) ? result : []
       } catch (error) {
         console.error('Error fetching blog posts:', error)
@@ -236,8 +244,8 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     blogPost: async (_parent, { id }, context) => {
       try {
-        const client = createSmartClient(context.token?.accessToken)
-        const post = await client.getBlogPost(`${id}.md`)
+        const client = getProvider(context.token?.accessToken)
+        const post = await client.getBlogPost(id)
         return post || null
       } catch (error) {
         console.error('Error fetching blog post:', error)
@@ -247,7 +255,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     links: async (_parent, _args, context) => {
       try {
-        const client = createSmartClient(context.token?.accessToken)
+        const client = getProvider(context.token?.accessToken)
         const result = await client.getLinks()
         return Array.isArray(result) ? result : []
       } catch (error) {
@@ -259,10 +267,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
   Mutation: {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     createMemo: async (_parent, { input }, context) => {
-      // In development, allow memo creation without authentication for testing
-      if (process.env.NODE_ENV !== 'development' && !context.token?.accessToken) {
-        throw new Error('Authentication required')
-      }
+      const client = writableProvider(context)
 
       try {
         const newMemo: Memo = {
@@ -276,7 +281,6 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           ...(input.street && { street: input.street })
         }
 
-        const client = createSmartClient(context.token?.accessToken)
         return await client.createMemo(newMemo)
       } catch (error) {
         console.error('Error creating memo:', error)
@@ -293,7 +297,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
         const userFingerprint = createUserFingerprint(hashedIP, location)
         
         // Get likes data using smart client
-        const client = createSmartClient(context.token?.accessToken)
+        const client = getProvider(context.token?.accessToken)
         let likesData = await client.getLikes()
         
         console.log('toggleLike - original likes data:', JSON.stringify(likesData, null, 2))
@@ -355,16 +359,10 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     updateMemo: async (_parent, { id, input }, context) => {
-      if (!context.token?.accessToken) {
-        throw new Error('Authentication required')
-      }
+      const client = writableProvider(context)
 
       try {
-        await updateMemo(id, input.content, context.token.accessToken)
-        // Return the updated memo
-        const client = createSmartClient(context.token.accessToken)
-        const memos = await client.getMemos()
-        const updatedMemo = Array.isArray(memos) ? memos.find(m => m.id === id) : null
+        const updatedMemo = await client.updateMemo(id, input.content)
         if (!updatedMemo) {
           throw new Error('Memo not found after update')
         }
@@ -376,12 +374,10 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     deleteMemo: async (_parent, { id }, context) => {
-      if (!context.token?.accessToken) {
-        throw new Error('Authentication required')
-      }
+      const client = writableProvider(context)
 
       try {
-        await deleteMemo(id, context.token.accessToken)
+        await client.deleteMemo(id)
         return true
       } catch (error) {
         console.error('Error deleting memo:', error)
@@ -390,9 +386,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     saveBlogPost: async (_parent, { id, input }, context) => {
-      if (!context.token?.accessToken) {
-        throw new Error('Authentication required')
-      }
+      const client = writableProvider(context)
 
       try {
         const location = {
@@ -401,28 +395,26 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
           city: input.city,
           street: input.street
         }
-        
+
         const status = input.status || 'published'
-        
+        const saveInput = { title: input.title, content: input.content, discussions: input.discussions, location, status }
+
         if (id) {
           // Update existing blog post
-          await updateBlogPost(id, input.title, input.content, context.token.accessToken, input.discussions, location, status)
-          const client = createSmartClient(context.token.accessToken)
-          const post = await client.getBlogPost(`${id}.md`)
+          await client.updateBlogPost(id, saveInput)
+          const post = await client.getBlogPost(id)
           if (!post) {
             throw new Error('Blog post not found after update')
           }
           return post
         } else {
           // Create new blog post
-          await createBlogPost(input.title, input.content, context.token.accessToken, input.discussions, location, status)
-          const client = createSmartClient(context.token.accessToken)
-          const posts = await client.getBlogPosts()
-          const createdPost = Array.isArray(posts) ? posts.find(p => p.title === input.title) : null
-          if (!createdPost) {
+          const slug = await client.createBlogPost(saveInput)
+          const post = await client.getBlogPost(slug)
+          if (!post) {
             throw new Error('Blog post not found after creation')
           }
-          return createdPost
+          return post
         }
       } catch (error) {
         console.error('Error saving blog post:', error)
@@ -431,12 +423,10 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     deleteBlogPost: async (_parent, { id }, context) => {
-      if (!context.token?.accessToken) {
-        throw new Error('Authentication required')
-      }
+      const client = writableProvider(context)
 
       try {
-        await deleteBlogPost(id, context.token.accessToken)
+        await client.deleteBlogPost(id)
         return true
       } catch (error) {
         console.error('Error deleting blog post:', error)

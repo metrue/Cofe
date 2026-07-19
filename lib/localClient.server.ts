@@ -1,26 +1,45 @@
 import fs from 'fs'
 import path from 'path'
-import type { BlogPost, Memo } from './types'
+import type { BlogPost, Memo, ExternalDiscussion } from './types'
+import type { SiteConfig } from './siteConfig'
 import { LikesDatabase } from './likeUtils'
 import { parseBlogPostMetadata } from './markdown'
-import { contentPaths } from './content/paths'
+import { contentRel } from './content/paths'
+import { localDataDir } from './runtime/mode'
+import {
+  buildBlogMarkdown,
+  slugFromTitle,
+  extractDate,
+  extractStatus,
+  type BlogLocation,
+} from './blogFrontmatter'
+
+export interface BlogWriteInput {
+  title: string
+  content: string
+  discussions?: ExternalDiscussion[]
+  location?: BlogLocation
+  status?: string
+}
 
 /**
- * Local file system client for development (server-side only)
- * Reads data from local data/ directory instead of GitHub
+ * Local file system client (server-side only).
+ * Reads/writes content from the local content root — `<cwd>/data` in dev, or
+ * the `--dir <dir>` directory in local mode. Paths are resolved relative to
+ * that root via `contentRel` (which carries no `data/` prefix).
  */
 export class LocalFileSystemClient {
-  /** Resolve a repo-relative content path (from contentPaths) to an absolute local path. */
-  private abs(repoPath: string): string {
-    return path.join(process.cwd(), repoPath)
+  /** Resolve a content-root-relative path (from contentRel) to an absolute local path. */
+  private abs(relPath: string): string {
+    return path.join(localDataDir(), relPath)
   }
 
   private get dataDir() {
-    return this.abs(contentPaths.root())
+    return localDataDir()
   }
 
   private get blogDir() {
-    return this.abs(contentPaths.blogDir())
+    return this.abs(contentRel.blogDir())
   }
   /**
    * Get all blog posts from local data/blog directory
@@ -103,7 +122,7 @@ export class LocalFileSystemClient {
    */
   async getMemos(): Promise<Memo[]> {
     try {
-      const memosPath = this.abs(contentPaths.memos())
+      const memosPath = this.abs(contentRel.memos())
       
       if (!fs.existsSync(memosPath)) {
         console.log('memos.json not found, returning empty array')
@@ -121,11 +140,23 @@ export class LocalFileSystemClient {
   }
 
   /**
+   * Get the full site config from local site-config.json (or null if absent).
+   */
+  async getSiteConfig(): Promise<SiteConfig | null> {
+    try {
+      const raw = fs.readFileSync(this.abs(contentRel.siteConfig()), 'utf-8')
+      return JSON.parse(raw) as SiteConfig
+    } catch {
+      return null
+    }
+  }
+
+  /**
    * Get links from local data/site-config.json
    */
   async getLinks(): Promise<Record<string, string>> {
     try {
-      const configPath = this.abs(contentPaths.siteConfig())
+      const configPath = this.abs(contentRel.siteConfig())
       
       if (!fs.existsSync(configPath)) {
         return {}
@@ -146,7 +177,7 @@ export class LocalFileSystemClient {
    */
   async getLikes(): Promise<LikesDatabase> {
     try {
-      const likesPath = this.abs(contentPaths.likes())
+      const likesPath = this.abs(contentRel.likes())
       
       if (!fs.existsSync(likesPath)) {
         console.log('likes.json not found, returning empty object')
@@ -168,7 +199,7 @@ export class LocalFileSystemClient {
    */
   async updateLikes(likesData: LikesDatabase): Promise<void> {
     try {
-      const likesPath = this.abs(contentPaths.likes())
+      const likesPath = this.abs(contentRel.likes())
       const content = JSON.stringify(likesData, null, 2)
       fs.writeFileSync(likesPath, content, 'utf-8')
       console.log('Updated local likes data')
@@ -186,7 +217,7 @@ export class LocalFileSystemClient {
       const memos = await this.getMemos()
       const updatedMemos = [memo, ...memos]
       
-      const memosPath = this.abs(contentPaths.memos())
+      const memosPath = this.abs(contentRel.memos())
       const content = JSON.stringify(updatedMemos, null, 2)
       fs.writeFileSync(memosPath, content, 'utf-8')
       
@@ -196,6 +227,88 @@ export class LocalFileSystemClient {
       console.error('Error creating local memo:', error)
       throw new Error('Failed to create memo locally')
     }
+  }
+
+  /**
+   * Create a new blog post on disk. Returns the slug id.
+   */
+  async createBlogPost(input: BlogWriteInput): Promise<string> {
+    const slug = slugFromTitle(input.title)
+    const filePath = this.abs(contentRel.blogFile(`${slug}.md`))
+    const markdown = buildBlogMarkdown({
+      title: input.title,
+      date: new Date().toISOString(),
+      content: input.content,
+      status: input.status,
+      location: input.location,
+      discussions: input.discussions,
+    })
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.writeFileSync(filePath, markdown, 'utf-8')
+    return slug
+  }
+
+  /**
+   * Update an existing blog post on disk, preserving its original date and
+   * (unless overridden) its status.
+   */
+  async updateBlogPost(id: string, input: BlogWriteInput): Promise<string> {
+    const filePath = this.abs(contentRel.blogPost(id))
+    let existing = ''
+    try {
+      existing = fs.readFileSync(filePath, 'utf-8')
+    } catch {
+      // No existing file — treat like a create at this id.
+    }
+    const date = extractDate(existing) ?? new Date().toISOString()
+    const status = input.status !== undefined ? input.status : (extractStatus(existing) ?? 'published')
+    const markdown = buildBlogMarkdown({
+      title: input.title,
+      date,
+      content: input.content,
+      status,
+      location: input.location,
+      discussions: input.discussions,
+    })
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.writeFileSync(filePath, markdown, 'utf-8')
+    return id
+  }
+
+  /**
+   * Delete a blog post from disk. No-op if it doesn't exist.
+   */
+  async deleteBlogPost(id: string): Promise<void> {
+    const filePath = this.abs(contentRel.blogPost(id))
+    try {
+      fs.unlinkSync(filePath)
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException)?.code !== 'ENOENT') throw error
+    }
+  }
+
+  /**
+   * Update a memo's content in local memos.json (timestamp preserved).
+   */
+  async updateMemo(id: string, content: string): Promise<Memo> {
+    const memos = await this.getMemos()
+    const idx = memos.findIndex((m) => m.id === id)
+    if (idx === -1) {
+      throw new Error('Memo not found')
+    }
+    const updated: Memo = { ...memos[idx], content }
+    const next = memos.map((m, i) => (i === idx ? updated : m))
+    fs.writeFileSync(this.abs(contentRel.memos()), JSON.stringify(next, null, 2), 'utf-8')
+    return updated
+  }
+
+  /**
+   * Delete a memo from local memos.json.
+   */
+  async deleteMemo(id: string): Promise<void> {
+    const memos = await this.getMemos()
+    const next = memos.filter((m) => m.id !== id)
+    fs.writeFileSync(this.abs(contentRel.memos()), JSON.stringify(next, null, 2), 'utf-8')
   }
 
   /**

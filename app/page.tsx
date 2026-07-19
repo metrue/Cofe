@@ -2,14 +2,13 @@ import BlogPage from './blog/page'
 import { Memo } from '@/lib/types'
 import React from 'react'
 import { StatusCard } from '@/components/StatusCard'
-import { createOptimizedGitHubClient } from '@/lib/client'
+import { getProvider } from '@/lib/runtime/provider'
 
 export default async function Home() {
   const username = process.env.GITHUB_USERNAME ?? ''
 
-  const client = createOptimizedGitHubClient(username)
-  const memos = await client.getMemos()
-  const links = await client.getLinks()
+  const client = getProvider()
+  const [memos, links] = await Promise.all([client.getMemos(), client.getLinks()])
   let latestMemo: Memo | undefined
   if (memos.length > 0) {
     latestMemo = memos.sort(

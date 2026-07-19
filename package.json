@@ -1,7 +1,21 @@
 {
   "name": "cofe",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "description": "Git-backed blog CMS. Run `npx cofe --data <dir>` to serve and edit your posts locally.",
+  "bin": {
+    "cofe": "bin/cofe.js"
+  },
+  "files": [
+    "bin/",
+    ".next/standalone/"
+  ],
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,7 +23,10 @@
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "assemble": "node scripts/assemble-standalone.js",
+    "build:cli": "next build && node scripts/assemble-standalone.js",
+    "prepack": "next build && node scripts/assemble-standalone.js"
   },
   "dependencies": {
     "@auth/core": "^0.34.2",

@@ -7,8 +7,10 @@ import Head from 'next/head'
 import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import { SessionProvider } from '../components/SessionProvider'
+import { EditProvider } from '@/components/EditContext'
 import { Toaster } from '@/components/ui/toaster'
 import { authOptions } from '@/lib/auth'
+import { getProvider } from '@/lib/runtime/provider'
 import { getIconUrls } from '@/lib/githubApi'
 import { getServerSession } from 'next-auth/next'
 import { gowun_wodum } from '@/components/ui/font'
@@ -17,7 +19,9 @@ import Analytics from '@/components/Analytics'
 
 export async function generateMetadata(): Promise<Metadata> {
   const session = await getServerSession(authOptions)
-  const siteConfig = getSiteConfig()
+  // Prefer the served site's config (so --dir/--repo show their own metadata);
+  // fall back to the build-time config in production.
+  const siteConfig = (await getProvider(session?.accessToken).getSiteConfig()) ?? getSiteConfig()
 
   const title = siteConfig.title
   const description = siteConfig.description
@@ -55,6 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale()
   const messages = await getMessages()
   const session = await getServerSession(authOptions)
+  const canEdit = getProvider(session?.accessToken).canWrite()
 
   const { iconPath } = await getIconPaths(session?.accessToken)
 
@@ -70,9 +75,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`${gowun_wodum.className} bg-[#f6f8fa]`}>
         <NextIntlClientProvider messages={messages}>
           <SessionProvider>
-            <main className='pb-20 m-auto'>{children}</main>
-            <CreateButton messages={messages} />
-            <Toaster />
+            <EditProvider canEdit={canEdit}>
+              <main className='pb-20 m-auto'>{children}</main>
+              <CreateButton messages={messages} />
+              <Toaster />
+            </EditProvider>
           </SessionProvider>
         </NextIntlClientProvider>
       </body>

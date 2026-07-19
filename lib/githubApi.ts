@@ -2,6 +2,7 @@ import { Memo, ExternalDiscussion } from './types';
 import { Octokit } from '@octokit/rest';
 import { updateBlogManifest } from './manifestUtils';
 import { contentPaths } from './content/paths';
+import { buildBlogMarkdown, slugFromTitle, extractDate, extractStatus } from './blogFrontmatter';
 import path from 'path';
 import {
   getOctokit,
@@ -16,16 +17,6 @@ import {
 } from './githubUtils';
 
 const REPO = 'Cofe';
-
-function formatDiscussions(discussions: ExternalDiscussion[]): string {
-  if (!discussions.length) return '';
-  
-  const formatted = discussions.map(d => 
-    `  - platform: ${d.platform}\n    url: ${d.url}`
-  ).join('\n');
-  
-  return `external_discussions:\n${formatted}\n`;
-}
 
 async function ensureRepoExists(octokit: Octokit, owner: string, repo: string) {
   try {
@@ -140,34 +131,36 @@ async function initializeGitHubStructure(octokit: Octokit, owner: string, repo: 
   await ensureContentStructure(octokit, owner, repo)
 }
 
+/** Explicit repo target — lets a provider write to an arbitrary owner/repo
+ * (`--repo`) instead of always the token owner's Cofe repo. */
+export interface RepoTarget {
+  owner: string
+  repo: string
+}
+
 export async function createBlogPost(
   title: string,
   content: string,
   accessToken: string,
   discussions: ExternalDiscussion[] = [],
   location?: { latitude?: number; longitude?: number; city?: string; street?: string },
-  status: string = 'published'
+  status: string = 'published',
+  target?: RepoTarget
 ): Promise<void> {
   const octokit = getOctokit(accessToken)
-  const { owner, repo } = await getRepoInfo(accessToken)
+  const { owner, repo } = target ?? await getRepoInfo(accessToken)
   await initializeGitHubStructure(octokit, owner, repo)
 
-  const filename = `${title.toLowerCase().replace(/\s+/g, '-')}.md`
+  const filename = `${slugFromTitle(title)}.md`
   const path = contentPaths.blogFile(filename)
-  const date = new Date().toISOString() // Store full ISO string
-  const discussionsYaml = formatDiscussions(discussions)
-  const locationYaml = location ? `latitude: ${location.latitude || ''}
-longitude: ${location.longitude || ''}
-city: ${location.city || ''}
-street: ${location.street || ''}
-` : ''
-  const statusYaml = status !== 'published' ? `status: ${status}\n` : ''
-  const fullContent = `---
-title: ${title}
-date: ${date}
-${statusYaml}${locationYaml}${discussionsYaml}---
-
-${content}`
+  const fullContent = buildBlogMarkdown({
+    title,
+    date: new Date().toISOString(), // Store full ISO string
+    content,
+    status,
+    location,
+    discussions,
+  })
 
   await octokit.repos.createOrUpdateFileContents({
     owner,
@@ -390,7 +383,7 @@ export async function updateMemo(
   }
 }
 
-export async function deleteBlogPost(id: string, accessToken: string): Promise<void> {
+export async function deleteBlogPost(id: string, accessToken: string, target?: RepoTarget): Promise<void> {
   console.log('Deleting blog post...')
   if (!accessToken) {
     throw new Error('Access token is required')
@@ -398,7 +391,7 @@ export async function deleteBlogPost(id: string, accessToken: string): Promise<v
   const octokit = getOctokit(accessToken)
 
   try {
-    const { owner, repo } = await getRepoInfo(accessToken)
+    const { owner, repo } = target ?? await getRepoInfo(accessToken)
 
     // Decode the ID and create the file path
     const decodedId = decodeURIComponent(id)
@@ -446,7 +439,8 @@ export async function updateBlogPost(
   accessToken: string,
   discussions: ExternalDiscussion[] = [],
   location?: { latitude?: number; longitude?: number; city?: string; street?: string },
-  status?: string
+  status?: string,
+  target?: RepoTarget
 ): Promise<void> {
   console.log('Updating blog post...')
   if (!accessToken) {
@@ -455,7 +449,7 @@ export async function updateBlogPost(
   const octokit = getOctokit(accessToken)
 
   try {
-    const { owner, repo } = await getRepoInfo(accessToken)
+    const { owner, repo } = target ?? await getRepoInfo(accessToken)
 
     // Get the current file to retrieve its SHA and content
     const { content: existingContent, sha } = await getFileContent(
@@ -464,27 +458,18 @@ export async function updateBlogPost(
       repo,
       contentPaths.blogPost(id)
     )
-    const dateMatch = existingContent.match(/date:\s*(.+)/)
-    const date = dateMatch ? dateMatch[1] : new Date().toISOString()
-    const discussionsYaml = formatDiscussions(discussions)
-    const locationYaml = location ? `latitude: ${location.latitude || ''}
-longitude: ${location.longitude || ''}
-city: ${location.city || ''}
-street: ${location.street || ''}
-` : ''
+    const date = extractDate(existingContent) ?? new Date().toISOString()
+    // Preserve existing status if the caller didn't provide one.
+    const finalStatus = status !== undefined ? status : (extractStatus(existingContent) ?? 'published')
 
-    // Extract existing status if not provided
-    const statusMatch = existingContent.match(/status:\s*(.+)/)
-    const currentStatus = statusMatch ? statusMatch[1].trim() : 'published'
-    const finalStatus = status !== undefined ? status : currentStatus
-    const statusYaml = finalStatus !== 'published' ? `status: ${finalStatus}\n` : ''
-    
-    const updatedContent = `---
-title: ${title}
-date: ${date}
-${statusYaml}${locationYaml}${discussionsYaml}---
-
-${content}`
+    const updatedContent = buildBlogMarkdown({
+      title,
+      date,
+      content,
+      status: finalStatus,
+      location,
+      discussions,
+    })
 
     // Update the blog post file
     await updateFileContents(
@@ -508,7 +493,7 @@ ${content}`
   }
 }
 
-export async function uploadImage(file: File, accessToken: string): Promise<string> {
+export async function uploadImage(file: File, accessToken: string, target?: RepoTarget): Promise<string> {
   console.log('Uploading image...')
   if (!accessToken) {
     throw new Error('Access token is required')
@@ -517,7 +502,7 @@ export async function uploadImage(file: File, accessToken: string): Promise<stri
   console.log('Octokit instance created')
 
   try {
-    const { owner, repo } = await getRepoInfo(accessToken)
+    const { owner, repo } = target ?? await getRepoInfo(accessToken)
     console.log('Repo info:', { owner, repo })
 
     // Get the default branch

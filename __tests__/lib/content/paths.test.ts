@@ -1,4 +1,4 @@
-import { CONTENT_ROOT, contentPaths } from '@/lib/content/paths'
+import { CONTENT_ROOT, contentPaths, contentRel } from '@/lib/content/paths'
 
 describe('contentPaths registry', () => {
   it('roots everything under CONTENT_ROOT', () => {
@@ -37,5 +37,31 @@ describe('contentPaths registry', () => {
   it('produces no leading slash (safe to join or concat behind a base URL)', () => {
     expect(contentPaths.blogPost('x').startsWith('/')).toBe(false)
     expect(contentPaths.memos().startsWith('/')).toBe(false)
+  })
+})
+
+describe('contentRel (content-root-relative) builders', () => {
+  it('returns paths without the data/ prefix', () => {
+    expect(contentRel.blogDir()).toBe('blog')
+    expect(contentRel.blogPost('hello-world')).toBe('blog/hello-world.md')
+    expect(contentRel.blogFile('hello-world.md')).toBe('blog/hello-world.md')
+    expect(contentRel.blogManifest()).toBe('blog-manifest.json')
+    expect(contentRel.memos()).toBe('memos.json')
+    expect(contentRel.likes()).toBe('likes.json')
+    expect(contentRel.siteConfig()).toBe('site-config.json')
+    expect(contentRel.highlightsDir()).toBe('highlights')
+    expect(contentRel.highlightsFile('hello-world')).toBe('highlights/hello-world.json')
+  })
+
+  it('none of the relative builders start with the content root', () => {
+    for (const build of Object.values(contentRel)) {
+      expect((build as (a?: string) => string)('x').startsWith(`${CONTENT_ROOT}/`)).toBe(false)
+    }
+  })
+
+  it('contentPaths == CONTENT_ROOT + contentRel (composition holds)', () => {
+    expect(contentPaths.blogPost('x')).toBe(`${CONTENT_ROOT}/${contentRel.blogPost('x')}`)
+    expect(contentPaths.memos()).toBe(`${CONTENT_ROOT}/${contentRel.memos()}`)
+    expect(contentPaths.highlightsFile('x')).toBe(`${CONTENT_ROOT}/${contentRel.highlightsFile('x')}`)
   })
 })

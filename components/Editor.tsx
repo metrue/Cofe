@@ -15,14 +15,12 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { Textarea } from "@/components/ui/textarea";
-import { createGitHubAPIClient } from "@/lib/client"
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { uploadImage } from "@/lib/githubApi";
 import { useDropzone } from "react-dropzone";
-import { useSession } from "next-auth/react";
+import { useCanEdit } from "./EditContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslations } from "next-intl";
 import { useGeolocation } from "@/hooks/useGeolocation";
@@ -49,7 +47,17 @@ export default function Editor({
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const t = useTranslations("HomePage");
-  const { data: session } = useSession();
+  const canEdit = useCanEdit();
+
+  // Upload an image through the provider (one endpoint for local + GitHub).
+  const uploadImageForMode = useCallback(async (file: File): Promise<string> => {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || "Upload failed");
+    return data.url as string;
+  }, []);
   const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
   const { toast } = useToast();
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
@@ -65,25 +73,28 @@ export default function Editor({
   const [isPublished, setIsPublished] = useState(true);
   const [isMemoLocationIgnored, setIsMemoLocationIgnored] = useState(false);
 
-  const fetchMemo = useCallback(
-    async (id: string) => {
-      if (!session?.accessToken) return;
-      try {
-        const memos = await createGitHubAPIClient(session.accessToken).getMemos()
-        const memo = memos.find((t) => t.id === id);
-        if (memo) {
-          setContent(memo.content);
-        }
-      } catch (error) {
-        console.error("Error fetching memo:", error);
+  const fetchMemo = useCallback(async (id: string) => {
+    // Fetch via GraphQL so it works in both GitHub and local (`npx cofe --data`) mode.
+    try {
+      const response = await fetch("/api/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: `query { memos { id content } }` }),
+      });
+      const result = await response.json();
+      if (result.errors) throw new Error(result.errors[0].message);
+      const memos: Array<{ id: string; content: string }> = result.data?.memos ?? [];
+      const memo = memos.find((m) => m.id === id);
+      if (memo) {
+        setContent(memo.content);
       }
-    },
-    [session?.accessToken]
-  );
+    } catch (error) {
+      console.error("Error fetching memo:", error);
+    }
+  }, []);
 
   const fetchBlogPost = useCallback(
     async (id: string) => {
-      if (!session?.accessToken) return;
       try {
         const response = await fetch('/api/graphql', {
           method: 'POST',
@@ -143,7 +154,7 @@ export default function Editor({
         console.error("Error fetching blog post:", error);
       }
     },
-    [session?.accessToken]
+    []
   );
 
   useEffect(() => {
@@ -308,7 +319,7 @@ export default function Editor({
 
   const handleImageUpload = useCallback(
     async (file: File) => {
-      if (!session?.accessToken) {
+      if (!canEdit) {
         toast({
           title: t("error"),
           description: t("notAuthenticated"),
@@ -320,7 +331,7 @@ export default function Editor({
 
       setIsImageUploading(true);
       try {
-        const imageUrl = await uploadImage(file, session.accessToken);
+        const imageUrl = await uploadImageForMode(file);
         const imageMarkdown = `![${file.name}](${imageUrl})`;
 
         if (cursorPosition !== null) {
@@ -350,7 +361,7 @@ export default function Editor({
         setIsImageUploading(false);
       }
     },
-    [session?.accessToken, cursorPosition, content, toast, t]
+    [canEdit, uploadImageForMode, cursorPosition, content, toast, t]
   );
 
   const addDiscussion = () => {
@@ -397,7 +408,7 @@ export default function Editor({
 
   const handlePaste = useCallback(
     async (e: React.ClipboardEvent) => {
-      if (!session?.accessToken) {
+      if (!canEdit) {
         toast({
           title: t("error"),
           description: t("notAuthenticated"),
@@ -417,7 +428,7 @@ export default function Editor({
             const file = item.getAsFile();
             if (!file) continue;
 
-            const imageUrl = await uploadImage(file, session.accessToken);
+            const imageUrl = await uploadImageForMode(file);
             const imageMarkdown = `![${
               file.name || "Pasted image"
             }](${imageUrl})`;
@@ -451,7 +462,7 @@ export default function Editor({
         }
       }
     },
-    [session?.accessToken, cursorPosition, content, toast, t]
+    [canEdit, uploadImageForMode, cursorPosition, content, toast, t]
   );
 
   return (

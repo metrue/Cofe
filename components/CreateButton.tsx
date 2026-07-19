@@ -5,7 +5,7 @@ import { FiPlus } from "react-icons/fi";
 import GitHubSignInButton from "./GitHubSignInButton";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useCanEdit } from "./EditContext";
 
 export default function CreateButton({
   messages,
@@ -13,13 +13,14 @@ export default function CreateButton({
   messages: AbstractIntlMessages;
 }) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const canEdit = useCanEdit();
 
   const isMemosPage = pathname === "/" || pathname === "/memos";
   const isBlogPage = pathname === "/blog";
   const createLink = isBlogPage ? "/editor?type=blog" : "/editor?type=memo";
 
-  if (!session) {
+  // Editing available (local, or GitHub with a token) → show the + button.
+  if (!canEdit) {
     return (
       <div className="fixed bottom-9 right-9 z-20">
         <GitHubSignInButton />

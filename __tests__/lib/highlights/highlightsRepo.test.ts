@@ -77,7 +77,7 @@ describe('LocalFsHighlightsRepo', () => {
     expect(result.data).toEqual(data)
     expect(result.sha).toBeNull()
 
-    const filePath = path.join(tmpDir, 'data', 'highlights', 'post-a.json')
+    const filePath = path.join(tmpDir, 'highlights', 'post-a.json')
     expect((await fs.stat(filePath)).isFile()).toBe(true)
   })
 
@@ -122,7 +122,7 @@ describe('LocalFsHighlightsRepo', () => {
   })
 
   it('rejects malformed JSON on load', async () => {
-    const filePath = path.join(tmpDir, 'data', 'highlights', 'post-a.json')
+    const filePath = path.join(tmpDir, 'highlights', 'post-a.json')
     await fs.mkdir(path.dirname(filePath), { recursive: true })
     await fs.writeFile(filePath, 'not json', 'utf-8')
 
