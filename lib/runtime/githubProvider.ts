@@ -18,7 +18,8 @@ import type { BlogPost, Memo } from '@/lib/types'
 import type { LikesDatabase } from '@/lib/likeUtils'
 import type { SiteConfig } from '@/lib/siteConfig'
 import { contentPaths } from '@/lib/content/paths'
-import { getOctokit } from '@/lib/githubUtils'
+import { slugFromTitle } from '@/lib/blogFrontmatter'
+import { getOctokit, updateFileContents } from '@/lib/githubUtils'
 import {
   createBlogPost as ghCreateBlogPost,
   updateBlogPost as ghUpdateBlogPost,
@@ -137,7 +138,7 @@ export class GitHubProvider implements ContentProvider {
   async createBlogPost(input: BlogSaveInput): Promise<string> {
     const token = this.requireToken()
     await ghCreateBlogPost(input.title, input.content, token, input.discussions, input.location, input.status, this.target)
-    return input.title.toLowerCase().replace(/\s+/g, '-')
+    return slugFromTitle(input.title)
   }
 
   async updateBlogPost(id: string, input: BlogSaveInput): Promise<string> {
@@ -207,15 +208,7 @@ export class GitHubProvider implements ContentProvider {
     }
   }
 
-  private async putFile(path: string, content: string, message: string, sha?: string): Promise<void> {
-    const octokit = this.writeOctokit()
-    await octokit.repos.createOrUpdateFileContents({
-      owner: this.owner,
-      repo: this.repo,
-      path,
-      message,
-      content: Buffer.from(content).toString('base64'),
-      ...(sha ? { sha } : {}),
-    })
+  private putFile(path: string, content: string, message: string, sha?: string): Promise<void> {
+    return updateFileContents(this.writeOctokit(), this.owner, this.repo, path, message, content, sha)
   }
 }

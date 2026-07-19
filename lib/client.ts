@@ -3,9 +3,7 @@ import { LikesDatabase } from './likeUtils'
 import { parseBlogPostMetadata } from './markdown'
 
 import { Octokit } from '@octokit/rest'
-import { createHybridGitHubClient } from './publicClient'
 import { contentPaths } from './content/paths'
-import { shouldUseLocalBackend } from './runtime/mode'
 
 const REPO = 'Cofe'
 
@@ -246,34 +244,3 @@ class GitHubAPIClient {
 }
 
 export const createGitHubAPIClient = (token: string, repo?: string) => new GitHubAPIClient(token, repo)
-
-/**
- * Create a client that prioritizes raw GitHub URLs for public reads
- * Falls back to API for authenticated operations
- */
-export const createOptimizedGitHubClient = (owner: string, token?: string) => {
-  // In production, use GitHub clients
-  if (token) {
-    // For authenticated users, use hybrid approach
-    return createHybridGitHubClient(owner, token)
-  } else {
-    // For public users, use raw URLs only
-    return createHybridGitHubClient(owner)
-  }
-}
-
-/**
- * Create a client that uses local data in development, GitHub in production
- * Only works on server-side due to fs dependency
- */
-export const createDevelopmentOptimizedClient = async (owner: string, token?: string) => {
-  // Only use local client on server-side when the local backend is active
-  // (dev, or `npx cofe --data` local mode).
-  if (typeof window === 'undefined' && shouldUseLocalBackend()) {
-    const { createLocalFileSystemClient } = await import('./localClient.server')
-    return createLocalFileSystemClient()
-  }
-  
-  // In production or client-side, use GitHub clients
-  return createOptimizedGitHubClient(owner, token)
-}

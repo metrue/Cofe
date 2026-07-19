@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import type { BlogPost, Memo, ExternalDiscussion } from './types'
+import type { SiteConfig } from './siteConfig'
 import { LikesDatabase } from './likeUtils'
 import { parseBlogPostMetadata } from './markdown'
 import { contentRel } from './content/paths'
@@ -135,6 +136,18 @@ export class LocalFileSystemClient {
     } catch (error) {
       console.error('Error reading local memos:', error)
       return []
+    }
+  }
+
+  /**
+   * Get the full site config from local site-config.json (or null if absent).
+   */
+  async getSiteConfig(): Promise<SiteConfig | null> {
+    try {
+      const raw = fs.readFileSync(this.abs(contentRel.siteConfig()), 'utf-8')
+      return JSON.parse(raw) as SiteConfig
+    } catch {
+      return null
     }
   }
 

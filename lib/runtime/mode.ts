@@ -1,41 +1,30 @@
 /**
- * Runtime mode helpers (server-only). Thin predicates over the environment the
- * CLI / deploy platform sets. The authoritative backend choice lives in
- * `config.ts` (resolveRuntimeConfig) + the provider factory; these helpers are
- * for render-layer spots that only need a boolean (layout, editor gate, asset
- * routes, highlights).
+ * Runtime mode helpers (server-only). Thin booleans derived from the SINGLE
+ * source of truth — `resolveRuntimeConfig()` — for render-layer spots that only
+ * need "is the backend local" (asset route, highlights, editor gate) without
+ * building a full provider.
  *
  * Server-only: reads process.env + path. Do not import from client components.
  */
 
 import path from 'path'
+import { resolveRuntimeConfig } from './config'
 
-/** Local filesystem mode — `npx cofe --dir <path>` (sets COFE_DIR). */
+/**
+ * True when the active backend is the local filesystem — `npx cofe --dir` OR
+ * `next dev`. Derived from the same config the provider factory uses, so the
+ * two never disagree.
+ */
 export function isLocalMode(): boolean {
-  return !!process.env.COFE_DIR
-}
-
-/** Remote-repo mode — `npx cofe --repo owner/name` (sets COFE_REPO). */
-export function isRepoMode(): boolean {
-  return !!process.env.COFE_REPO
+  return resolveRuntimeConfig().kind === 'local'
 }
 
 /**
- * Absolute path to the local content root.
- * - Local mode: the `--dir` directory itself.
- * - Dev fallback: `<cwd>/data` (repo-embedded content).
+ * Absolute path to the local content root: the `--dir` directory, or `<cwd>/data`
+ * in development.
  */
 export function localDataDir(): string {
   const dir = process.env.COFE_DIR
   if (dir) return path.resolve(dir)
   return path.join(process.cwd(), 'data')
-}
-
-/**
- * Whether the local filesystem backend is active (local mode, or dev). Used by
- * the highlights repo factory and dev tooling. The provider factory makes the
- * primary decision; this stays for the highlights sub-domain + dev.
- */
-export function shouldUseLocalBackend(): boolean {
-  return isLocalMode() || process.env.NODE_ENV === 'development'
 }

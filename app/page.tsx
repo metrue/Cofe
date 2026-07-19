@@ -8,8 +8,7 @@ export default async function Home() {
   const username = process.env.GITHUB_USERNAME ?? ''
 
   const client = getProvider()
-  const memos = await client.getMemos()
-  const links = await client.getLinks()
+  const [memos, links] = await Promise.all([client.getMemos(), client.getLinks()])
   let latestMemo: Memo | undefined
   if (memos.length > 0) {
     latestMemo = memos.sort(

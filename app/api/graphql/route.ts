@@ -184,6 +184,15 @@ const typeDefs = `
   }
 `
 
+/** Provider for a mutation — throws if the active backend is read-only. */
+function writableProvider(context: GraphQLContext) {
+  const client = getProvider(context.token?.accessToken)
+  if (!client.canWrite()) {
+    throw new Error('Authentication required')
+  }
+  return client
+}
+
 const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
   Query: {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -258,11 +267,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
   Mutation: {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     createMemo: async (_parent, { input }, context) => {
-      const client = getProvider(context.token?.accessToken)
-      // Local mode writes to disk without a token; GitHub mode needs one.
-      if (!client.canWrite()) {
-        throw new Error('Authentication required')
-      }
+      const client = writableProvider(context)
 
       try {
         const newMemo: Memo = {
@@ -354,10 +359,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     updateMemo: async (_parent, { id, input }, context) => {
-      const client = getProvider(context.token?.accessToken)
-      if (!client.canWrite()) {
-        throw new Error('Authentication required')
-      }
+      const client = writableProvider(context)
 
       try {
         const updatedMemo = await client.updateMemo(id, input.content)
@@ -372,10 +374,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     deleteMemo: async (_parent, { id }, context) => {
-      const client = getProvider(context.token?.accessToken)
-      if (!client.canWrite()) {
-        throw new Error('Authentication required')
-      }
+      const client = writableProvider(context)
 
       try {
         await client.deleteMemo(id)
@@ -387,10 +386,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     saveBlogPost: async (_parent, { id, input }, context) => {
-      const client = getProvider(context.token?.accessToken)
-      if (!client.canWrite()) {
-        throw new Error('Authentication required')
-      }
+      const client = writableProvider(context)
 
       try {
         const location = {
@@ -427,10 +423,7 @@ const resolvers: { Query: QueryResolvers; Mutation: MutationResolvers } = {
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     deleteBlogPost: async (_parent, { id }, context) => {
-      const client = getProvider(context.token?.accessToken)
-      if (!client.canWrite()) {
-        throw new Error('Authentication required')
-      }
+      const client = writableProvider(context)
 
       try {
         await client.deleteBlogPost(id)

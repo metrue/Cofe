@@ -19,7 +19,9 @@ import Analytics from '@/components/Analytics'
 
 export async function generateMetadata(): Promise<Metadata> {
   const session = await getServerSession(authOptions)
-  const siteConfig = getSiteConfig()
+  // Prefer the served site's config (so --dir/--repo show their own metadata);
+  // fall back to the build-time config in production.
+  const siteConfig = (await getProvider(session?.accessToken).getSiteConfig()) ?? getSiteConfig()
 
   const title = siteConfig.title
   const description = siteConfig.description

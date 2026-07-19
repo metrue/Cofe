@@ -8,12 +8,9 @@
  * façade over them.
  */
 
-import fs from 'fs'
-import path from 'path'
 import type { BlogPost, Memo } from '@/lib/types'
 import type { LikesDatabase } from '@/lib/likeUtils'
 import type { SiteConfig } from '@/lib/siteConfig'
-import { contentRel } from '@/lib/content/paths'
 import { saveLocalAsset } from '@/lib/localAssets'
 import { LocalFsHighlightsRepo, type HighlightsRepo } from '@/lib/highlights/highlightsRepo'
 import { LocalFileSystemClient } from '@/lib/localClient.server'
@@ -54,13 +51,8 @@ export class LocalProvider implements ContentProvider {
     return this.client.getLikes()
   }
 
-  async getSiteConfig(): Promise<SiteConfig | null> {
-    try {
-      const raw = fs.readFileSync(path.join(this.dir, contentRel.siteConfig()), 'utf-8')
-      return JSON.parse(raw) as SiteConfig
-    } catch {
-      return null
-    }
+  getSiteConfig(): Promise<SiteConfig | null> {
+    return this.client.getSiteConfig()
   }
 
   // --- writes ---
