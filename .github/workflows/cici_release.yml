@@ -3,14 +3,18 @@ name: Release (npm)
 # Publishes the `cici` package (the cici CLI) to npm when a version tag is pushed.
 #
 # Auth: npm Trusted Publisher (OIDC) — NO NPM_TOKEN secret. Set up the trust on
-# npmjs.com → package `cici` → Settings → Trusted Publisher:
-#   Publisher: GitHub Actions | Org/user: metrue | Repository: cici
-#   Workflow filename: cici_release.yml | Allowed actions: Allow npm publish
+# npmjs.com → package `cici` → Settings → Trusted publishing → GitHub Actions.
+# ALL FIELDS ARE CASE-SENSITIVE AND MUST BE EXACT:
+#   Organization or user: metrue
+#   Repository:           cici              (repo NAME only, not metrue/cici)
+#   Workflow filename:    cici_release.yml  (basename, underscore not hyphen)
+#   Environment name:     (blank)
+#   Allowed actions:      npm publish
 # The OIDC id-token (permissions.id-token: write) is exchanged for a short-lived
 # publish credential at publish time.
 #
-# To activate: move this file to `.github/workflows/cici_release.yml`
-# (requires a token with GitHub `workflow` scope).
+# Requirements (docs.npmjs.com/trusted-publishers): npm CLI >= 11.5.1 AND
+# Node >= 22.14.0. Node 22 satisfies the Node floor; npm is upgraded below.
 #
 # Release flow:
 #   1. bump "version" in package.json (must be > the current npm version)
@@ -37,9 +41,9 @@ jobs:
       # npm use the OIDC trusted publisher.
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22' # trusted publishing requires Node >= 22.14.0
 
-      # Trusted publishing (OIDC) needs npm >= 11.5.1; Node 20 ships npm 10.x.
+      # Node 22 ships npm 10.x; trusted publishing needs npm >= 11.5.1.
       - name: Upgrade npm (OIDC support)
         run: npm install -g npm@11
 
