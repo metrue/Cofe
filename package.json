@@ -2,7 +2,15 @@
   "name": "cici",
   "version": "0.1.1",
   "private": false,
-  "description": "Cofe — a git-backed blog CMS. Run `npx cici --dir <dir>` or `--repo <owner/name>` to serve and edit your posts.",
+  "description": "cici — a git-backed blog CMS. Run `npx cici --dir <dir>` or `--repo <owner/name>` to serve and edit your posts.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/metrue/cici.git"
+  },
+  "homepage": "https://github.com/metrue/cici#readme",
+  "bugs": {
+    "url": "https://github.com/metrue/cici/issues"
+  },
   "bin": {
     "cici": "bin/cici.js"
   },
