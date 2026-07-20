@@ -23,8 +23,8 @@ const mockFs = {
 
 describe('LocalFileSystemClient', () => {
   let client: LocalFileSystemClient
-  const mockDataDir = '/mock/project/data'
-  const mockBlogDir = '/mock/project/data/blog'
+  const mockDataDir = '/mock/project/sample-content'
+  const mockBlogDir = '/mock/project/sample-content/blog'
 
   beforeEach(() => {
     client = new LocalFileSystemClient()

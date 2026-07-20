@@ -34,9 +34,9 @@ describe('resolveRuntimeConfig precedence', () => {
     expect(cfg).toEqual({ kind: 'github', owner: 'someone', repo: 'cici', token: 'session-tok' })
   })
 
-  it('development with no target → local cwd/data', async () => {
+  it('development with no target → local cwd/sample-content', async () => {
     const cfg = await resolve({ NODE_ENV: 'development' })
-    expect(cfg).toEqual({ kind: 'local', dir: path.join(process.cwd(), 'data') })
+    expect(cfg).toEqual({ kind: 'local', dir: path.join(process.cwd(), 'sample-content') })
   })
 
   it('production default → github from GITHUB_USERNAME + session token', async () => {

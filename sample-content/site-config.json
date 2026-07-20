@@ -1,0 +1,18 @@
+{
+  "title": "cici",
+  "description": "A git-backed blog and memo app that just works. Write posts and memos in Markdown, stored in your own repo and always in version control.",
+  "author": {
+    "name": "Your Name",
+    "bio": "A short bio about yourself goes here.",
+    "location": "Somewhere on Earth"
+  },
+  "keywords": ["blog", "memo", "markdown", "github", "cici"],
+  "social": {
+    "github": "your-github-username",
+    "twitter": "your_twitter_handle"
+  },
+  "links": {
+    "github.com": "https://github.com/your-github-username",
+    "x.com": "https://x.com/your_twitter_handle"
+  }
+}

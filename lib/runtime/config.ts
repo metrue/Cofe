@@ -36,9 +36,10 @@ export function resolveRuntimeConfig(sessionToken?: string): RuntimeConfig {
     }
   }
 
-  // Local development: serve the repo-embedded content under <cwd>/data.
+  // Local development: serve the shipped demo fixture under <cwd>/sample-content.
+  // Real blog content lives in a separate repo — served via CICI_DIR/CICI_REPO.
   if (process.env.NODE_ENV === 'development') {
-    return { kind: 'local', dir: path.join(process.cwd(), 'data') }
+    return { kind: 'local', dir: path.join(process.cwd(), 'sample-content') }
   }
 
   // Production / default: the deployed owner's repo, session token for writes.
