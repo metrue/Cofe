@@ -20,11 +20,11 @@ export function isLocalMode(): boolean {
 }
 
 /**
- * Absolute path to the local content root: the `--dir` directory, or `<cwd>/data`
- * in development.
+ * Absolute path to the local content root: the `--dir` directory, or the shipped
+ * `<cwd>/sample-content` demo fixture in development.
  */
 export function localDataDir(): string {
   const dir = process.env.CICI_DIR
   if (dir) return path.resolve(dir)
-  return path.join(process.cwd(), 'data')
+  return path.join(process.cwd(), 'sample-content')
 }

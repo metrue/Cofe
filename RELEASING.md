@@ -1,7 +1,9 @@
 # Releasing the cici CLI to npm (as `cici`)
 
-The CLI (`npx cici --dir … | --repo …`) is published to npm under the **`cici`**
-package name (repurposed from an older placeholder we own). Auth uses npm
+The CLI (`npx cici --dir … | --repo …`, plus `cici build` / `cici start` for host
+deploys) is published to npm under the **`cici`** package name (repurposed from an
+older placeholder we own). cici ships only the tooling and a `sample-content/` demo
+fixture — blog content lives in a separate content repo. Auth uses npm
 **Trusted Publisher (OIDC)** — no `NPM_TOKEN` secret.
 
 ## One-time setup

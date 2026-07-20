@@ -1,5 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
+import { localDataDir } from '@/lib/runtime/mode'
 
 /**
  * Generate blog manifest for local development
@@ -7,7 +8,8 @@ import path from 'path'
  */
 export async function updateLocalBlogManifest(): Promise<void> {
   try {
-    const blogDir = path.join(process.cwd(), 'data', 'blog')
+    const root = localDataDir()
+    const blogDir = path.join(root, 'blog')
     const files = await fs.readdir(blogDir)
     
     const blogFiles = files
@@ -18,7 +20,7 @@ export async function updateLocalBlogManifest(): Promise<void> {
       files: blogFiles
     }
     
-    const manifestPath = path.join(process.cwd(), 'data', 'blog-manifest.json')
+    const manifestPath = path.join(root, 'blog-manifest.json')
     await fs.writeFile(
       manifestPath, 
       JSON.stringify(manifest, null, 2),

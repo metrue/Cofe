@@ -1,8 +1,10 @@
-// Build-time static import: the path must be a literal, so it cannot go through
-// contentPaths. The runtime read/write source of truth is contentPaths.siteConfig()
-// (used by client.ts / publicClient.ts / localClient.server.ts). Keep this literal
-// in sync with contentPaths.siteConfig() if the content layout ever moves.
-import siteConfig from '@/data/site-config.json'
+// cici's shipped DEFAULT site config — a build-time static import (the path must
+// be a literal, so it cannot go through contentPaths). This is only a fallback
+// baked into the tool; the real runtime config comes from the active provider
+// via contentPaths.siteConfig() (client.ts / publicClient.ts / localClient.server.ts,
+// or GitHubProvider.getSiteConfig()). Keep this file's shape in sync with the
+// SiteConfig interface below.
+import siteConfig from '@/sample-content/site-config.json'
 import { headers } from 'next/headers'
 
 export interface SiteConfig {

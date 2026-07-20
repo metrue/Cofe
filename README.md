@@ -4,6 +4,10 @@ A beautifully simple blog and memo app that just works.
 
 Write thoughts. Share ideas. Let GitHub handle the rest. Originally inspired by [tinymind](https://github.com/mazzzystar/tinymind), now see it in action at [blog.minghe.me](https://blog.minghe.me).
 
+> **cici is pure tooling.** Your blog *content* — posts, memos, site config — lives in
+> a **separate content repo** (or a local folder), not here. This repo ships only the
+> app plus a small `sample-content/` demo fixture used for `next dev` and tests.
+
 
 ## What You Get
 
@@ -20,7 +24,8 @@ git clone https://github.com/metrue/cici.git
 cd cici && npm install && npm run dev
 ```
 
-**That's it.** Visit `localhost:3000`, sign in with GitHub, start writing.
+**That's it.** Visit `localhost:3000` — `next dev` serves the shipped `sample-content/`
+demo fixture. Point cici at your own content repo/folder (below) to write for real.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/metrue/cici)
 
@@ -38,6 +43,17 @@ npx cici --repo metrue/cici
 
 # ...with a token, edit that repo too
 npx cici --repo owner/name --token ghp_xxx --port 4000
+```
+
+Two more commands for deploying cici *with* a content repo on a host (e.g. Vercel):
+
+```bash
+# From inside a content repo: stage cici's prebuilt Next output into ./ for the host
+npx cici build
+
+# Boot the server from preset env (CICI_REPO/CICI_TOKEN/CICI_DIR/PORT/HOST) —
+# no --dir/--repo needed; the host supplies the backend via env
+npx cici start
 ```
 
 The content contract (same for `--dir` and `--repo`):

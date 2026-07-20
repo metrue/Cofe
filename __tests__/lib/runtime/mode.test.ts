@@ -22,7 +22,7 @@ describe('isLocalMode (derived from resolveRuntimeConfig)', () => {
   })
 
   it('true with CICI_DIR', async () => expect(await isLocal({ CICI_DIR: '/tmp/b' })).toBe(true))
-  it('true in development with no target (matches provider → local cwd/data)', async () =>
+  it('true in development with no target (matches provider → local cwd/sample-content)', async () =>
     expect(await isLocal({ NODE_ENV: 'development' })).toBe(true))
   it('false for a remote repo', async () =>
     expect(await isLocal({ CICI_REPO: 'metrue/cici' })).toBe(false))
