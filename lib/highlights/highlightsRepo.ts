@@ -29,7 +29,7 @@ import {
   emptyPostHighlights,
 } from './schema'
 import { contentPaths, contentRel } from '../content/paths'
-import { isLocalMode, localDataDir } from '../runtime/mode'
+import { resolveRuntimeConfig } from '../runtime/config'
 
 const REPO = 'cici'
 const CACHE_TTL_MS = 30_000
@@ -161,7 +161,11 @@ export class LocalFsHighlightsRepo implements HighlightsRepo {
 }
 
 export class GitHubHighlightsRepo implements HighlightsRepo {
-  constructor(private octokit: OctokitLike, private owner: string) {}
+  constructor(
+    private octokit: OctokitLike,
+    private owner: string,
+    private repo: string = REPO,
+  ) {}
 
   async load(postId: string): Promise<LoadedHighlights> {
     assertSafePostId(postId)
@@ -200,7 +204,7 @@ export class GitHubHighlightsRepo implements HighlightsRepo {
       try {
         const res = await this.octokit.repos.createOrUpdateFileContents({
           owner: this.owner,
-          repo: REPO,
+          repo: this.repo,
           path: pathFor(postId),
           message: commitMessage,
           content,
@@ -230,7 +234,7 @@ export class GitHubHighlightsRepo implements HighlightsRepo {
     try {
       const res = await this.octokit.repos.getContent({
         owner: this.owner,
-        repo: REPO,
+        repo: this.repo,
         path: pathFor(postId),
       })
       const data = res.data as
@@ -263,21 +267,25 @@ export interface GetRepoOptions {
  * clear error rather than silently failing the way `updateLikes` does.
  */
 export function getHighlightsRepo(opts: GetRepoOptions = {}): HighlightsRepo {
-  if (isLocalMode() && typeof window === 'undefined') {
-    return new LocalFsHighlightsRepo(localDataDir())
+  const cfg = resolveRuntimeConfig(opts.ownerToken)
+
+  if (cfg.kind === 'local') {
+    if (typeof window === 'undefined') {
+      return new LocalFsHighlightsRepo(cfg.dir)
+    }
+  } else {
+    const token = opts.ownerToken ?? cfg.token ?? process.env.HIGHLIGHTS_GH_TOKEN
+    if (!token) {
+      throw new Error(
+        'HIGHLIGHTS_GH_TOKEN not configured. Inline comments require a service token in production.',
+      )
+    }
+    return new GitHubHighlightsRepo(new Octokit({ auth: token }), cfg.owner, cfg.repo)
   }
 
-  const token = opts.ownerToken ?? process.env.HIGHLIGHTS_GH_TOKEN
-  if (!token) {
-    throw new Error(
-      'HIGHLIGHTS_GH_TOKEN not configured. Inline comments require a service token in production.',
-    )
-  }
-
-  const owner = process.env.GITHUB_USERNAME
-  if (!owner) {
-    throw new Error('GITHUB_USERNAME not configured.')
-  }
-
-  return new GitHubHighlightsRepo(new Octokit({ auth: token }), owner)
+  // Local backend reached in a browser context — the local FS repo is
+  // server-only, so there's nothing usable here.
+  throw new Error(
+    'HIGHLIGHTS_GH_TOKEN not configured. Inline comments require a service token in production.',
+  )
 }
