@@ -1,101 +1,104 @@
 # cici
 
-A beautifully simple blog and memo app that just works.
+A beautifully simple, git-backed blog & memo app. Write Markdown, keep everything in
+your own Git repo, serve it anywhere. Inspired by [tinymind](https://github.com/mazzzystar/tinymind);
+live at [blog.minghe.me](https://blog.minghe.me).
 
-Write thoughts. Share ideas. Let GitHub handle the rest. Originally inspired by [tinymind](https://github.com/mazzzystar/tinymind), now see it in action at [blog.minghe.me](https://blog.minghe.me).
+**cici is pure tooling.** Your content — posts, memos, config — lives in *your* repo or
+folder. You install cici (`npm i cici` / `npx cici`) and point it at that content. This
+repo ships only the app plus a tiny `sample-content/` demo used for local dev and tests.
 
-> **cici is pure tooling.** Your blog *content* — posts, memos, site config — lives in
-> a **separate content repo** (or a local folder), not here. This repo ships only the
-> app plus a small `sample-content/` demo fixture used for `next dev` and tests.
+## Content layout
 
+A cici "content root" is just a folder (or a Git repo) shaped like this:
 
-## What You Get
-
-- **Rich Blog Posts** - Markdown, syntax highlighting, math, images
-- **Quick Memos** - Instant thoughts with location tagging  
-- **Discussion Integration** - Auto-connect HN, Reddit, V2EX comments
-- **GitHub Powered** - Your data, your control, always
-- **Works Everywhere** - Mobile-first, lightning fast
-
-## Get Started in 2 Minutes
-
-```bash
-git clone https://github.com/metrue/cici.git
-cd cici && npm install && npm run dev
+```
+blog/            # one <slug>.md per post (front-matter + Markdown)
+memos.json       # short-form memos
+site-config.json # title, author, social links (optional)
+highlights/      # one <slug>.json per post (optional)
+likes.json       # like counts (optional)
+assets/          # images uploaded from the editor (local mode)
 ```
 
-**That's it.** Visit `localhost:3000` — `next dev` serves the shipped `sample-content/`
-demo fixture. Point cici at your own content repo/folder (below) to write for real.
+## Use it locally
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/metrue/cici)
-
-## Run it anywhere with `npx` (no deploy)
-
-cici has a runtime layer with two backends — **local files** and a **GitHub repo** —
-behind one content contract. Point the CLI at either:
+Run cici against a local folder or a GitHub repo — no clone, no build:
 
 ```bash
-# Local folder — serve AND edit, straight from disk (no GitHub, no sign-in)
+# Serve AND edit a local folder (open /editor to write; changes save to disk)
 npx cici --dir ~/my-blog
 
-# Any GitHub content repo — read-only viewer
-npx cici --repo metrue/cici
+# Serve a GitHub content repo (read-only)
+npx cici --repo owner/name
 
-# ...with a token, edit that repo too
+# ...with a token, edit it too (commits back to the repo)
 npx cici --repo owner/name --token ghp_xxx --port 4000
 ```
 
-Two more commands for deploying cici *with* a content repo on a host (e.g. Vercel):
+Options: `--port, -p` (default 3000), `--host` (default 127.0.0.1). Run `npx cici --help`.
+
+## Deploy on Vercel
+
+Your **content repo** is the thing you deploy — it just depends on cici. No app source,
+no fork of this repo.
+
+**1.** In your content repo, add `package.json`:
+
+```json
+{
+  "private": true,
+  "scripts": { "build": "cici build" },
+  "dependencies": { "cici": "^0.4.2" }
+}
+```
+
+**2.** Add `vercel.json` (so Vercel serves cici's output instead of running its own Next build):
+
+```json
+{ "framework": null, "buildCommand": "cici build" }
+```
+
+`cici build` emits Vercel's Build Output API (`.vercel/output/`) — cici's prebuilt server
+as one function plus static assets. Vercel serves it directly.
+
+**3.** Set environment variables on the Vercel project:
+
+| Var | Value |
+|-----|-------|
+| `CICI_REPO` | `owner/name` of your content repo |
+| `CICI_TOKEN` | GitHub token with **Contents: read & write** on that repo (renders a private repo + powers `/editor`) |
+| `NEXTAUTH_SECRET` | any random string |
+| `NEXTAUTH_URL` | your site URL, e.g. `https://blog.example.com` |
+| `GITHUB_ID` / `GITHUB_SECRET` | a [GitHub OAuth app](https://github.com/settings/developers) (callback `<site>/api/auth/callback/github`) — for `/editor` sign-in |
+
+Deploy. cici reads your content from `CICI_REPO` at request time, so edits (via `/editor`
+or a `git push`) show up without a redeploy.
+
+> Prefer a plain Node host (Railway / Render / Fly / a VPS / Docker)? Skip `cici build`
+> and run `cici start` with the same `CICI_*` env — it boots the server directly.
+
+## Editing
+
+Open `/editor` to write posts and memos. In `--dir` mode it writes to disk; with a token
+(`--repo --token`, or `CICI_TOKEN` on a deploy) it commits back to your content repo.
+
+## Develop cici itself
 
 ```bash
-# From inside a content repo: stage cici's prebuilt Next output into ./ for the host
-npx cici build
-
-# Boot the server from preset env (CICI_REPO/CICI_TOKEN/CICI_DIR/PORT/HOST) —
-# no --dir/--repo needed; the host supplies the backend via env
-npx cici start
+git clone https://github.com/metrue/cici.git
+cd cici && npm install && npm run dev   # serves the bundled sample-content/
+npm test
 ```
-
-The content contract (same for `--dir` and `--repo`):
-
-```
-<root>/
-  blog/            # one <slug>.md per post (front-matter + markdown)
-  memos.json       # your memos
-  site-config.json # optional site settings
-  likes.json       # optional
-  highlights/      # optional, one <slug>.json per post
-  assets/          # images uploaded from the editor land here (local mode)
-```
-
-When editing is available (local mode, or a GitHub repo with a token) open `/editor`
-to write posts and memos — everything is written back through the provider: to disk
-in `--dir` mode, or committed to the repo in `--repo --token` mode.
 
 ### Architecture
 
 - **Runtime layer** (`lib/runtime/`): a `ContentProvider` interface with `LocalProvider`
-  and `GitHubProvider` implementations; `getProvider()` is the single factory that picks
-  one from `CICI_DIR` / `CICI_REPO` / `GITHUB_USERNAME`.
+  and `GitHubProvider`; `getProvider()` picks one from `CICI_DIR` / `CICI_REPO` env.
 - **Render layer** (`app/`, `components/`): depends only on `getProvider()` — never on
   `fs` or Octokit directly.
+- **CLI** (`bin/cici.js`): `--dir` / `--repo` (serve), `build` (Vercel Build Output), `start` (boot from env).
 
 ## Documentation
 
-**[→ Complete cici Guide](/blog/cofe)** - Everything you need in one place:
-
-- Quick start & GitHub OAuth setup
-- Customization & analytics integration  
-- API reference & GraphQL queries
-- Deployment & performance tips
-- Migration from other platforms
-- Troubleshooting & best practices
-
-
-## Screenshots
-
-![Home Desktop](https://github.com/metrue/cici/blob/main/assets/images/home_desktop.png?raw=true)
-
-![Memos Desktop](https://github.com/metrue/cici/blob/main/assets/images/memos_desktop.png?raw=true)
-
-![Memo Editor](https://github.com/metrue/cici/blob/main/assets/images/memo_editor.png?raw=true)
+**[→ The Complete cici Guide](/blog/cofe)** — setup, customization, GraphQL API, deployment, and tips.
