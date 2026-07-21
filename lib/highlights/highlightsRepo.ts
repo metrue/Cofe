@@ -11,10 +11,11 @@
  *   - `GitHubHighlightsRepo` for production (writes via Octokit with
  *     SHA-based optimistic concurrency and bounded retries).
  *
- * In production, anonymous writes need a service token because there's no
- * user session. Set `HIGHLIGHTS_GH_TOKEN` (a fine-grained PAT or GitHub App
- * token with `contents:write` on the cici repo). Owner-moderation routes
- * can pass the logged-in user's session token instead via `ownerToken`.
+ * Reads work with no token on a **public** content repo (unauthenticated
+ * Octokit). Writes require a token: the logged-in owner's session token
+ * (passed via `ownerToken`), `CICI_TOKEN`, or `HIGHLIGHTS_GH_TOKEN`. With no
+ * token the repo is read-only and `save()` throws — so anonymous visitors can
+ * read inline comments but only the owner can add or moderate them.
  *
  * Reads are cached in-memory for 30 s to keep GitHub reads off the hot path.
  */
@@ -165,6 +166,9 @@ export class GitHubHighlightsRepo implements HighlightsRepo {
     private octokit: OctokitLike,
     private owner: string,
     private repo: string = REPO,
+    /** When true, the backing Octokit is unauthenticated: reads work on a
+     * public repo but `save()` throws. */
+    private readOnly: boolean = false,
   ) {}
 
   async load(postId: string): Promise<LoadedHighlights> {
@@ -194,6 +198,11 @@ export class GitHubHighlightsRepo implements HighlightsRepo {
     commitMessage: string,
   ): Promise<SaveResult> {
     assertSafePostId(postId)
+    if (this.readOnly) {
+      throw new Error(
+        'Highlights are read-only: no write token available. Sign in as the repo owner to add or moderate inline comments.',
+      )
+    }
     const validated = PostHighlightsSchema.parse(data)
     const content = Buffer.from(JSON.stringify(validated, null, 2)).toString('base64')
 
@@ -263,8 +272,9 @@ export interface GetRepoOptions {
 /**
  * Pick a `HighlightsRepo` for the current environment.
  *
- * Throws if production env vars are missing, so the API route surfaces a
- * clear error rather than silently failing the way `updateLikes` does.
+ * On a GitHub backend with no token, returns a read-only repo backed by an
+ * unauthenticated Octokit — reads render on a public content repo, and
+ * `save()` throws so only the owner (session token) can write.
  */
 export function getHighlightsRepo(opts: GetRepoOptions = {}): HighlightsRepo {
   const cfg = resolveRuntimeConfig(opts.ownerToken)
@@ -273,19 +283,12 @@ export function getHighlightsRepo(opts: GetRepoOptions = {}): HighlightsRepo {
     if (typeof window === 'undefined') {
       return new LocalFsHighlightsRepo(cfg.dir)
     }
-  } else {
-    const token = opts.ownerToken ?? cfg.token ?? process.env.HIGHLIGHTS_GH_TOKEN
-    if (!token) {
-      throw new Error(
-        'HIGHLIGHTS_GH_TOKEN not configured. Inline comments require a service token in production.',
-      )
-    }
-    return new GitHubHighlightsRepo(new Octokit({ auth: token }), cfg.owner, cfg.repo)
+    // Local backend reached in a browser context — the local FS repo is
+    // server-only, so there's nothing usable here.
+    throw new Error('Local highlights repo is server-only.')
   }
 
-  // Local backend reached in a browser context — the local FS repo is
-  // server-only, so there's nothing usable here.
-  throw new Error(
-    'HIGHLIGHTS_GH_TOKEN not configured. Inline comments require a service token in production.',
-  )
+  const token = opts.ownerToken ?? cfg.token ?? process.env.HIGHLIGHTS_GH_TOKEN
+  const octokit = token ? new Octokit({ auth: token }) : new Octokit()
+  return new GitHubHighlightsRepo(octokit, cfg.owner, cfg.repo, !token)
 }

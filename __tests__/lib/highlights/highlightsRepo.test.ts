@@ -293,4 +293,34 @@ describe('GitHubHighlightsRepo', () => {
       expect(mockRepos.createOrUpdateFileContents).not.toHaveBeenCalled()
     })
   })
+
+  describe('read-only (no write token, public repo)', () => {
+    let readOnlyRepo: GitHubHighlightsRepo
+
+    beforeEach(() => {
+      readOnlyRepo = new GitHubHighlightsRepo(
+        { repos: mockRepos } as OctokitLike,
+        'test-owner',
+        'cici',
+        true,
+      )
+    })
+
+    it('still loads highlights (reads work unauthenticated)', async () => {
+      const data = makePostHighlights('post-a')
+      mockRepos.getContent.mockResolvedValueOnce(fileResponse(JSON.stringify(data), 'sha-ro'))
+
+      const result = await readOnlyRepo.load('post-a')
+
+      expect(result.data).toEqual(data)
+      expect(result.sha).toBe('sha-ro')
+    })
+
+    it('throws on save without ever calling octokit', async () => {
+      await expect(
+        readOnlyRepo.save('post-a', makePostHighlights('post-a'), null, 'msg'),
+      ).rejects.toThrow(/read-only/)
+      expect(mockRepos.createOrUpdateFileContents).not.toHaveBeenCalled()
+    })
+  })
 })
