@@ -235,12 +235,24 @@ function runBuild() {
   }
 
   // 5. Top-level build output config: serve files first, else the function.
+  //    `images` lets Vercel's built-in Image Optimization serve `/_next/image`
+  //    (the standalone function has no `sharp`, so without this next/image 404s).
+  //    remotePatterns mirror next.config (any host); sizes are the Next defaults.
   const config = {
     version: 3,
     routes: [
       { handle: 'filesystem' },
       { src: '/(.*)', dest: '/index' },
     ],
+    images: {
+      sizes: [16, 32, 48, 64, 96, 128, 256, 384, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+      remotePatterns: [
+        { protocol: 'https', hostname: '**' },
+        { protocol: 'http', hostname: '**' },
+      ],
+      minimumCacheTTL: 60,
+      formats: ['image/webp'],
+    },
   }
   fs.writeFileSync(path.join(outDir, 'config.json'), JSON.stringify(config, null, 2) + '\n')
 
