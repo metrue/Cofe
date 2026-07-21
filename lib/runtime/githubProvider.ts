@@ -210,7 +210,7 @@ export class GitHubProvider implements ContentProvider {
 
   highlights(): HighlightsRepo {
     // Unauthenticated Octokit still reads public content; writes need the token.
-    return new GitHubHighlightsRepo(getOctokit(this.token as string), this.owner)
+    return new GitHubHighlightsRepo(getOctokit(this.token as string), this.owner, this.repo)
   }
 
   // --- private helpers ---
