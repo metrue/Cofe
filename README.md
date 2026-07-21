@@ -52,7 +52,7 @@ no fork of this repo.
 {
   "private": true,
   "scripts": { "build": "cici build" },
-  "dependencies": { "cici": "^0.4.2" }
+  "dependencies": { "cici": "^0.4.3" }
 }
 ```
 
@@ -70,10 +70,14 @@ as one function plus static assets. Vercel serves it directly.
 | Var | Value |
 |-----|-------|
 | `CICI_REPO` | `owner/name` of your content repo |
-| `CICI_TOKEN` | GitHub token with **Contents: read & write** on that repo (renders a private repo + powers `/editor`) |
-| `NEXTAUTH_SECRET` | any random string |
+| `GITHUB_ID` / `GITHUB_SECRET` | a [GitHub OAuth app](https://github.com/settings/developers) (callback `<site>/api/auth/callback/github`) — `/editor` sign-in |
+| `NEXTAUTH_SECRET` | any random string (signs the session) |
 | `NEXTAUTH_URL` | your site URL, e.g. `https://blog.example.com` |
-| `GITHUB_ID` / `GITHUB_SECRET` | a [GitHub OAuth app](https://github.com/settings/developers) (callback `<site>/api/auth/callback/github`) — for `/editor` sign-in |
+| `CICI_TOKEN` | **Optional — private repos only.** GitHub token with **Contents: read & write**. A public content repo needs no token: cici reads it anonymously, and `/editor` commits with your GitHub sign-in. |
+
+If your content repo is **public**, that's the recommended setup — no server token to
+manage, and only you (the repo owner, via sign-in) can publish. Reads work for everyone,
+writes only for whoever can push to the repo.
 
 Deploy. cici reads your content from `CICI_REPO` at request time, so edits (via `/editor`
 or a `git push`) show up without a redeploy.
