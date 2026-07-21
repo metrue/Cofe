@@ -145,12 +145,12 @@ function runStart() {
  * `cici build` — stage cici's prebuilt Next output into the CONSUMER's current
  * directory so a host (e.g. Vercel) can serve the content repo with cici's tooling.
  *
- * cici publishes its prebuilt standalone server; a content repo doesn't rebuild
+ * cici publishes its full prebuilt Next output; a content repo doesn't rebuild
  * Next itself — it just needs cici's compiled output copied alongside its content.
- * We copy the three deployable artifacts into the cwd:
- *   <cici>/.next/standalone → <cwd>/.next/standalone
- *   <cici>/.next/static     → <cwd>/.next/static
- *   <cici>/public           → <cwd>/public
+ * We copy the whole build into the cwd:
+ *   <cici>/.next → <cwd>/.next   (manifests + server + static + standalone)
+ *   <cici>/public → <cwd>/public
+ * The host's Next.js builder then consumes .next (routes-manifest.json, etc.).
  */
 function runBuild() {
   const server = serverPath()
@@ -164,8 +164,10 @@ function runBuild() {
 
   const cwd = process.cwd()
   const copies = [
-    { from: path.join(CICI_ROOT, '.next', 'standalone'), to: path.join(cwd, '.next', 'standalone') },
-    { from: path.join(CICI_ROOT, '.next', 'static'), to: path.join(cwd, '.next', 'static') },
+    // Copy the FULL prebuilt .next (manifests, server chunks, static, standalone)
+    // so the host's Next.js builder (e.g. Vercel) finds routes-manifest.json etc.
+    // and turns it into functions — no re-build, the app is already compiled here.
+    { from: path.join(CICI_ROOT, '.next'), to: path.join(cwd, '.next') },
     { from: path.join(CICI_ROOT, 'public'), to: path.join(cwd, 'public') },
   ]
 
