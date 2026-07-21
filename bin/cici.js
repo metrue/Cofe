@@ -39,8 +39,8 @@ Commands:
   (default)          Serve a --dir or --repo target (see below)
   start              Boot the server from preset env (CICI_REPO/CICI_TOKEN/CICI_DIR/
                      PORT/HOST) — for platform deploys where the host sets env
-  build              Stage cici's prebuilt Next output (.next/standalone, .next/static,
-                     public) into the current directory so a host (e.g. Vercel) can serve it
+  build              Emit the Vercel Build Output API (.vercel/output) into the current
+                     directory so a content-only repo deploys on Vercel without app source
 
 Targets (exactly one required for the default command):
   --dir <path>       Local content folder (contains blog/, memos.json, …)
@@ -142,49 +142,119 @@ function runStart() {
 }
 
 /**
- * `cici build` — stage cici's prebuilt Next output into the CONSUMER's current
- * directory so a host (e.g. Vercel) can serve the content repo with cici's tooling.
+ * `cici build` — emit the Vercel Build Output API (`.vercel/output`) into the
+ * CONSUMER's current directory so a content-only repo deploys on Vercel WITHOUT
+ * shipping cici's app source and WITHOUT Vercel running its Next.js builder.
  *
- * cici publishes its full prebuilt Next output; a content repo doesn't rebuild
- * Next itself — it just needs cici's compiled output copied alongside its content.
- * We copy the whole build into the cwd:
- *   <cici>/.next → <cwd>/.next   (manifests + server + static + standalone)
- *   <cici>/public → <cwd>/public
- * The host's Next.js builder then consumes .next (routes-manifest.json, etc.).
+ * cici ships a self-contained Next standalone server (server.js + node_modules +
+ * .next/). Rather than hand Vercel a prebuilt `.next` (whose baked build-machine
+ * paths break Vercel's Next builder), we package that standalone as a single Node
+ * serverless function and drop the static assets into a static dir. Vercel serves
+ * the result directly from the Build Output API.
+ *
+ * Sources (inside the installed cici package = CICI_ROOT):
+ *   <cici>/.next/standalone  — self-contained server (server.js, node_modules, .next/)
+ *   <cici>/.next/static      — hashed client assets (served at /_next/static)
+ *   <cici>/public            — static public files (served at /)
+ *
+ * Produces (in <cwd>/.vercel/output, cleaned first):
+ *   functions/index.func/    — the standalone dir + a Node handler wrapping it
+ *   static/                  — _next/static + public files
+ *   config.json              — routes: filesystem first, else the function
  */
 function runBuild() {
-  const server = serverPath()
-  if (!fs.existsSync(server)) {
+  const cwd = process.cwd()
+  const nextDir = path.join(CICI_ROOT, '.next')
+  const standalone = path.join(nextDir, 'standalone')
+  const standaloneServer = path.join(standalone, 'server.js')
+
+  if (!fs.existsSync(standaloneServer)) {
     fail(
-      'cannot build: cici has no prebuilt server (.next/standalone/server.js).\n' +
+      'cannot build: cici has no prebuilt standalone server (.next/standalone/server.js).\n' +
       '  This normally ships inside the installed `cici` package. If you are running\n' +
       '  from source, build it first with `npm run build:cli`.'
     )
   }
 
-  const cwd = process.cwd()
-  const copies = [
-    // Copy the FULL prebuilt .next (manifests, server chunks, static, standalone)
-    // so the host's Next.js builder (e.g. Vercel) finds routes-manifest.json etc.
-    // and turns it into functions — no re-build, the app is already compiled here.
-    { from: path.join(CICI_ROOT, '.next'), to: path.join(cwd, '.next') },
-    { from: path.join(CICI_ROOT, 'public'), to: path.join(cwd, 'public') },
-  ]
+  const outDir = path.join(cwd, '.vercel', 'output')
+  const fnDir = path.join(outDir, 'functions', 'index.func')
+  const staticOut = path.join(outDir, 'static')
+  const ciciStatic = path.join(nextDir, 'static')
+  const ciciPublic = path.join(CICI_ROOT, 'public')
 
-  const done = []
-  for (const { from, to } of copies) {
-    if (!fs.existsSync(from)) continue
-    fs.mkdirSync(path.dirname(to), { recursive: true })
-    fs.rmSync(to, { recursive: true, force: true })
-    fs.cpSync(from, to, { recursive: true })
-    done.push(path.relative(cwd, to) || to)
+  // Clean any prior output so stale files never leak into a deploy.
+  fs.rmSync(outDir, { recursive: true, force: true })
+
+  // 1. Function: the entire self-contained standalone dir.
+  fs.mkdirSync(fnDir, { recursive: true })
+  fs.cpSync(standalone, fnDir, { recursive: true })
+
+  // The runtime server reads .next/static relative to its dir — ensure it's present.
+  if (fs.existsSync(ciciStatic)) {
+    fs.cpSync(ciciStatic, path.join(fnDir, '.next', 'static'), { recursive: true })
   }
 
+  // 2. Handler: boot the standalone Next server as a plain Node request handler.
+  const handler = [
+    "const path = require('path')",
+    "process.env.NODE_ENV = 'production'",
+    'process.chdir(__dirname)',
+    "const NextServer = require('next/dist/server/next-server').default",
+    'let conf = {}',
+    "try { conf = require('./.next/required-server-files.json').config } catch (e) {}",
+    'const app = new NextServer({ dir: __dirname, dev: false, conf, customServer: false })',
+    'const handler = app.getRequestHandler()',
+    'module.exports = (req, res) => handler(req, res)',
+    '',
+  ].join('\n')
+  fs.writeFileSync(path.join(fnDir, 'index.js'), handler)
+
+  // 3. Function config for the Vercel Node runtime.
+  const vcConfig = {
+    runtime: 'nodejs22.x',
+    handler: 'index.js',
+    launcherType: 'Nodejs',
+    shouldAddHelpers: false,
+    supportsResponseStreaming: true,
+  }
+  fs.writeFileSync(path.join(fnDir, '.vc-config.json'), JSON.stringify(vcConfig, null, 2) + '\n')
+
+  // 4. Static assets: hashed client bundles + public files.
+  fs.mkdirSync(staticOut, { recursive: true })
+  let staticCopied = false
+  let publicCopied = false
+  if (fs.existsSync(ciciStatic)) {
+    fs.cpSync(ciciStatic, path.join(staticOut, '_next', 'static'), { recursive: true })
+    staticCopied = true
+  }
+  if (fs.existsSync(ciciPublic)) {
+    for (const entry of fs.readdirSync(ciciPublic)) {
+      fs.cpSync(path.join(ciciPublic, entry), path.join(staticOut, entry), { recursive: true })
+    }
+    publicCopied = true
+  }
+
+  // 5. Top-level build output config: serve files first, else the function.
+  const config = {
+    version: 3,
+    routes: [
+      { handle: 'filesystem' },
+      { src: '/(.*)', dest: '/index' },
+    ],
+  }
+  fs.writeFileSync(path.join(outDir, 'config.json'), JSON.stringify(config, null, 2) + '\n')
+
+  const rel = (p) => path.relative(cwd, p) || p
   process.stdout.write(
-    `\n  cici ${pkg.version} build\n` +
-    `  staged cici's prebuilt output into ${cwd}\n` +
-    (done.length ? done.map((d) => `    ✓ ${d}\n`).join('') : '    (nothing to copy)\n') +
-    `\n  A host can now serve this directory (server entry: .next/standalone/server.js).\n\n`
+    `\n  cici ${pkg.version} build — Vercel Build Output API\n` +
+    `  emitted ${rel(outDir)}\n` +
+    `    ✓ ${rel(path.join(fnDir, 'index.js'))} (Node function handler)\n` +
+    `    ✓ ${rel(path.join(fnDir, '.vc-config.json'))} (runtime config)\n` +
+    `    ✓ ${rel(fnDir)}/ (standalone server + node_modules)\n` +
+    `    ${staticCopied ? '✓' : '·'} ${rel(path.join(staticOut, '_next', 'static'))}${staticCopied ? '' : ' (no .next/static)'}\n` +
+    `    ${publicCopied ? '✓' : '·'} public files → ${rel(staticOut)}${publicCopied ? '' : ' (no public/)'}\n` +
+    `    ✓ ${rel(path.join(outDir, 'config.json'))}\n` +
+    `\n  Deploy on Vercel with no app source — it serves .vercel/output directly.\n\n`
   )
 }
 
