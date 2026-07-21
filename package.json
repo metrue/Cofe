@@ -1,6 +1,6 @@
 {
   "name": "cici",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": false,
   "description": "cici — a git-backed blog CMS (pure tooling; your posts live in a separate content repo). Run `npx cici --dir <dir>` or `--repo <owner/name>` to serve/edit, or `cici build` / `cici start` to deploy.",
   "repository": {
@@ -16,7 +16,8 @@
   },
   "files": [
     "bin/",
-    ".next/standalone/"
+    ".next/",
+    "public/"
   ],
   "engines": {
     "node": ">=18.17.0"
@@ -33,8 +34,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "assemble": "node scripts/assemble-standalone.js",
-    "build:cli": "next build && node scripts/assemble-standalone.js",
-    "prepack": "next build && node scripts/assemble-standalone.js"
+    "build:cli": "next build && node scripts/assemble-standalone.js && rm -rf .next/cache",
+    "prepack": "next build && node scripts/assemble-standalone.js && rm -rf .next/cache"
   },
   "dependencies": {
     "@auth/core": "^0.34.2",
