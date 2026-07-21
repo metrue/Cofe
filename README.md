@@ -10,15 +10,17 @@ repo ships only the app plus a tiny `sample-content/` demo used for local dev an
 
 ## Content layout
 
-A cici "content root" is just a folder (or a Git repo) shaped like this:
+Your content lives under a **`data/`** folder — in a Git repo this sits at the repo root,
+and it's exactly what a deploy serves:
 
 ```
-blog/            # one <slug>.md per post (front-matter + Markdown)
-memos.json       # short-form memos
-site-config.json # title, author, social links (optional)
-highlights/      # one <slug>.json per post (optional)
-likes.json       # like counts (optional)
-assets/          # images uploaded from the editor (local mode)
+data/
+  blog/            # one <slug>.md per post (front-matter + Markdown)
+  memos.json       # short-form memos
+  site-config.json # title, author, social links (optional)
+  highlights/      # one <slug>.json per post (optional)
+  likes.json       # like counts (optional)
+  assets/          # images uploaded from the editor (local mode)
 ```
 
 ## Use it locally
@@ -26,10 +28,11 @@ assets/          # images uploaded from the editor (local mode)
 Run cici against a local folder or a GitHub repo — no clone, no build:
 
 ```bash
-# Serve AND edit a local folder (open /editor to write; changes save to disk)
-npx cici --dir ~/my-blog
+# Serve AND edit local content (open /editor to write; changes save to disk).
+# --dir points at the folder that contains blog/ — in a content repo that's data/:
+npx cici --dir ./data
 
-# Serve a GitHub content repo (read-only)
+# Serve a GitHub content repo (reads its data/ automatically, read-only)
 npx cici --repo owner/name
 
 # ...with a token, edit it too (commits back to the repo)
