@@ -16,6 +16,7 @@
     "howItWorksStep4": "Verileriniz cici'den ayrı olarak GitHub deponuzda saklanır.",
     "signInWithGitHub": "GitHub ile giriş yap",
     "redirecting": "Yönlendiriliyor...",
+    "saving": "Kaydediliyor...",
     "publishing": "Yayınlanıyor...",
     "successPublished": "Başarıyla yayınlandı! Görünmesi 30 saniyeye kadar sürebilir. Hemen görmezseniz yenileyin.",
     "failedPublish": "Yayınlama başarısız oldu",

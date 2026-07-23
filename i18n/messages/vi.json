@@ -16,6 +16,7 @@
     "howItWorksStep4": "Dữ liệu của bạn được lưu trữ trong kho lưu trữ GitHub của bạn, tách biệt với cici.",
     "signInWithGitHub": "Đăng nhập bằng GitHub",
     "redirecting": "Đang chuyển hướng...",
+    "saving": "Đang lưu...",
     "publishing": "Đang xuất bản...",
     "successPublished": "Xuất bản thành công! Có thể mất đến 30 giây để xuất hiện. Làm mới nếu bạn không thấy ngay lập tức.",
     "failedPublish": "Xuất bản thất bại",

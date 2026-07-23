@@ -16,6 +16,7 @@
     "howItWorksStep4": "Tus datos se almacenan en tu repositorio de GitHub, separado de cici.",
     "signInWithGitHub": "Iniciar sesión con GitHub",
     "redirecting": "Redirigiendo...",
+    "saving": "Guardando...",
     "publishing": "Publicando...",
     "successPublished": "¡Publicado con éxito! Puede tardar hasta 30 segundos en aparecer. Actualiza si no lo ves de inmediato.",
     "failedPublish": "Error al publicar",
