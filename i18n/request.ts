@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 
 export default getRequestConfig(async () => {
   // Get browser's Accept-Language header
-  const acceptLanguage = headers().get('Accept-Language');
+  const acceptLanguage = (await headers()).get('Accept-Language');
   let browserLocale = acceptLanguage ? acceptLanguage.split(',')[0] : 'en';
 
   // Special handling for Chinese locales

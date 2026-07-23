@@ -8,8 +8,9 @@ import { readLocalAsset } from '@/lib/localAssets'
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params: paramsPromise }: { params: Promise<{ path: string[] }> }
 ) {
+  const params = await paramsPromise
   if (!isLocalMode()) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }

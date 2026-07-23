@@ -4,7 +4,7 @@ import { getDynamicBaseUrl } from '@/lib/siteConfig'
 export const revalidate = 3600 // Revalidate every hour
 
 export async function GET() {
-  const baseUrl = getDynamicBaseUrl()
+  const baseUrl = await getDynamicBaseUrl()
 
   try {
     const client = getProvider()

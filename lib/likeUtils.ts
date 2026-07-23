@@ -33,8 +33,7 @@ export function getClientIP(request: NextRequest): string {
     cfConnectingIP ||                    // Cloudflare
     forwarded?.split(',')[0]?.trim() ||  // Load balancer/proxy
     realIP ||                           // Nginx
-    request.ip ||                       // Direct connection
-    '127.0.0.1'                        // Fallback
+    '127.0.0.1'                        // Fallback (Next 15 removed NextRequest.ip)
   )
   
   return ip

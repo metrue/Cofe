@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next'
 import { getDynamicBaseUrl } from '@/lib/siteConfig'
 
-export default function robots(): MetadataRoute.Robots {
-  const baseUrl = getDynamicBaseUrl()
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const baseUrl = await getDynamicBaseUrl()
   
   return {
     rules: {

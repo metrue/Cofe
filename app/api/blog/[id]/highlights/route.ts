@@ -30,9 +30,10 @@ const CreateHighlightBody = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const params = await paramsPromise
     const repo = getHighlightsRepo()
     const { data } = await repo.load(params.id)
     const identity = extractIdentity(request)
@@ -51,9 +52,10 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const params = await paramsPromise
     const body = await parseBody(req, CreateHighlightBody)
     if (body.website && body.website.length > 0) {
       return apiError('Rejected', 400)

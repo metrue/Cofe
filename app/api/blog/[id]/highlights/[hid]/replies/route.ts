@@ -24,9 +24,10 @@ const ReplyBody = z.object({
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string; hid: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string; hid: string }> },
 ) {
   try {
+    const params = await paramsPromise
     const body = await parseBody(req, ReplyBody)
     if (body.website && body.website.length > 0) {
       return apiError('Rejected', 400)

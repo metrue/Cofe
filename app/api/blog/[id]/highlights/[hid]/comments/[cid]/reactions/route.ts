@@ -19,9 +19,10 @@ const ReactionBody = z.object({
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string; hid: string; cid: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string; hid: string; cid: string }> },
 ) {
   try {
+    const params = await paramsPromise
     const body = await parseBody(req, ReactionBody)
     const identity = extractIdentity(req)
 

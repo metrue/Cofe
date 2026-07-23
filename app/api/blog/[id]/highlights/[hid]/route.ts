@@ -5,9 +5,10 @@ import { apiError, apiErrorFrom, apiOk, getOwnerToken, isOwner } from '@/lib/hig
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string; hid: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string; hid: string }> },
 ) {
   try {
+    const params = await paramsPromise
     if (!(await isOwner())) return apiError('Owner authentication required', 403)
 
     const ownerToken = await getOwnerToken()
