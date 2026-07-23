@@ -26,9 +26,9 @@ export function getSiteConfig(): SiteConfig {
   return siteConfig
 }
 
-export function getDynamicBaseUrl(): string {
+export async function getDynamicBaseUrl(): Promise<string> {
   try {
-    const headersList = headers()
+    const headersList = await headers()
     const host = headersList.get('host')
     const protocol = headersList.get('x-forwarded-proto') || 'http'
     

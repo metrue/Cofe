@@ -2,11 +2,11 @@ import { getProvider } from '@/lib/runtime/provider'
 import { getDynamicBaseUrl } from '@/lib/siteConfig'
 import type { BlogPost } from '@/lib/types'
 
-export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 3600
+export const revalidate = 3600
 
 export async function GET() {
   const client = getProvider()
-  const baseUrl = getDynamicBaseUrl()
+  const baseUrl = await getDynamicBaseUrl()
 
   let posts: BlogPost[] = []
   try {

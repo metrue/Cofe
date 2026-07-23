@@ -18,9 +18,10 @@ const ResolveBody = z.object({
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string; hid: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string; hid: string }> },
 ) {
   try {
+    const params = await paramsPromise
     if (!(await isOwner())) return apiError('Owner authentication required', 403)
     const body = await parseBody(req, ResolveBody)
 

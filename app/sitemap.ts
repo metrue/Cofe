@@ -5,7 +5,7 @@ import { getDynamicBaseUrl } from '@/lib/siteConfig'
 export const revalidate = 3600 // Revalidate every hour
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = getDynamicBaseUrl()
+  const baseUrl = await getDynamicBaseUrl()
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [

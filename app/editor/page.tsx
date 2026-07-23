@@ -7,10 +7,11 @@ import { getProvider } from "@/lib/runtime/provider";
 export default async function EditorPage({
   searchParams,
 }: {
-  searchParams: { type?: string };
+  searchParams: Promise<{ type?: string }>;
 }) {
   const session = await getServerSession(authOptions);
-  const defaultType = searchParams.type === "blog" ? "blog" : "memo";
+  const { type } = await searchParams;
+  const defaultType = type === "blog" ? "blog" : "memo";
 
   // Editing requires a writable provider (local, or GitHub with a token).
   if (!getProvider(session?.accessToken).canWrite()) {

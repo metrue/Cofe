@@ -1,4 +1,6 @@
 import createNextIntlPlugin from 'next-intl/plugin'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
 const withNextIntl = createNextIntlPlugin()
 
@@ -8,6 +10,11 @@ const nextConfig = {
   // Standalone output powers the `npx cici` CLI: a self-contained server that
   // can serve any `--data <dir>` at runtime. Vercel handles this output natively.
   output: 'standalone',
+  // Pin the file-tracing root to this project so Next doesn't infer a parent
+  // directory as the workspace root when a stray lockfile exists elsewhere
+  // (e.g. a user's home dir) — that misdetection pulled a foreign Next version
+  // in issue #111. Top-level in Next 15 (was experimental.* in 14).
+  outputFileTracingRoot: path.dirname(fileURLToPath(import.meta.url)),
   // Route the ISR/fetch cache to os.tmpdir() — the standalone server runs from a
   // read-only FS on Vercel (/var/task), so the default .next/cache mkdir fails.
   cacheHandler: new URL('./cache-handler.cjs', import.meta.url).pathname,

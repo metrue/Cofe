@@ -36,7 +36,7 @@ export default async function BlogDiscussions({ discussions }: BlogDiscussionsPr
   }
 
   // Get the client's User-Agent from the request headers
-  const headersList = headers()
+  const headersList = await headers()
   const clientUserAgent = headersList.get('user-agent')
   
   // Use a convincing browser User-Agent fallback for cases where client UA is missing or blocked
