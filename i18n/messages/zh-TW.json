@@ -16,6 +16,7 @@
       "howItWorksStep4": "您的數據存儲在您的 GitHub 儲存庫中，與 cici 分開。",
       "signInWithGitHub": "使用GitHub登入",
       "redirecting": "重定向中...",
+      "saving": "儲存中...",
       "publishing": "發佈中...",
       "successPublished": "發佈成功！可能需要長達30秒的時間才能顯示。如果沒有立即看到，請刷新。",
       "failedPublish": "發佈失敗",

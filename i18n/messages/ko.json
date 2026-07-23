@@ -16,6 +16,7 @@
     "howItWorksStep4": "귀하의 데이터는 cici와 별개로 GitHub 저장소에 저장됩니다.",
     "signInWithGitHub": "GitHub로 로그인",
     "redirecting": "리다이렉팅 중...",
+    "saving": "저장 중...",
     "publishing": "게시 중...",
     "successPublished": "성공적으로 게시되었습니다! 표시되는 데 최대 30초가 걸릴 수 있습니다. 즉시 보이지 않으면 새로고침하세요.",
     "failedPublish": "게시 실패했습니다",
